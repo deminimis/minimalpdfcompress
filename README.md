@@ -3,13 +3,7 @@
 ## Overview
 Minimal PDF Compress is a user-friendly, graphical desktop application designed to simplify PDF compression and conversion tasks using Ghostscript on Windows. It allows users to compress PDF files or convert them to PDF/A format with customizable options, all through an intuitive GUI (Graphical User Interface). Built with Python and Tkinter, this tool eliminates the need for command-line interactions, making PDF processing accessible to everyone.
 
-## Why It's Important for Users Afraid of the Command Prompt
-For many users, the command prompt can be intimidating due to its text-based nature, complex syntax, and lack of immediate feedback. Ghostscript, while powerful, typically requires command-line expertise to perform tasks like PDF compression or conversion to PDF/A. Minimal PDF Compress addresses this by:
-
-- **Simplifying Interaction**: It provides a clean, point-and-click interface where users can select files or folders, choose options, and process PDFs without typing a single command.
-- **Reducing Errors**: The GUI handles Ghostscript command construction, preventing syntax errors common in manual command-line usage.
-- **Providing Feedback**: Users receive real-time status updates directly in the interface.
-- **Offering Advanced Options**: It exposes advanced Ghostscript settings (like resolution, downscaling, and color strategies) in a user-friendly way, allowing non-technical users to fine-tune results without understanding command-line flags. Since Ghostscript is installed on the user machine, CLI can still be accessed as normal. 
+For many users, the command prompt can be intimidating due to its text-based nature, complex syntax, and lack of immediate feedback. Ghostscript, while powerful, typically requires command-line expertise to perform tasks like PDF compression or conversion to PDF/A. 
 
 
 ## How to Use
