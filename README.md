@@ -10,7 +10,7 @@ For many users, the command prompt can be intimidating due to its text-based nat
 
 ### Installation
 
-1. Download the prebuilt `Minimal PDF Compress.exe` from the [Releases page](https://github.com/deminimis/minimal-pdf-compress/releases).
+1. Download the prebuilt `Minimal PDF Compress.exe` from the [Releases page](https://github.com/deminimis/minimalpdfcompress/releases).
 2. Double-click `Minimal PDF Compress.exe` to launch the app. 
 3. It will prompt you to download Ghostscript if you haven't already.
 
