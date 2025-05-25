@@ -1,5 +1,8 @@
 # Minimal PDF Compress
 
+<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pdf.png?raw=true" alt="Project Logo" width="250">
+
+
 ## Overview
 Minimal PDF Compress is a user-friendly, graphical desktop application designed to simplify PDF compression and conversion tasks using Ghostscript on Windows. It allows users to compress PDF files or convert them to PDF/A format with customizable options, all through an intuitive GUI (Graphical User Interface). Built with Python and Tkinter, this tool eliminates the need for command-line interactions, making PDF processing accessible to everyone.
 
@@ -21,18 +24,8 @@ For many users, the command prompt can be intimidating due to its text-based nat
 - **Windows OS**: The app is currently optimized for Windows, as it uses `gswin64c.exe` and Windows-specific paths/registry checks. It may require modifications for macOS/Linux.
 
 
+![Alt text](https://github.com/deminimis/minimalpdfcompress/blob/main/assets/screenshot1.png) ![Alt text](https://github.com/deminimis/minimalpdfcompress/blob/main/assets/screenshot2.png)
 
-#### Building the Executable Yourself
-To create a portable `.exe`:
-1. Install PyInstaller:
-   ```bash
-   pip install pyinstaller
-   ```
-2. Run the following command in the directory containing `ghostscript_gui.py` and `pdf.ico`:
-   ```bash
-   pyinstaller --onefile --noconsole --icon=pdf.ico --add-data "pdf.ico;." --name "Minimal PDF Compress" ghostscript_gui.py
-   ```
-3. Find the `.exe` in the `dist` folder and distribute/run it.
 
 
 ### Usage Guide
@@ -72,6 +65,20 @@ To create a portable `.exe`:
    - Output files are saved to the specified location.
    - For batch processing, output files are named with prefixes like `out_filename_operation.pdf`.
 
+
+### Building the Executable Yourself
+To create a portable `.exe`:
+1. Install PyInstaller:
+   ```bash
+   pip install pyinstaller
+   ```
+2. Run the following command in the directory containing `ghostscript_gui.py` and `pdf.ico`:
+   ```bash
+   pyinstaller --onefile --noconsole --icon=pdf.ico --add-data "pdf.ico;." --name "Minimal PDF Compress" ghostscript_gui.py
+   ```
+3. Find the `.exe` in the `dist` folder and distribute/run it.
+
+   
 ## Technical Specifications
 
 ### Architecture and Design
