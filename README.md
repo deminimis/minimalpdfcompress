@@ -8,6 +8,9 @@ Minimal PDF Compress is a user-friendly, graphical desktop application designed 
 
 For many users, the command prompt can be intimidating due to its text-based nature, complex syntax, and lack of immediate feedback. Ghostscript, while powerful, typically requires command-line expertise to perform tasks like PDF compression or conversion to PDF/A. 
 
+Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the traditional sense. Instead, it recreates a new PDF that may be smaller due to optimizations like removing unnecessary metadata, simplifying fonts, or recompressing images.
+
+
 
 ## How to Use
 
