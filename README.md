@@ -27,7 +27,7 @@ Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the t
 - **Windows OS**: The app is currently optimized for Windows, as it uses `gswin64c.exe` and Windows-specific paths/registry checks. It may require modifications for macOS/Linux.
 
 
-![Alt text](https://github.com/deminimis/minimalpdfcompress/blob/main/assets/Screenshot1.png) ![Alt text](https://github.com/deminimis/minimalpdfcompress/blob/main/assets/screenshot2.png)
+![Alt text](https://github.com/deminimis/minimalpdfcompress/blob/main/assets/Screenshot1.png) 
 
 
 
