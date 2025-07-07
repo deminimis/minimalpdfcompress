@@ -16,15 +16,14 @@ Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the t
 
 ### Installation
 
-1. Download the prebuilt `Minimal PDF Compress.exe` from the [Releases page](https://github.com/deminimis/minimalpdfcompress/releases).
-2. Double-click `Minimal PDF Compress.exe` to launch the app. 
-3. It will prompt you to download Ghostscript if you haven't already.
+1. Download either the `.zip` or `.exe` from the [Releases page](https://github.com/deminimis/minimalpdfcompress/releases).
+2. Double-click `.exe` to launch the app. 
+3. If you are not using the standalone version, it will prompt you to download Ghostscript if you haven't already.
 
    
 
 ### Prerequisites
-- **Ghostscript**: Ghostscript must be installed to process PDFs. Download and install it from [Ghostscript's official site](https://www.ghostscript.com). The app will prompt you to install it if it’s not found. This has currenlty been developed and tested using [Version 10.05.1](https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/tag/gs10051). 
-- **Windows OS**: The app is currently optimized for Windows, as it uses `gswin64c.exe` and Windows-specific paths/registry checks. It may require modifications for macOS/Linux.
+- **Windows OS**: The app is currently optimized for Windows, as it uses `gswin64c.exe` and Windows-specific paths. It should be very simple to use on Linux if you have Ghostscript installed. If the popularity gets high I will make a Linux version. 
 
 
 ![Alt text](https://github.com/deminimis/minimalpdfcompress/blob/main/assets/Screenshot1.png) 
@@ -34,7 +33,6 @@ Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the t
 ### Usage Guide
 1. **Launch the App**:
    - Open the app via the `.exe` or by running the Python script.
-   - If Ghostscript is not installed, a popup will prompt you to download it with a clickable link.
 2. **Select Input**:
    - Click the "Input File or Folder" button.
    - Choose whether to process a single PDF file or a folder:
@@ -46,9 +44,12 @@ Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the t
    - Click "Browse" to manually choose the output location.
 4. **Choose Operation**:
    - Select the operation from the dropdown:
-     - **Compress PDF**: Reduces file size using Ghostscript’s `/screen` settings.
+     - **Compress (Screen - Smallest Size)**: Best for emailing or on-screen viewing.
+     - **Compress (Ebook - Medium Size)**: Good quality for tablets and e-readers.
+     - **Compress (Printer - High Quality)**: Optimized for printing on standard printers.
+     - **Compress (Prepress - Highest Quality)**: Best quality for professional printing; results in the largest file size.
      - **Convert to PDF/A**: Converts the PDF to PDF/A-1b format for archival purposes.
-5. **Advanced Options (Optional)**:
+5. **Advanced Options**:
    - Check the "Advanced Options" box to reveal additional settings:
      - **Resolution (dpi)**: Choose 72, 150, or 300 dpi.
      - **Downscaling Factor**: Set to 1, 2, or 3 to reduce image resolution.
