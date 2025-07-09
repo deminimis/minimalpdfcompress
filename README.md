@@ -4,11 +4,10 @@
 
 
 ## Overview
-Minimal PDF Compress is a user-friendly, graphical desktop application designed to simplify PDF compression and conversion tasks using Ghostscript on Windows. It allows users to compress PDF files or convert them to PDF/A format with customizable options, all through an intuitive GUI (Graphical User Interface). Built with Python and Tkinter, this tool eliminates the need for command-line interactions, making PDF processing accessible to everyone.
+Minimal PDF Compress is a user-friendly, graphical desktop application designed to simplify PDF compression and conversion tasks using [Ghostscript](https://www.ghostscript.com/) and [Pikepdf](https://github.com/pikepdf/pikepdf). It allows users to compress PDF files or convert them to PDF/A format with customizable options, all through an intuitive GUI (Graphical User Interface). 
 
-For many users, the command prompt can be intimidating due to its text-based nature, complex syntax, and lack of immediate feedback. Ghostscript, while powerful, typically requires command-line expertise to perform tasks like PDF compression or conversion to PDF/A. 
 
-Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the traditional sense. Instead, it recreates a new PDF that may be smaller due to optimizations like removing unnecessary metadata, simplifying fonts, or recompressing images.
+Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the traditional sense. Instead, it recreates a new PDF that is generally smaller due to several optimizations. I added more traditional "compression" with Pikepdf. 
 
 
 
@@ -20,13 +19,15 @@ Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the t
 2. Double-click `.exe` to launch the app. 
 3. If you are not using the standalone version, it will prompt you to download Ghostscript if you haven't already.
 
-   
+
+<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/darkpic.png?raw=true" alt="Dark Picture" style="max-width: 50%;">
+<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/lightpic.png?raw=true" alt="Dark Picture" style="max-width: 50%;">
 
 ### Prerequisites
-- **Windows OS**: The app is currently optimized for Windows, as it uses `gswin64c.exe` and Windows-specific paths. It should be very simple to use on Linux if you have Ghostscript installed. If the popularity gets high I will make a Linux version. 
+- **Windows OS**: The app is currently optimized for Windows, as it uses `gswin64c.exe` and Windows-specific paths. It should be very simple to use on Linux if you have Ghostscript installed. If the popularity gets high I will make a Linux standalone version. 
 
 
-![Alt text](https://github.com/deminimis/minimalpdfcompress/blob/main/assets/Screenshot1.png) 
+
 
 
 
@@ -59,11 +60,13 @@ Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the t
      - **Subset Fonts**: Embeds only used font subsets.
      - **Compress Fonts**: Compresses embedded fonts.
      - **Compress PDF/A Output**: (Available for PDF/A conversion) Applies compression to PDF/A output.
-   - *Note*: Some options (e.g., downscaling factor, color strategy) are constrained for PDF/A to ensure compliance.
+     - **Remove metadata**: Removes any metadata it can. There might not be much it can remove.
+     - **Traditional compression**: Uses Pikepdf after Ghostscript optimizations. 
+   - *Note*: Some options (e.g., downscaling factor, color strategy) are constrained if you are using PDF/A, for PDF/A to ensure compliance.
 6. **Process the PDF(s)**:
    - Click the "Process" button.
    - For folder inputs, confirm batch processing in the popup.
-   - A UAC prompt may appear due to Ghostscript execution (accept it or run as administrator).
+   - A UAC prompt may appear due to Ghostscript execution.
    - The status bar at the bottom will update (e.g., "Processing...", "Complete", or error messages).
 7. **Check Results**:
    - Output files are saved to the specified location.
@@ -78,7 +81,7 @@ To create a portable `.exe`:
    ```
 2. Run the following command in the directory containing `ghostscript_gui.py` and `pdf.ico`:
    ```bash
-   pyinstaller --onefile --noconsole --icon=pdf.ico --add-data "pdf.ico;." --name "Minimal PDF Compress" ghostscript_gui.py
+   pyinstaller --name "Minimal PDF Compress" --onedir --windowed --icon="pdf.ico" --add-data "bin;bin" --add-data "lib;lib" main.py
    ```
 3. Find the `.exe` in the `dist` folder and distribute/run it.
 
@@ -88,7 +91,7 @@ To create a portable `.exe`:
 ### Architecture and Design
 - **Language**: Python 3.10+ (compatible with later versions).
 - **GUI Framework**: Tkinter (standard library) for the interface, with `ttk` widgets for a native look.
-- **External Dependency**: Ghostscript (`gswin64c.exe`) for PDF processing.
+- **External Dependency**: Ghostscript; Pikepdf.
 - **File I/O**: Uses Python’s `pathlib` for cross-platform path handling and `subprocess` for running Ghostscript commands.
 
 ### Code Structure
@@ -111,20 +114,15 @@ To create a portable `.exe`:
   ```bash
   gswin64c.exe -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dNOPAUSE -dBATCH -dQUIET -dSAFER -r150 -dDownScaleFactor=1 -dFastWebView=true -dSubsetFonts=true -dCompressFonts=true -dPDFSETTINGS=/screen -sColorConversionStrategy=LeaveColorUnchanged -sOutputFile=output.pdf input.pdf
   ```
-- **PDF/A Support**: Enforces PDF/A-1b compliance with `-dPDFA=1`, `-dPDFACompatibilityPolicy=1`, and `-sColorConversionStrategy=RGB`.
-- **Batch Processing**: Creates a temporary `.bat` file to execute multiple Ghostscript commands with a single UAC prompt.
+
 
 
 
 ### Limitations and Future Improvements
 - **Platform**: Currently Windows-only due to Ghostscript executable naming (`gswin64c.exe`) and registry checks. Future versions could add macOS/Linux support by detecting `gs` and adjusting paths.
 - **Ghostscript Dependency**: Requires separate installation of Ghostscript. This could be done easily with something like [Inno Setup](https://jrsoftware.org/isinfo.php). A future enhancement could bundle a Ghostscript binary, but I prefer this way as you don't have to put your trust into more entities.
-- **Theme**: Uses Tkinter’s default theme. Advanced users could extend the app to support custom themes.
-- **Performance**: Batch processing timeout is set to 60 seconds per file, which may need adjustment for large PDFs.
 
-### Dependencies (Minimal)
-- **Standard Libraries**: `tkinter`, `pathlib`, `subprocess`, `os`, `sys`, `logging`, `winreg`, `webbrowser`, `tempfile`.
-- **External**: Ghostscript (not bundled).
+
 
 ## Contributing
 Contributions are welcome! Please fork the repository, create a branch, and submit a pull request with your changes. 
