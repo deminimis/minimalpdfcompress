@@ -15,7 +15,7 @@ Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the t
 
 ### Installation
 
-1. Download either the `.zip` or `.exe` from the [Releases page](https://github.com/deminimis/minimalpdfcompress/releases).
+1. 💾 Download the latest version [here](https://github.com/deminimis/minimalpdfcompress/releases).
 2. Double-click `.exe` to launch the app. 
 3. If you are not using the standalone version, it will prompt you to download Ghostscript if you haven't already.
 
