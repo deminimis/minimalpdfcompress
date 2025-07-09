@@ -1,11 +1,18 @@
 import tkinter as tk
 from gui import GhostscriptGUI
+import sys
+import ctypes
 
 if __name__ == "__main__":
-    """
-    Main entry point for the Minimal PDF Compress application.
-    Initializes the Tkinter root window and the main application GUI.
-    """
+    if sys.platform == 'win32':
+        try:
+            ctypes.windll.shcore.SetProcessDpiAwareness(2)
+        except (AttributeError, OSError):
+            try:
+                ctypes.windll.user32.SetProcessDPIAware(True)
+            except:
+                pass
+
     root = tk.Tk()
     app = GhostscriptGUI(root)
     root.mainloop()

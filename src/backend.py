@@ -8,9 +8,9 @@ import webbrowser
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, messagebox
+import pikepdf
 
 def resource_path(relative_path):
-    """Get absolute path to resource, works for dev and PyInstaller."""
     try:
         base_path = Path(sys._MEIPASS) if hasattr(sys, '_MEIPASS') else Path(__file__).parent
         return base_path / relative_path
@@ -19,7 +19,6 @@ def resource_path(relative_path):
         return Path(relative_path)
 
 def find_ghostscript():
-    # This function remains the same
     exe_name = "gswin64c.exe"
     app_root = resource_path('.')
     
@@ -54,7 +53,6 @@ def find_ghostscript():
     return None
 
 def show_ghostscript_download_popup(parent):
-    # This function remains the same
     popup = tk.Toplevel(parent)
     popup.title("Ghostscript Required")
     popup.geometry("450x150")
@@ -66,7 +64,6 @@ def show_ghostscript_download_popup(parent):
     ttk.Button(popup, text="OK", command=popup.destroy).pack(pady=10)
 
 def build_gs_command(gs_path, input_path, output_path, operation, options):
-    # This function remains the same
     cmd = [
         gs_path, "-sDEVICE=pdfwrite", "-dCompatibilityLevel=1.4", "-dNOPAUSE",
         "-dBATCH", "-dQUIET", "-dSAFER", f"-r{options['resolution']}",
@@ -106,18 +103,16 @@ def build_gs_command(gs_path, input_path, output_path, operation, options):
     return cmd
 
 def run_command(command):
-    """Executes a command-line process with no timeout."""
     logging.info(f"Executing command: {command}")
     use_shell = isinstance(command, str)
 
     try:
-        # The 'timeout' parameter has been removed from this call
         subprocess.run(
             command, check=True, capture_output=True, text=True,
             shell=use_shell, creationflags=subprocess.CREATE_NO_WINDOW
         )
     except subprocess.CalledProcessError as e:
-        logging.error(f"Ghostscript failed: {e.stderr}")
+        logging.error(f"Command failed: {e.stderr}")
         if "740" in e.stderr:
              raise Exception("Administrator privileges required.")
         raise Exception(f"Processing failed: {e.stderr}")
@@ -125,16 +120,63 @@ def run_command(command):
         logging.error(f"An unexpected error occurred: {e}")
         raise
 
+def apply_final_processing(file_path, options, use_compression):
+    """
+    Applies all selected pikepdf modifications in one go: rotation, metadata
+    stripping, and final compression.
+    """
+    try:
+        logging.info(f"Applying final processing to {file_path}")
+        pdf = pikepdf.open(file_path, allow_overwriting_input=True)
+        
+        # 1. Apply Rotation
+        angle = options.get('rotation', 0)
+        if angle != 0:
+            logging.info(f"Rotating all pages by {angle} degrees.")
+            for page in pdf.pages:
+                page.rotate(angle, relative=True)
+
+        # 2. Strip Metadata
+        if options.get('strip_metadata', False):
+            logging.info("Stripping metadata.")
+            # --- MODIFIED: More robust error handling for metadata removal ---
+            try:
+                del pdf.Info
+            except Exception as e:
+                logging.info(f"Could not remove Info dictionary (it may not have existed): {e}")
+            try:
+                del pdf.Root.Metadata
+            except Exception as e:
+                logging.info(f"Could not remove XMP Metadata (it may not have existed): {e}")
+            # --- END MODIFICATION ---
+
+        # 3. Save with optional compression
+        save_kwargs = {}
+        if use_compression:
+            logging.info("Applying traditional compression.")
+            save_kwargs['object_stream_mode'] = pikepdf.ObjectStreamMode.generate
+            save_kwargs['compress_streams'] = True
+        
+        # Only save if changes were made
+        if angle != 0 or options.get('strip_metadata', False) or use_compression:
+            pdf.save(file_path, **save_kwargs)
+            logging.info("Final processing successful.")
+        else:
+            logging.info("No final processing options selected. Skipping save.")
+
+    except Exception as e:
+        logging.error(f"pikepdf final processing failed: {e}")
+        raise Exception(f"Final processing step failed: {e}")
+
 def process_single(params):
-    """Process a single PDF file."""
     if not Path(params['input_path']).exists():
         raise FileNotFoundError("Input file does not exist.")
     
-    command = build_gs_command(**params)
+    gs_params = {k: v for k, v in params.items() if k not in ['use_final_compression']}
+    command = build_gs_command(**gs_params)
     run_command(command)
 
 def process_batch(params):
-    """Process all PDFs in a folder and its subfolders."""
     input_folder = Path(params['input_path'])
     output_folder = Path(params['output_path'])
 
@@ -147,40 +189,50 @@ def process_batch(params):
     if not pdf_files:
         raise FileNotFoundError("No PDF files found in the specified folder.")
 
-    commands_to_write = []
+    output_files = []
     for pdf in pdf_files:
         out_name = f"{pdf.stem}_processed.pdf"
-        batch_params = params.copy()
-        batch_params['input_path'] = str(pdf)
-        batch_params['output_path'] = str(output_folder / out_name)
+        output_file_path = output_folder / out_name
         
-        cmd_list = build_gs_command(**batch_params)
-        cmd_str = " ".join(f'"{arg}"' if " " in str(arg) else str(arg) for arg in cmd_list)
-        commands_to_write.append(cmd_str)
-
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.bat', delete=False, encoding='utf-8') as f:
-        f.write("@echo off\n")
-        for cmd in commands_to_write:
-            f.write(f"{cmd}\n")
-            f.write("if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%\n")
-        batch_file_path = f.name
-    
-    try:
-        # Timeout removed from this call as well
-        run_command(batch_file_path)
-        return len(pdf_files)
-    finally:
-        os.unlink(batch_file_path)
+        gs_params = {
+            'gs_path': params['gs_path'],
+            'input_path': str(pdf),
+            'output_path': str(output_file_path),
+            'operation': params['operation'],
+            'options': params['options']
+        }
+        
+        command = build_gs_command(**gs_params)
+        run_command(command)
+        output_files.append(output_file_path)
+        
+    return len(pdf_files), output_files
 
 def run_processing_task(params, is_folder, status_var, completion_callback):
     """A wrapper function to run the correct processing task and handle status updates."""
-    status_var.set("Processing... (This may take a while)")
+    status_var.set("Processing with Ghostscript...")
     try:
+        options = params.get('options', {})
+        use_final_compression = params.get('use_final_compression', False)
+        final_processing_needed = use_final_compression or options.get('rotation', 0) != 0 or options.get('strip_metadata', False)
+
         if is_folder:
-            processed_count = process_batch(params)
+            processed_count, output_files = process_batch(params)
+            
+            if final_processing_needed:
+                status_var.set(f"Applying final processing to {processed_count} files...")
+                for i, file_path in enumerate(output_files):
+                    status_var.set(f"Finalizing file {i+1}/{processed_count}...")
+                    apply_final_processing(file_path, options, use_final_compression)
+            
             status_var.set(f"Complete: Processed {processed_count} files.")
         else:
             process_single(params)
+            
+            if final_processing_needed:
+                status_var.set("Applying final processing...")
+                apply_final_processing(params['output_path'], options, use_final_compression)
+                
             status_var.set(f"Complete: Processed {Path(params['input_path']).name}")
     except Exception as e:
         status_var.set(f"Error: {e}")
