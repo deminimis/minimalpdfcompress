@@ -4,7 +4,7 @@
 
 
 ## Overview
-Minimal PDF Compress is a user-friendly, graphical desktop application designed to simplify PDF compression and conversion tasks using [Ghostscript](https://www.ghostscript.com/) and [Pikepdf](https://github.com/pikepdf/pikepdf). It allows users to compress PDF files or convert them to PDF/A format with customizable options, all through an intuitive GUI (Graphical User Interface). 
+Minimal PDF Compress is a user-friendly, cross-platform application designed to simplify PDF compression and conversion tasks using [Ghostscript](https://www.ghostscript.com/) and [Pikepdf](https://github.com/pikepdf/pikepdf). It allows users to compress PDF files or convert them to PDF/A format with customizable options, all through an intuitive GUI (Graphical User Interface). 
 
 
 Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the traditional sense. Instead, it recreates a new PDF that is generally smaller due to several optimizations. I added more traditional "compression" with Pikepdf. 
@@ -43,6 +43,7 @@ Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the t
    - For a single file, the output path is automatically set to the input file’s directory with a suffix (e.g., `input_out.pdf`).
    - For a folder, the output path defaults to the input folder but can be changed.
    - Click "Browse" to manually choose the output location.
+   - You can also drag and drop a folder or file into the window (Windows only at the moment)
 4. **Choose Operation**:
    - Select the operation from the dropdown:
      - **Compress (Screen - Smallest Size)**: Best for emailing or on-screen viewing.
@@ -61,7 +62,8 @@ Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the t
      - **Compress Fonts**: Compresses embedded fonts.
      - **Compress PDF/A Output**: (Available for PDF/A conversion) Applies compression to PDF/A output.
      - **Remove metadata**: Removes any metadata it can. There might not be much it can remove.
-     - **Traditional compression**: Uses Pikepdf after Ghostscript optimizations. 
+     - **Traditional compression**: Uses Pikepdf after Ghostscript optimizations.
+     - **Overwrite original file**: Overwrites the original file rather than created a new processed file. 
    - *Note*: Some options (e.g., downscaling factor, color strategy) are constrained if you are using PDF/A, for PDF/A to ensure compliance.
 6. **Process the PDF(s)**:
    - Click the "Process" button.
