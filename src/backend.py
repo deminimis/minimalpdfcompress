@@ -1,67 +1,72 @@
 import os
 import sys
 import subprocess
-import tempfile
 import logging
-import winreg
-import webbrowser
+import shutil
+import tempfile
 from pathlib import Path
-import tkinter as tk
-from tkinter import ttk, messagebox
 import pikepdf
+import tkinter as tk
+from tkinter import messagebox
+
+if sys.platform == "win32":
+    import winreg
+
+class GhostscriptNotFound(Exception):
+    pass
+
+class AdminPrivilegesError(Exception):
+    pass
+
+class ProcessingError(Exception):
+    pass
 
 def resource_path(relative_path):
     try:
-        base_path = Path(sys._MEIPASS) if hasattr(sys, '_MEIPASS') else Path(__file__).parent
-        return base_path / relative_path
-    except Exception as e:
-        logging.error(f"Error resolving resource path: {e}")
-        return Path(relative_path)
+        base_path = Path(sys._MEIPASS)
+    except AttributeError:
+        base_path = Path(__file__).parent
+    return base_path / relative_path
 
 def find_ghostscript():
-    exe_name = "gswin64c.exe"
-    app_root = resource_path('.')
-    
-    portable_exe_path = app_root / "bin" / exe_name
-    portable_lib_path = app_root / "lib"
-    if portable_exe_path.exists() and portable_lib_path.exists():
-        logging.info(f"Found portable Ghostscript at: {portable_exe_path}")
-        return str(portable_exe_path)
+    if sys.platform == "win32":
+        exe_name = "gswin64c.exe"
+        app_root = resource_path('.')
+        
+        portable_exe_path = app_root / "bin" / exe_name
+        if portable_exe_path.exists():
+            logging.info(f"Found portable Ghostscript: {portable_exe_path}")
+            return str(portable_exe_path)
 
-    for pf in [os.getenv("ProgramFiles"), os.getenv("ProgramFiles(x86)")]:
-        if pf:
-            for version_dir in ["gs10.05.1", "gs10.04.0", "gs"]:
-                gs_path = Path(pf) / "gs" / version_dir / "bin" / exe_name
-                if gs_path.exists():
-                    logging.info(f"Found installed Ghostscript at: {gs_path}")
-                    return str(gs_path)
+        program_files_paths = [os.getenv("ProgramFiles"), os.getenv("ProgramFiles(x86)")]
+        for pf_path in filter(None, program_files_paths):
+            gs_base_dir = Path(pf_path) / "gs"
+            if gs_base_dir.is_dir():
+                for version_dir in gs_base_dir.glob('gs*'):
+                    gs_exe = version_dir / "bin" / exe_name
+                    if gs_exe.exists():
+                        logging.info(f"Found installed Ghostscript: {gs_exe}")
+                        return str(gs_exe)
+        try:
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Artifex\Ghostscript") as key:
+                for i in range(winreg.QueryInfoKey(key)[0]):
+                    version = winreg.EnumKey(key, i)
+                    with winreg.OpenKey(key, version) as subkey:
+                        gs_dll_path = winreg.QueryValueEx(subkey, "GS_DLL")[0]
+                        gs_path = Path(gs_dll_path).parent.parent / "bin" / exe_name
+                        if gs_path.exists():
+                            logging.info(f"Found Ghostscript via registry: {gs_path}")
+                            return str(gs_path)
+        except FileNotFoundError:
+            logging.debug("Ghostscript not found in registry.")
+    else:
+        exe_name = "gs"
+        gs_path = shutil.which(exe_name)
+        if gs_path:
+            logging.info(f"Found Ghostscript in PATH: {gs_path}")
+            return str(gs_path)
 
-    try:
-        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Artifex\Ghostscript") as key:
-            for i in range(winreg.QueryInfoKey(key)[0]):
-                version = winreg.EnumKey(key, i)
-                with winreg.OpenKey(key, version) as subkey:
-                    gs_dll_path = winreg.QueryValueEx(subkey, "GS_DLL")[0]
-                    gs_path = Path(gs_dll_path).parent.parent / "bin" / exe_name
-                    if gs_path.exists():
-                        logging.info(f"Found Ghostscript via registry: {gs_path}")
-                        return str(gs_path)
-    except Exception:
-        logging.debug("Ghostscript not found in registry.")
-
-    logging.error("Ghostscript executable not found in any standard location.")
-    return None
-
-def show_ghostscript_download_popup(parent):
-    popup = tk.Toplevel(parent)
-    popup.title("Ghostscript Required")
-    popup.geometry("450x150")
-    
-    ttk.Label(popup, text="Ghostscript not found. Please place it in a local 'bin'/'lib' folder\nor install it system-wide, then restart the application.").pack(pady=10)
-    link = ttk.Label(popup, text="Download Ghostscript", foreground="#0000EE", cursor="hand2")
-    link.pack()
-    link.bind("<Button-1>", lambda e: webbrowser.open("https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/tag/gs10051"))
-    ttk.Button(popup, text="OK", command=popup.destroy).pack(pady=10)
+    raise GhostscriptNotFound(f"Ghostscript executable ('{exe_name}') not found.")
 
 def build_gs_command(gs_path, input_path, output_path, operation, options):
     cmd = [
@@ -88,13 +93,16 @@ def build_gs_command(gs_path, input_path, output_path, operation, options):
         cmd.extend([f"-dPDFSETTINGS={pdf_setting}", f"-sColorConversionStrategy={options['color_strategy']}"])
     
     elif operation == "Convert to PDF/A":
-        srgb_profile = Path(gs_path).parent.parent / "lib" / "srgb.icc"
-        if not srgb_profile.exists():
-            raise FileNotFoundError(f"Could not find 'srgb.icc' in expected lib folder: {srgb_profile.parent}")
+        srgb_profile_path = Path(gs_path).parent.parent / "lib" / "srgb.icc"
+        if sys.platform != "win32":
+            srgb_profile_path = Path(gs_path).parent.parent / "share" / "ghostscript" / "iccprofiles" / "srgb.icc"
+
+        if not srgb_profile_path.exists():
+            raise FileNotFoundError(f"Could not find 'srgb.icc' in expected location: {srgb_profile_path}")
         
         cmd.extend([
             "-dPDFA=1", "-dPDFACompatibilityPolicy=1", "-sColorConversionStrategy=RGB",
-            f"-sOutputICCProfile={str(srgb_profile)}"
+            f"-sOutputICCProfile={str(srgb_profile_path)}"
         ])
         if options['pdfa_compression']:
             cmd.append("-dPDFSETTINGS=/screen")
@@ -103,43 +111,41 @@ def build_gs_command(gs_path, input_path, output_path, operation, options):
     return cmd
 
 def run_command(command):
-    logging.info(f"Executing command: {command}")
-    use_shell = isinstance(command, str)
-
+    logging.info(f"Executing command: {' '.join(command)}")
     try:
-        subprocess.run(
-            command, check=True, capture_output=True, text=True,
-            shell=use_shell, creationflags=subprocess.CREATE_NO_WINDOW
-        )
+        kwargs = {
+            'stdin': subprocess.DEVNULL, 'check': True, 'capture_output': True, 'text': True,
+            'encoding': 'utf-8', 'errors': 'ignore'
+        }
+        if sys.platform == "win32":
+            kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
+        
+        subprocess.run(command, **kwargs)
+
     except subprocess.CalledProcessError as e:
         logging.error(f"Command failed: {e.stderr}")
-        if "740" in e.stderr:
-             raise Exception("Administrator privileges required.")
-        raise Exception(f"Processing failed: {e.stderr}")
+        if sys.platform == "win32" and "740" in e.stderr:
+            raise AdminPrivilegesError("Administrator privileges required to run Ghostscript.")
+        raise ProcessingError(f"Ghostscript failed: {e.stderr[:200]}...")
+    except FileNotFoundError as e:
+        raise ProcessingError(f"Command not found: {e}. Is Ghostscript installed and in PATH?")
     except Exception as e:
-        logging.error(f"An unexpected error occurred: {e}")
-        raise
+        logging.error(f"An unexpected error occurred during command execution: {e}")
+        raise ProcessingError(str(e))
 
 def apply_final_processing(file_path, options, use_compression):
-    """
-    Applies all selected pikepdf modifications in one go: rotation, metadata
-    stripping, and final compression.
-    """
     try:
         logging.info(f"Applying final processing to {file_path}")
         pdf = pikepdf.open(file_path, allow_overwriting_input=True)
         
-        # 1. Apply Rotation
         angle = options.get('rotation', 0)
         if angle != 0:
             logging.info(f"Rotating all pages by {angle} degrees.")
             for page in pdf.pages:
                 page.rotate(angle, relative=True)
 
-        # 2. Strip Metadata
         if options.get('strip_metadata', False):
             logging.info("Stripping metadata.")
-            # --- MODIFIED: More robust error handling for metadata removal ---
             try:
                 del pdf.Info
             except Exception as e:
@@ -148,16 +154,13 @@ def apply_final_processing(file_path, options, use_compression):
                 del pdf.Root.Metadata
             except Exception as e:
                 logging.info(f"Could not remove XMP Metadata (it may not have existed): {e}")
-            # --- END MODIFICATION ---
 
-        # 3. Save with optional compression
         save_kwargs = {}
         if use_compression:
             logging.info("Applying traditional compression.")
             save_kwargs['object_stream_mode'] = pikepdf.ObjectStreamMode.generate
             save_kwargs['compress_streams'] = True
         
-        # Only save if changes were made
         if angle != 0 or options.get('strip_metadata', False) or use_compression:
             pdf.save(file_path, **save_kwargs)
             logging.info("Final processing successful.")
@@ -166,74 +169,69 @@ def apply_final_processing(file_path, options, use_compression):
 
     except Exception as e:
         logging.error(f"pikepdf final processing failed: {e}")
-        raise Exception(f"Final processing step failed: {e}")
-
-def process_single(params):
-    if not Path(params['input_path']).exists():
-        raise FileNotFoundError("Input file does not exist.")
-    
-    gs_params = {k: v for k, v in params.items() if k not in ['use_final_compression']}
-    command = build_gs_command(**gs_params)
-    run_command(command)
-
-def process_batch(params):
-    input_folder = Path(params['input_path'])
-    output_folder = Path(params['output_path'])
-
-    if not input_folder.is_dir():
-        raise FileNotFoundError("Input folder does not exist.")
-    if not output_folder.is_dir():
-        os.makedirs(output_folder, exist_ok=True)
-
-    pdf_files = list(input_folder.rglob("*.pdf"))
-    if not pdf_files:
-        raise FileNotFoundError("No PDF files found in the specified folder.")
-
-    output_files = []
-    for pdf in pdf_files:
-        out_name = f"{pdf.stem}_processed.pdf"
-        output_file_path = output_folder / out_name
-        
-        gs_params = {
-            'gs_path': params['gs_path'],
-            'input_path': str(pdf),
-            'output_path': str(output_file_path),
-            'operation': params['operation'],
-            'options': params['options']
-        }
-        
-        command = build_gs_command(**gs_params)
-        run_command(command)
-        output_files.append(output_file_path)
-        
-    return len(pdf_files), output_files
+        raise ProcessingError(f"Final processing step failed: {e}")
 
 def run_processing_task(params, is_folder, status_var, completion_callback):
-    """A wrapper function to run the correct processing task and handle status updates."""
-    status_var.set("Processing with Ghostscript...")
     try:
+        gs_path = params['gs_path']
         options = params.get('options', {})
+        overwrite = params.get('overwrite', False)
         use_final_compression = params.get('use_final_compression', False)
         final_processing_needed = use_final_compression or options.get('rotation', 0) != 0 or options.get('strip_metadata', False)
+        
+        def process_a_file(input_file, output_file_target):
+            final_output_path = output_file_target
+            processing_path = output_file_target
+
+            if overwrite:
+                with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_f:
+                    processing_path = temp_f.name
+            
+            cmd = build_gs_command(gs_path, str(input_file), processing_path, params['operation'], options)
+            run_command(cmd)
+
+            if final_processing_needed:
+                apply_final_processing(processing_path, options, use_final_compression)
+            
+            if overwrite:
+                shutil.move(processing_path, final_output_path)
+            
+            return final_output_path
 
         if is_folder:
-            processed_count, output_files = process_batch(params)
-            
-            if final_processing_needed:
-                status_var.set(f"Applying final processing to {processed_count} files...")
-                for i, file_path in enumerate(output_files):
-                    status_var.set(f"Finalizing file {i+1}/{processed_count}...")
-                    apply_final_processing(file_path, options, use_final_compression)
-            
-            status_var.set(f"Complete: Processed {processed_count} files.")
-        else:
-            process_single(params)
-            
-            if final_processing_needed:
-                status_var.set("Applying final processing...")
-                apply_final_processing(params['output_path'], options, use_final_compression)
+            input_folder = Path(params['input_path'])
+            output_folder = Path(params['output_path'])
+            if not input_folder.is_dir():
+                raise FileNotFoundError("Input folder does not exist.")
+            if not overwrite:
+                output_folder.mkdir(exist_ok=True)
+
+            pdf_files = list(input_folder.rglob("*.pdf"))
+            if not pdf_files:
+                raise FileNotFoundError("No PDF files found in the specified folder.")
+
+            total = len(pdf_files)
+            for i, pdf in enumerate(pdf_files):
+                status_var.set(f"Processing file {i+1}/{total}: {pdf.name}")
                 
-            status_var.set(f"Complete: Processed {Path(params['input_path']).name}")
+                if overwrite:
+                    process_a_file(pdf, pdf)
+                else:
+                    out_name = f"{pdf.stem}_processed.pdf"
+                    output_file_path = output_folder / out_name
+                    process_a_file(pdf, output_file_path)
+            
+            status_var.set(f"Complete: Processed {total} files.")
+        else:
+            input_path = params['input_path']
+            output_path = params['output_path']
+            if not Path(input_path).exists():
+                raise FileNotFoundError("Input file does not exist.")
+
+            status_var.set("Processing with Ghostscript...")
+            process_a_file(input_path, output_path)
+            status_var.set(f"Complete: Processed {Path(input_path).name}")
+            
     except Exception as e:
         status_var.set(f"Error: {e}")
         messagebox.showerror("Error", str(e))

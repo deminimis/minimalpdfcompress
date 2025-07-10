@@ -1,38 +1,44 @@
 import tkinter as tk
 from tkinter import ttk
 import logging
+import sys
 
-# --- Color Palettes ---
-DARK_PALETTE = {
-    "BG": "#2D3033",
-    "WIDGET_BG": "#383c40",
-    "WIDGET_HOVER": "#44484c",
-    "ACCENT": "#32503c",
-    "ACCENT_HOVER": "#3c6048",
-    "TEXT": "#e8eaed",
-    "DISABLED": "#76797c",
-    "SCROLL_THUMB": "#5a5f63",
-    "SCROLL_THUMB_HOVER": "#6b7176",
-}
+if sys.platform == "win32":
+    FONT_FAMILY = "Segoe UI"
+elif sys.platform == "darwin":
+    FONT_FAMILY = "Helvetica"
+else:
+    FONT_FAMILY = "DejaVu Sans"
 
-LIGHT_PALETTE = {
-    "BG": "#f8f6f2",
-    "WIDGET_BG": "#ffffff",
-    "WIDGET_HOVER": "#f0f0f0",
-    "ACCENT": "#a8c5e0",
-    "ACCENT_HOVER": "#b8d5f0",
-    "TEXT": "#1c1e21",
-    "DISABLED": "#a8a8a8",
-    "SCROLL_THUMB": "#c1c1c1",
-    "SCROLL_THUMB_HOVER": "#a8a8a8",
+PALETTES = {
+    'dark': {
+        "BG": "#2D3033",
+        "WIDGET_BG": "#383c40",
+        "WIDGET_HOVER": "#44484c",
+        "ACCENT": "#39463e",
+        "ACCENT_HOVER": "#334d3c",
+        "TEXT": "#e8eaed",
+        "DISABLED": "#76797c",
+        "SCROLL_THUMB": "#5a5f63",
+        "SCROLL_THUMB_HOVER": "#6b7176",
+    },
+    'light': {
+        "BG": "#f8f6f2",
+        "WIDGET_BG": "#ffffff",
+        "WIDGET_HOVER": "#f0f0f0",
+        "ACCENT": "#b9c5d0",
+        "ACCENT_HOVER": "#b3c5d6",
+        "TEXT": "#1c1e21",
+        "DISABLED": "#a8a8a8",
+        "SCROLL_THUMB": "#c1c1c1",
+        "SCROLL_THUMB_HOVER": "#a8a8a8",
+    }
 }
 
 def apply_theme(root, mode='dark'):
-    # --- A Modern, Dual-Mode Theme ---
     style = ttk.Style(root)
-    colors = DARK_PALETTE if mode == 'dark' else LIGHT_PALETTE
+    colors = PALETTES.get(mode, PALETTES['dark'])
 
-    # --- Theme and Global Defaults ---
     try:
         style.theme_use('clam')
     except tk.TclError:
@@ -44,7 +50,7 @@ def apply_theme(root, mode='dark'):
                     foreground=colors["TEXT"],
                     borderwidth=0,
                     fieldbackground=colors["WIDGET_BG"],
-                    font=('Segoe UI', 10),
+                    font=(FONT_FAMILY, 10),
                     relief='flat',
                     highlightthickness=0)
     
@@ -53,7 +59,6 @@ def apply_theme(root, mode='dark'):
               fieldbackground=[('disabled', colors["BG"])],
               background=[('disabled', colors["BG"])])
 
-    # --- Button ---
     style.layout('TButton', [
         ('Button.padding', {'sticky': 'nswe', 'children': [
             ('Button.label', {'sticky': 'nswe'})
@@ -64,14 +69,13 @@ def apply_theme(root, mode='dark'):
                     padding=(10, 5), 
                     background=colors["ACCENT"], 
                     foreground=colors["TEXT"],
-                    font=('Segoe UI', 10, 'bold'),
+                    font=(FONT_FAMILY, 10, 'bold'),
                     highlightthickness=0)
                     
     style.map('TButton',
               background=[('pressed', colors["WIDGET_BG"]), ('active', colors["ACCENT_HOVER"])],
               foreground=[('pressed', colors["TEXT"])])
 
-    # --- Frames and Labels ---
     style.configure('TFrame', background=colors["BG"])
     style.configure('TLabel', background=colors["BG"], foreground=colors["TEXT"])
     style.configure('TLabelFrame', relief='flat', borderwidth=1, bordercolor=colors["WIDGET_BG"], padding=(12, 12))
@@ -79,9 +83,8 @@ def apply_theme(root, mode='dark'):
                     relief='flat', 
                     background=colors["BG"], 
                     foreground=colors["TEXT"], 
-                    font=('Segoe UI', 11, 'bold'))
+                    font=(FONT_FAMILY, 11, 'bold'))
 
-    # --- Entry and Combobox ---
     style.configure('TEntry',
                     relief='flat',
                     borderwidth=1,
@@ -106,7 +109,6 @@ def apply_theme(root, mode='dark'):
               fieldbackground=[('active', colors["WIDGET_HOVER"]), ('readonly', colors["BG"])],
               background=[('active', colors["WIDGET_BG"])])
 
-    # --- Checkbutton ---
     style.configure('TCheckbutton',
                     indicatorrelief='flat',
                     indicatordiameter=16,
@@ -121,7 +123,6 @@ def apply_theme(root, mode='dark'):
               ],
               indicatorforeground=[('selected', colors["TEXT"])])
 
-    # --- Scrollbar ---
     style.configure('TScrollbar',
                     relief='flat',
                     borderwidth=0,
@@ -145,7 +146,6 @@ def apply_theme(root, mode='dark'):
         ('active', colors["SCROLL_THUMB_HOVER"])
     ])
     
-    # --- Progress Bar ---
     style.layout('TProgressbar', [
         ('Progressbar.trough', {'children': [
             ('Progressbar.pbar', {'sticky': 'nswe'})
@@ -158,12 +158,11 @@ def apply_theme(root, mode='dark'):
                     troughcolor=colors["WIDGET_BG"],
                     background=colors["ACCENT"])
                     
-    # --- Global styling for popups ---
     root.option_add('*TCombobox*Listbox.background', colors["WIDGET_BG"])
     root.option_add('*TCombobox*Listbox.foreground', colors["TEXT"])
     root.option_add('*TCombobox*Listbox.selectBackground', colors["ACCENT"])
     root.option_add('*TCombobox*Listbox.selectForeground', colors["TEXT"])
-    root.option_add('*TCombobox*Listbox.font', ('Segoe UI', 10))
+    root.option_add('*TCombobox*Listbox.font', (FONT_FAMILY, 10))
     root.option_add('*TCombobox*Listbox.relief', 'flat')
     root.option_add('*Menu.background', colors["WIDGET_BG"])
     root.option_add('*Menu.foreground', colors["TEXT"])
