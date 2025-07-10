@@ -1,4 +1,4 @@
-# Minimal PDF Compress
+# MinimalPDF Compress
 
 <img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pdf.png?raw=true" alt="Project Logo" width="250">
 
