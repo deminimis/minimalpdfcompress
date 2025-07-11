@@ -120,9 +120,6 @@ To create a portable `.exe`:
 
 
 
-### Limitations and Future Improvements
-- **Platform**: Currently Windows-only due to Ghostscript executable naming (`gswin64c.exe`) and registry checks. Future versions could add macOS/Linux support by detecting `gs` and adjusting paths.
-- **Ghostscript Dependency**: Requires separate installation of Ghostscript. This could be done easily with something like [Inno Setup](https://jrsoftware.org/isinfo.php). A future enhancement could bundle a Ghostscript binary, but I prefer this way as you don't have to put your trust into more entities.
 
 
 
