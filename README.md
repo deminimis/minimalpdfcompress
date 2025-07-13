@@ -78,6 +78,12 @@ _Tooltips have been added to the options inside the app to refer to._
 7. **Check Results**:
    - Output files are saved to the specified location.
    - For batch processing, output files are named with prefixes like `out_filename_operation.pdf`.
+  
+
+### FAQ
+
+1. Isn't Python slow? Why not write in something like c++?  
+    * Yes, and no. This app my open a bit slower, but the processing is primarily done with backends like Ghostscript written in C. So there will be little to no difference. 
 
 
 ### Building the Executable Yourself
