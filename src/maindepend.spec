@@ -22,7 +22,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='MinimalPDF Compress v1.3',
+    name='MinimalPDF Compress v1.4',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
