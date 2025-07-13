@@ -6,6 +6,8 @@
 ## Overview
 Minimal PDF Compress is a user-friendly, cross-platform application designed to simplify PDF compression and conversion tasks using [Ghostscript](https://www.ghostscript.com/) and [Pikepdf](https://github.com/pikepdf/pikepdf). It allows users to compress PDF files or convert them to PDF/A format with customizable options, all through an intuitive GUI (Graphical User Interface). 
 
+<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pic1.png?raw=true" alt="Dark Picture" style="max-width: 50%;">
+
 
 Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the traditional sense. Instead, it recreates a new PDF that is generally smaller due to several optimizations. I added more traditional "compression" with Pikepdf. 
 
@@ -20,8 +22,8 @@ Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the t
 3. If you are not using the standalone version, it will prompt you to download Ghostscript if you haven't already.
 
 
-<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/darkpic.png?raw=true" alt="Dark Picture" style="max-width: 50%;">
-<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/lightpic.png?raw=true" alt="Dark Picture" style="max-width: 50%;">
+<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pic2.png?raw=true" alt="Dark Picture" style="max-width: 50%;">
+<img src="https://https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pic3.png?raw=true" alt="Dark Picture" style="max-width: 50%;">
 
 ### Prerequisites
 - **Windows OS**: The app is currently optimized for Windows, as it uses `gswin64c.exe` and Windows-specific paths. It should be very simple to use on Linux if you have Ghostscript installed. If the popularity gets high I will make a Linux standalone version. 
