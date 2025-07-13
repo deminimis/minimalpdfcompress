@@ -23,7 +23,7 @@ Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the t
 
 
 <img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pic2.png?raw=true" alt="Dark Picture" style="max-width: 50%;">
-<img src="https://https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pic3.png?raw=true" alt="Dark Picture" style="max-width: 50%;">
+<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pic3.png?raw=true" alt="Dark Picture" style="max-width: 50%;">
 
 ### Prerequisites
 - **Windows OS**: The app is currently optimized for Windows, as it uses `gswin64c.exe` and Windows-specific paths. It should be very simple to use on Linux if you have Ghostscript installed. If the popularity gets high I will make a Linux standalone version. 
