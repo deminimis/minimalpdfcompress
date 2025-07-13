@@ -32,6 +32,7 @@ Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the t
 
 
 ### Usage Guide
+_Tooltips have been added to the options inside the app to refer to._
 1. **Launch the App**:
    - Open the app via the `.exe` or by running the Python script.
 2. **Select Input**:
@@ -53,7 +54,7 @@ Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the t
      - **Convert to PDF/A**: Converts the PDF to PDF/A-1b format for archival purposes.
 5. **Advanced Options**:
    - Check the "Advanced Options" box to reveal additional settings:
-     - **Resolution (dpi)**: Choose 72, 150, or 300 dpi.
+     - **Resolution (dpi)**: Choose 72, 150, or 300 dpi as defaults. To the right you can customize the dpi. 
      - **Downscaling Factor**: Set to 1, 2, or 3 to reduce image resolution.
      - **Color Conversion Strategy**: Options include `LeaveColorUnchanged`, `Gray`, `RGB`, or `CMYK`.
      - **Downsample Method**: Choose `Subsample`, `Average`, or `Bicubic`.
@@ -62,7 +63,9 @@ Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the t
      - **Compress Fonts**: Compresses embedded fonts.
      - **Compress PDF/A Output**: (Available for PDF/A conversion) Applies compression to PDF/A output.
      - **Remove metadata**: Removes any metadata it can. There might not be much it can remove.
-     - **Traditional compression**: Uses Pikepdf after Ghostscript optimizations.
+     - **Pikepdf Compression Level**: A slider (0-9) to control the final compression strength applied by Pikepdf, after processing by Ghostscript.
+     - **Decimal Precision**: Reduces file size for documents with vector art by limiting the number of decimal places in coordinates.
+     - **Remove Annotations & Forms**: Strips all comments, highlights, and interactive form fields from the PDF.
      - **Overwrite original file**: Overwrites the original file rather than created a new processed file. 
    - *Note*: Some options (e.g., downscaling factor, color strategy) are constrained if you are using PDF/A, for PDF/A to ensure compliance.
 6. **Process the PDF(s)**:
@@ -81,10 +84,11 @@ To create a portable `.exe`:
    ```bash
    pip install pyinstaller
    ```
-2. Run the following command in the directory containing `ghostscript_gui.py` and `pdf.ico`:
+2. Run the following command in the directory containing the `.py` files and `pdf.ico`:
    ```bash
-   pyinstaller --name "Minimal PDF Compress" --onedir --windowed --icon="pdf.ico" --add-data "bin;bin" --add-data "lib;lib" main.py
+   pyinstaller --noconsole --icon="pdf.ico" --add-data="pdf.ico:." main.py
    ```
+   * Alternatively, use the .spec files in the `src` folder and run: `pyinstaller main.spec` (changing the name of the spec for each type. To use the standalone versions you will need to include the ghostscript .dll and .exe in their lib and bin folders in the same directory. 
 3. Find the `.exe` in the `dist` folder and distribute/run it.
 
    
@@ -97,19 +101,36 @@ To create a portable `.exe`:
 - **File I/O**: Uses Python’s `pathlib` for cross-platform path handling and `subprocess` for running Ghostscript commands.
 
 ### Code Structure
-- **Main Class**: `GhostscriptGUI`
-  - Initializes the Tkinter window, sets up variables, and builds the GUI.
-  - Key methods:
-    - `build_gui()`: Constructs the interface with sections for Input, Output, Operation, Advanced Options, and Status.
-    - `run_ghostscript()`: Constructs and executes Ghostscript commands for single-file processing.
-    - `process_single()`: Handles single-file processing.
-    - `process_batch()`: Manages batch processing via a temporary `.bat` file to minimize UAC prompts.
-    - `find_ghostscript()`: Locates the Ghostscript executable via predefined paths and Windows registry.
-- **Dynamic Sizing**: The window uses a grid layout with `sticky="nsew"` and `columnconfigure`/`rowconfigure` weights to adapt to different screen sizes. Minimum size is set to 600x500 pixels to ensure content visibility.
-- **Error Handling**:
-  - Comprehensive exception handling for Ghostscript execution (e.g., `subprocess.TimeoutExpired`, `subprocess.CalledProcessError`).
-  - User-friendly error messages via Tkinter `messagebox`.
-  - Logging to `ghostscript_gui.log` for debugging.
+
+* **`main.py`**: The main entry point of the application. Its sole responsibilities are to handle Windows DPI awareness and to initialize and run the main GUI window.
+
+* **`gui.py`**: Contains the `GhostscriptGUI` class, which manages the entire user interface.
+
+  * **Responsibilities**: Builds all widgets, manages Tkinter variables, handles user events (button clicks, drag-and-drop), saves/loads settings, and initiates the processing task in a separate thread to keep the UI responsive.
+
+  * **Key Methods**: `build_gui()`, `process()`, `load_settings()`, `save_settings()`.
+
+  * **Helper Class**: Includes a `Tooltip` class for creating hover-text explanations for UI elements.
+
+* **`backend.py`**: Contains all the non-GUI logic for processing PDFs. It is called by `gui.py`.
+
+  * **Responsibilities**: Locates the system's Ghostscript installation, constructs the command-line arguments, executes the Ghostscript subprocess, and applies final processing steps with Pikepdf.
+
+  * **Key Methods**: `run_processing_task()`, `build_gs_command()`, `apply_final_processing()`, `find_ghostscript()`.
+
+* **`styles.py`**: A dedicated module for styling the application.
+
+  * **Responsibilities**: Defines the color palettes for light and dark modes and contains the `apply_theme()` function, which uses `ttk.Style` to configure the appearance of all widgets.
+
+* **Threading**: The core processing logic (`run_processing_task`) is executed in a separate thread to prevent the GUI from freezing during potentially long operations. Callbacks are used to update the UI (status bar, buttons) when the task is complete.
+
+* **Error Handling**:
+
+  * Custom exceptions are defined in `backend.py` (e.g., `GhostscriptNotFound`, `ProcessingError`).
+
+  * The backend's `run_processing_task` function uses a `try...except` block to catch errors and displays them to the user via a Tkinter `messagebox`.
+
+  * Detailed logs are written to `ghostscript_gui.log` for debugging purposes.
 
 ### Ghostscript Integration
 - **Command Construction**: Builds Ghostscript commands dynamically based on user inputs. Example command for compression:
