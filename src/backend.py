@@ -12,6 +12,7 @@ from tkinter import messagebox
 if sys.platform == "win32":
     import winreg
 
+#region: Exceptions and Helpers
 class GhostscriptNotFound(Exception):
     pass
 
@@ -27,7 +28,9 @@ def resource_path(relative_path):
     except AttributeError:
         base_path = Path(__file__).parent
     return base_path / relative_path
+#endregion
 
+#region: Ghostscript Handling
 def find_ghostscript():
     if sys.platform == "win32":
         exe_name = "gswin64c.exe"
@@ -71,16 +74,28 @@ def find_ghostscript():
 def build_gs_command(gs_path, input_path, output_path, operation, options):
     cmd = [
         gs_path, "-sDEVICE=pdfwrite", "-dCompatibilityLevel=1.4", "-dNOPAUSE",
-        "-dBATCH", "-dQUIET", "-dSAFER", f"-r{options['resolution']}",
+        "-dBATCH", "-dQUIET", "-dSAFER",
         f"-dDownScaleFactor={options['downscale_factor']}",
         f"-dDownsampleType=/{options['downsample_type']}",
         f"-dSubsetFonts={'true' if options['subset_fonts'] else 'false'}",
         f"-dCompressFonts={'true' if options['compress_fonts'] else 'false'}"
     ]
 
+    try:
+        img_res = int(options['image_resolution'])
+        cmd.extend([
+            f"-dColorImageResolution={img_res}",
+            f"-dGrayImageResolution={img_res}"
+        ])
+    except (ValueError, TypeError):
+        logging.warning(f"Invalid image resolution value: {options['image_resolution']}. Using defaults.")
+
     if options['fast_web_view']:
         cmd.append("-dFastWebView=true")
     
+    if options.get('remove_interactive', False):
+        cmd.extend(["-dShowAnnots=false", "-dShowAcroForm=false"])
+
     preset_map = {
         "Compress (Screen - Smallest Size)": "/screen",
         "Compress (Ebook - Medium Size)": "/ebook",
@@ -132,8 +147,10 @@ def run_command(command):
     except Exception as e:
         logging.error(f"An unexpected error occurred during command execution: {e}")
         raise ProcessingError(str(e))
+#endregion
 
-def apply_final_processing(file_path, options, use_compression):
+#region: Final Processing
+def apply_final_processing(file_path, options, pikepdf_compression_level):
     try:
         logging.info(f"Applying final processing to {file_path}")
         pdf = pikepdf.open(file_path, allow_overwriting_input=True)
@@ -147,7 +164,7 @@ def apply_final_processing(file_path, options, use_compression):
         if options.get('strip_metadata', False):
             logging.info("Stripping metadata.")
             try:
-                del pdf.Info
+                del pdf.docinfo
             except Exception as e:
                 logging.info(f"Could not remove Info dictionary (it may not have existed): {e}")
             try:
@@ -156,8 +173,9 @@ def apply_final_processing(file_path, options, use_compression):
                 logging.info(f"Could not remove XMP Metadata (it may not have existed): {e}")
 
         save_kwargs = {}
+        use_compression = pikepdf_compression_level > 0
         if use_compression:
-            logging.info("Applying traditional compression.")
+            logging.info("Applying pikepdf object stream compression.")
             save_kwargs['object_stream_mode'] = pikepdf.ObjectStreamMode.generate
             save_kwargs['compress_streams'] = True
         
@@ -170,14 +188,28 @@ def apply_final_processing(file_path, options, use_compression):
     except Exception as e:
         logging.error(f"pikepdf final processing failed: {e}")
         raise ProcessingError(f"Final processing step failed: {e}")
+#endregion
 
+#region: Main Task Runner
 def run_processing_task(params, is_folder, status_var, completion_callback):
     try:
         gs_path = params['gs_path']
         options = params.get('options', {})
         overwrite = params.get('overwrite', False)
-        use_final_compression = params.get('use_final_compression', False)
-        final_processing_needed = use_final_compression or options.get('rotation', 0) != 0 or options.get('strip_metadata', False)
+        
+        pikepdf_compression_level = options.get('pikepdf_compression_level', 0)
+        pikepdf.settings.set_flate_compression_level(pikepdf_compression_level)
+
+        decimal_precision_str = options.get('decimal_precision', "Default")
+        if decimal_precision_str != "Default":
+            try:
+                pikepdf.settings.set_decimal_precision(int(decimal_precision_str))
+            except (ValueError, TypeError):
+                logging.warning(f"Invalid decimal precision value: {decimal_precision_str}")
+
+        final_processing_needed = (pikepdf_compression_level > 0 or 
+                                   options.get('rotation', 0) != 0 or 
+                                   options.get('strip_metadata', False))
         
         def process_a_file(input_file, output_file_target):
             final_output_path = output_file_target
@@ -191,7 +223,7 @@ def run_processing_task(params, is_folder, status_var, completion_callback):
             run_command(cmd)
 
             if final_processing_needed:
-                apply_final_processing(processing_path, options, use_final_compression)
+                apply_final_processing(processing_path, options, pikepdf_compression_level)
             
             if overwrite:
                 shutil.move(processing_path, final_output_path)
@@ -237,3 +269,4 @@ def run_processing_task(params, is_folder, status_var, completion_callback):
         messagebox.showerror("Error", str(e))
     finally:
         completion_callback()
+#endregion

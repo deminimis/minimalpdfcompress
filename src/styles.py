@@ -11,27 +11,47 @@ else:
     FONT_FAMILY = "DejaVu Sans"
 
 PALETTES = {
-    'dark': {
-        "BG": "#2D3033",
-        "WIDGET_BG": "#383c40",
-        "WIDGET_HOVER": "#44484c",
-        "ACCENT": "#39463e",
-        "ACCENT_HOVER": "#334d3c",
-        "TEXT": "#e8eaed",
-        "DISABLED": "#76797c",
-        "SCROLL_THUMB": "#5a5f63",
-        "SCROLL_THUMB_HOVER": "#6b7176",
-    },
     'light': {
+        # Core application colors (baby blue accent)
         "BG": "#f8f6f2",
         "WIDGET_BG": "#ffffff",
         "WIDGET_HOVER": "#f0f0f0",
         "ACCENT": "#b9c5d0",
-        "ACCENT_HOVER": "#b3c5d6",
+        "ACCENT_HOVER": "#a8b8c8",
         "TEXT": "#1c1e21",
         "DISABLED": "#a8a8a8",
         "SCROLL_THUMB": "#c1c1c1",
         "SCROLL_THUMB_HOVER": "#a8a8a8",
+        "BORDER": "#ced4da",
+
+        # Semantic colors for custom widgets
+        "primary": "#2780e3",
+        "secondary": "#7E8081",
+        "success": "#3fb618",
+        "info": "#9954bb",
+        "warning": "#ff7518",
+        "danger": "#ff0039",
+    },
+    'dark': {
+        # Core application colors (nice green accent)
+        "BG": "#2D3033",
+        "WIDGET_BG": "#383c40",
+        "WIDGET_HOVER": "#44484c",
+        "ACCENT": "#39463e",
+        "ACCENT_HOVER": "#4a5e53",
+        "TEXT": "#e8eaed",
+        "DISABLED": "#76797c",
+        "SCROLL_THUMB": "#5a5f63",
+        "SCROLL_THUMB_HOVER": "#6b7176",
+        "BORDER": "#495057",
+
+        # Semantic colors for custom widgets
+        "primary": "#2780e3",
+        "secondary": "#6c757d",
+        "success": "#28a745",
+        "info": "#17a2b8",
+        "warning": "#ffc107",
+        "danger": "#dc3545",
     }
 }
 
@@ -78,7 +98,7 @@ def apply_theme(root, mode='dark'):
 
     style.configure('TFrame', background=colors["BG"])
     style.configure('TLabel', background=colors["BG"], foreground=colors["TEXT"])
-    style.configure('TLabelFrame', relief='flat', borderwidth=1, bordercolor=colors["WIDGET_BG"], padding=(12, 12))
+    style.configure('TLabelFrame', relief='flat', borderwidth=1, bordercolor=colors["BORDER"], padding=(12, 12))
     style.configure('TLabelFrame.Label', 
                     relief='flat', 
                     background=colors["BG"], 
@@ -88,7 +108,7 @@ def apply_theme(root, mode='dark'):
     style.configure('TEntry',
                     relief='flat',
                     borderwidth=1,
-                    bordercolor=colors["WIDGET_BG"],
+                    bordercolor=colors["BORDER"],
                     insertcolor=colors["TEXT"],
                     padding=6)
                     
@@ -99,7 +119,7 @@ def apply_theme(root, mode='dark'):
     style.configure('TCombobox',
                     relief='flat',
                     borderwidth=1,
-                    bordercolor=colors["WIDGET_BG"],
+                    bordercolor=colors["BORDER"],
                     arrowcolor=colors["TEXT"],
                     arrowsize=18,
                     padding=6)
