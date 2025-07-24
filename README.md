@@ -4,7 +4,7 @@
 
 
 ## Overview
-Minimal PDF Compress is a user-friendly, cross-platform application designed to simplify PDF compression and conversion tasks using [Ghostscript](https://www.ghostscript.com/) and [Pikepdf](https://github.com/pikepdf/pikepdf). It allows users to compress PDF files or convert them to PDF/A format with customizable options, all through an intuitive GUI (Graphical User Interface). 
+Minimal PDF Compress is a user-friendly, cross-platform application designed to simplify PDF compression and conversion tasks using [Ghostscript](https://www.ghostscript.com/), [Pikepdf](https://github.com/pikepdf/pikepdf), and [cpdf](https://github.com/coherentgraphics/cpdf-binaries). It allows users to compress PDF files or convert them to PDF/A format with customizable options, all through an intuitive GUI (Graphical User Interface). 
 
 <img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pic1.png?raw=true" alt="Dark Picture" style="max-width: 50%;">
 
