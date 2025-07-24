@@ -1,3 +1,4 @@
+#region: main.py
 import tkinter as tk
 from gui import GhostscriptGUI
 import sys
