@@ -21,8 +21,9 @@ Note: Ghostscript's pdfwrite device doesn't technically "compress" PDFs in the t
 2. Double-click `.exe` to launch the app. 
 
 
-<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pic2.png?raw=true" alt="Dark Picture" style="max-width: 50%;">
-<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pic3.png?raw=true" alt="Dark Picture" style="max-width: 50%;">
+<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pic2.png?raw=true" alt="Light Picture" width="70%">
+<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pic3.png?raw=true" alt="Dark Picture" width="70%">
+<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/new tabs.png?raw=true" alt="PDF Tool tab" width="70%">
 
 
 
