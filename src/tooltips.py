@@ -1,4 +1,4 @@
-#region: tooltips.py
+# tooltips.py
 TOOLTIP_TEXT = {
     "compress_input_btn": "Select a single PDF file or a folder containing multiple PDFs.",
     "compress_input_entry": "Path to the source PDF file or folder.",
@@ -9,7 +9,7 @@ TOOLTIP_TEXT = {
     "compress_adv_check": "Show/Hide advanced settings for finer control over the output.",
     "compress_dark_mode_check": "Toggles between light and dark themes.",
     "compress_process_btn": "Start processing the selected file(s) with the current settings.",
-
+    "adv_optimize_images": "Use zlib and sam2p to optimize embedded images (PNG, JPEG) for smaller file sizes.",
     "adv_gs_downscale_factor": "Reduces image dimensions by this factor. '2' = half width/height.",
     "adv_gs_color_conversion": "'Gray' creates a grayscale PDF.",
     "adv_gs_downsample_method": "'Bicubic' provides higher quality downsampling but is slower.",
@@ -17,7 +17,6 @@ TOOLTIP_TEXT = {
     "adv_gs_subset_fonts": "Reduces file size by embedding only the characters used from each font.",
     "adv_gs_compress_fonts": "Applies compression to all embedded fonts in the document.",
     "adv_gs_remove_interactive": "Strips all interactive elements like comments, links, and form fields.",
-
     "adv_final_rotation": "Apply a rotation to all pages in the document.",
     "adv_final_precision": "Controls the number of decimal places for coordinates. Lower values can reduce size for vector-heavy PDFs.",
     "adv_final_strip_meta": "Strips all metadata (Title, Author, etc.) from the final document.",
@@ -25,13 +24,10 @@ TOOLTIP_TEXT = {
     "adv_final_cpdf_squeeze": "Use cpdf's '-squeeze' command for extra compression. Pikepdf options will be ignored.",
     "adv_final_cpdf_darken": "Make text pure black. Useful for scanned documents. Requires cpdf.",
     "adv_final_cpdf_fast": "Use cpdf's '-fast' option for quicker processing. May result in slightly larger files.",
-
     "adv_sec_user_pass": "Set a password required to open the PDF.",
     "adv_sec_owner_pass": "Set a password required to change permissions or edit the PDF.",
     "adv_sec_show_pass": "Toggle visibility of the entered passwords.",
-    
     "adv_pike_slider": "Pikepdf stream compression level (0=None, 9=Max). This setting is IGNORED if any cpdf option (squeeze, darken text, passwords) is enabled.",
-
     "merge_add_btn": "Add PDF files to the merge list.",
     "merge_remove_btn": "Remove the selected file from the list.",
     "merge_up_btn": "Move the selected file up in the merge order.",
@@ -39,7 +35,6 @@ TOOLTIP_TEXT = {
     "merge_output_btn": "Select the file path for the merged PDF.",
     "merge_output_entry": "File path for the final merged PDF.",
     "merge_process_btn": "Combine all files in the list into a single PDF.",
-
     "split_input_btn": "Select the PDF file to split.",
     "split_input_entry": "Path to the source PDF to be split.",
     "split_mode_combo": "Choose how to split the PDF.",
@@ -47,21 +42,19 @@ TOOLTIP_TEXT = {
     "split_output_dir_btn": "Select the folder where split files will be saved.",
     "split_output_dir_entry": "Folder where the split PDFs will be saved.",
     "split_process_btn": "Start the splitting process.",
-
     "rotate_input_btn": "Select the PDF file to rotate.",
     "rotate_input_entry": "Path of the PDF to rotate.",
     "rotate_angle_combo": "Select the angle to rotate all pages.",
     "rotate_output_btn": "Select the save location for the rotated PDF.",
     "rotate_output_entry": "File path for the rotated PDF.",
     "rotate_process_btn": "Apply the rotation to the PDF.",
-
+    "rotate_preview_btn": "Show a preview of the rotation on the first page.",
     "delete_input_btn": "Select the PDF to delete pages from.",
     "delete_input_entry": "Path of the source PDF.",
     "delete_pages_entry": "Enter pages or ranges to delete (e.g., 1, 3-5, 8-end).",
     "delete_output_btn": "Select the save location for the edited PDF.",
     "delete_output_entry": "File path for the PDF with pages removed.",
     "delete_process_btn": "Start the page deletion process.",
-
     "convert_input_btn": "Select the PDF to convert to images.",
     "convert_input_entry": "Path of the source PDF.",
     "convert_output_btn": "Select the folder to save the output images.",
@@ -69,17 +62,14 @@ TOOLTIP_TEXT = {
     "convert_format_combo": "Choose the output image format.",
     "convert_dpi_entry": "Dots Per Inch (resolution) for the output images.",
     "convert_process_btn": "Start the PDF to image conversion.",
-
     "pdfa_input_btn": "Select the PDF to convert to PDF/A format.",
     "pdfa_input_entry": "Path of the source PDF.",
     "pdfa_output_btn": "Select the save location for the PDF/A file.",
     "pdfa_output_entry": "File path for the output PDF/A.",
     "pdfa_process_btn": "Start the PDF/A conversion (for archival).",
-
     "util_input_btn": "Select a PDF for utility functions.",
     "util_input_entry": "Path of the source PDF.",
     "util_process_btn": "Removes 'OpenAction' flags (e.g., auto-print). Overwrites the input file.",
-
     "meta_input_btn": "Select a PDF to view or edit its metadata.",
     "meta_input_entry": "Path of the PDF to edit.",
     "meta_load_btn": "Load metadata from the selected PDF.",
@@ -88,7 +78,6 @@ TOOLTIP_TEXT = {
     "meta_subject": "Edit the document subject.",
     "meta_keywords": "Edit the document keywords (comma-separated).",
     "meta_save_btn": "Save the changes to the PDF file (overwrites).",
-    
     "stamp_input_btn": "Select the PDF file to apply a stamp or watermark to.",
     "stamp_input_entry": "Path of the source PDF.",
     "stamp_image_radio": "Apply an image as a stamp.",
@@ -110,5 +99,6 @@ TOOLTIP_TEXT = {
     "stamp_ontop_check": "Place the stamp over the page content (watermark) or under it (background).",
     "stamp_output_btn": "Select the save location for the stamped PDF.",
     "stamp_output_entry": "File path for the stamped PDF.",
-    "stamp_process_btn": "Apply the stamp to the PDF."
+    "stamp_process_btn": "Apply the stamp to the PDF.",
+    "stamp_preview_btn": "Show a preview of the stamp on the first page."
 }
