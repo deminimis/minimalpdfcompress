@@ -134,3 +134,13 @@ Contributions are welcome! Feel free to post problems in the Issues tab or sugge
 
 If you want to implement code yourself, please fork the repository, create a feature branch, and submit a pull request with your changes. 
 
+## Special Thanks
+
+This code relies on:
+
+- [GhostScript](https://www.ghostscript.com/)
+- [Pdfsizeopt](https://github.com/pts/pdfsizeopt-jbig2)
+- [CoherentPDF](https://github.com/coherentgraphics/cpdf-binaries)
+- [Sam2p](https://github.com/pts/sam2p)
+- 
+
