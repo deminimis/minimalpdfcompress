@@ -15,9 +15,9 @@ This application employs a multi-stage compression pipeline to achieve maximum f
 
 ## Features
 
-<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pic2.png?raw=true" alt="Light Picture" width="70%">
-<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pic3.png?raw=true" alt="Dark Picture" width="70%">
-<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/new tabs.png?raw=true" alt="PDF Tool tab" width="70%">
+<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/Compress.png?raw=true" alt="Light Picture" width="70%">
+<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/live preview.png?raw=true" alt="Dark Picture" width="70%">
+<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/output.png?raw=true" alt="PDF Tool tab" width="70%">
 
 The application is organized into logical tabs for a clear and efficient workflow.
 
