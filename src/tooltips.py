@@ -1,4 +1,3 @@
-# tooltips.py
 TOOLTIP_TEXT = {
     "compress_input_btn": "Select a single PDF file or a folder containing multiple PDFs.",
     "compress_input_entry": "Path to the source PDF file or folder.",
@@ -48,7 +47,6 @@ TOOLTIP_TEXT = {
     "rotate_output_btn": "Select the save location for the rotated PDF.",
     "rotate_output_entry": "File path for the rotated PDF.",
     "rotate_process_btn": "Apply the rotation to the PDF.",
-    "rotate_preview_btn": "Show a preview of the rotation on the first page.",
     "delete_input_btn": "Select the PDF to delete pages from.",
     "delete_input_entry": "Path of the source PDF.",
     "delete_pages_entry": "Enter pages or ranges to delete (e.g., 1, 3-5, 8-end).",
@@ -99,6 +97,5 @@ TOOLTIP_TEXT = {
     "stamp_ontop_check": "Place the stamp over the page content (watermark) or under it (background).",
     "stamp_output_btn": "Select the save location for the stamped PDF.",
     "stamp_output_entry": "File path for the stamped PDF.",
-    "stamp_process_btn": "Apply the stamp to the PDF.",
-    "stamp_preview_btn": "Show a preview of the stamp on the first page."
+    "stamp_process_btn": "Apply the stamp to the PDF."
 }

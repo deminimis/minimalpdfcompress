@@ -20,13 +20,11 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    # This is the name of the executable file. '.exe' is added automatically.
     name='MinimalPDF Compress',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    # This must be False to hide the command-line console window.
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
@@ -43,6 +41,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    # This is the name of the final output FOLDER.
-    name='MinimalPDF Compress v1.6',
+    name='MinimalPDF Compress v1.7',
 )
