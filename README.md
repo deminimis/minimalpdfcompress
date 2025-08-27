@@ -2,7 +2,7 @@
 
 <div style="overflow: auto;">
 <img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pdf.png?raw=true" alt="Project Logo" width="20%" align="left" style="margin-right: 20px;">
-<strong>MinimalPDF Compress</strong> is a user-friendly, cross-platform application designed to simplify PDF compression and utility tasks. It leverages the power of multiple backends, including Ghostscript, Pikepdf, cpdf, sam2p, jbig2enc, and PNGOUT, and wraps them in a single, intuitive interface. <br><br><br><br>
+<strong>MinimalPDF Compress</strong> is a user-friendly, Windows application designed to simplify PDF compression and utility tasks. It leverages the power of multiple backends, including Ghostscript, Pikepdf, cpdf, sam2p, jbig2enc, and PNGOUT, and wraps them in a single, intuitive interface. <br><br><br><br>
 
 
 This application employs a multi-stage compression pipeline to achieve maximum file size reduction. For lossy operations, the process begins with Ghostscript, which rebuilds the entire PDF while downsampling images to the user-selected DPI. After this initial step, the application performs a granular optimization of the file's internal components. Each non-jpeg image is extracted and subjected to a competitive "bakeoff" using specialized tools such as sam2p, pngout, and jbig2, to find and re-insert the absolute smallest version. Concurrently, all non-image data streams, such as text and fonts, are aggressively re-compressed using zlib. The newly assembled file is then saved using Pikepdf, and as a final, mandatory step, the cpdf tool's -squeeze command is applied to the entire file, performing a final structural analysis to wring out any remaining redundancies.
