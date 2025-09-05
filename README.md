@@ -87,6 +87,8 @@ To create the executable from the source code:
 5. Find your completed application inside the `dist/MinimalPDF v1.8` folder.
     
 
+### Third party binaries
+See: [Windows PDF Compression Binaries](https://github.com/deminimis/minimalpdfcompress/releases/tag/Win_Binaries)    
     
 
 ## Code Structure
