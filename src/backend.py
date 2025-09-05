@@ -12,15 +12,20 @@ from PIL import Image
 from io import BytesIO
 
 from pdf_optimizer import PdfOptimizer
-from constants import (SPLIT_SINGLE, SPLIT_EVERY_N, SPLIT_CUSTOM, STAMP_IMAGE, POS_CENTER,
-                       POS_BOTTOM_LEFT, POS_BOTTOM_RIGHT, META_LOAD, META_SAVE)
+from constants import (SPLIT_SINGLE, SPLIT_EVERY_N, SPLIT_CUSTOM, STAMP_IMAGE,
+                       POS_TOP_LEFT, POS_TOP_CENTER, POS_TOP_RIGHT,
+                       POS_MIDDLE_LEFT, POS_CENTER, POS_MIDDLE_RIGHT,
+                       POS_BOTTOM_LEFT, POS_BOTTOM_CENTER, POS_BOTTOM_RIGHT,
+                       META_LOAD, META_SAVE)
 
 class ToolNotFound(Exception): pass
 class GhostscriptNotFound(ToolNotFound): pass
 class CpdfNotFound(ToolNotFound): pass
-class Sam2pNotFound(ToolNotFound): pass
+class PngquantNotFound(ToolNotFound): pass
+class JpegoptimNotFound(ToolNotFound): pass
 class Jbig2NotFound(ToolNotFound): pass
-class PngoutNotFound(ToolNotFound): pass
+class EctNotFound(ToolNotFound): pass
+class ZopfliNotFound(ToolNotFound): pass
 class ProcessingError(Exception): pass
 
 def resource_path(relative_path):
@@ -41,15 +46,13 @@ def find_executable(name, not_found_exception):
 
 def find_ghostscript(): return find_executable("gswin64c" if sys.platform == "win32" else "gs", GhostscriptNotFound)
 def find_cpdf(): return find_executable("cpdf", CpdfNotFound)
-def find_sam2p():
-    try: return find_executable("sam2p", Sam2pNotFound)
-    except Sam2pNotFound: return None
+def find_pngquant(): return find_executable("pngquant", PngquantNotFound)
+def find_jpegoptim(): return find_executable("jpegoptim", JpegoptimNotFound)
+def find_zopfli(): return find_executable("zopfli", ZopfliNotFound)
 def find_jbig2():
     try: return find_executable("jbig2", Jbig2NotFound)
     except Jbig2NotFound: return None
-def find_pngout():
-    try: return find_executable("pngout", PngoutNotFound)
-    except PngoutNotFound: return None
+def find_ect(): return find_executable("ect", EctNotFound)
 
 def get_pdf_metadata(file_path):
     try:
@@ -66,6 +69,8 @@ def get_pdf_metadata(file_path):
             page_count = len(pdf.pages)
 
         return {'name': p.name, 'pages': page_count, 'size': size_str}
+    except FileNotFoundError:
+        return {'name': Path(file_path).name, 'pages': 'N/A', 'size': 'N/A'}
     except Exception as e:
         logging.warning(f"Could not get metadata for {file_path}: {e}")
         return {'name': Path(file_path).name, 'pages': 'N/A', 'size': 'N/A'}
@@ -153,36 +158,53 @@ def generate_preview(gs_path, cpdf_path, pdf_path, operation, options):
                 stamp_opts = options['stamp_opts']
                 mode_opts = options['mode_opts']
                 mode = options['mode']
-                pos_map = {POS_CENTER: ["-center"], POS_BOTTOM_LEFT: ["-bottomleft", "10"], POS_BOTTOM_RIGHT: ["-bottomright", "10"]}
-                pos_cmd = pos_map.get(stamp_opts['pos'], ["-center"])
+                
+                pos = stamp_opts['pos']
+                margin = "20" 
+                pos_map = {
+                    POS_TOP_LEFT: ["-topleft", margin], POS_TOP_CENTER: ["-top", margin], POS_TOP_RIGHT: ["-topright", margin],
+                    POS_MIDDLE_LEFT: ["-left", margin], POS_CENTER: ["-center"], POS_MIDDLE_RIGHT: ["-right", margin],
+                    POS_BOTTOM_LEFT: ["-bottomleft", margin], POS_BOTTOM_CENTER: ["-bottom", margin], POS_BOTTOM_RIGHT: ["-bottomright", margin],
+                }
+                pos_cmd = pos_map.get(pos, ["-center"])
 
                 if mode == STAMP_IMAGE:
-                    stamp_to_apply_path = None
                     image_path = mode_opts.get('image_path')
                     if image_path and Path(image_path).exists():
                         stamp_to_apply_path = temp_dir_path / "image_stamp.pdf"
+                        
+                        scale = mode_opts.get('image_scale', 1.0)
+
                         with Image.open(image_path) as img:
+                            if scale != 1.0:
+                                try:
+                                    w = int(img.width * scale)
+                                    h = int(img.height * scale)
+                                    if w > 0 and h > 0:
+                                        resample = Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.ANTIALIAS
+                                        img = img.resize((w, h), resample)
+                                except Exception as e:
+                                    logging.warning(f"Invalid image scale, using original. Error: {e}")
+
                             if stamp_opts['opacity'] < 1.0:
                                 if img.mode != 'RGBA': img = img.convert('RGBA')
                                 alpha = img.split()[3]; alpha = alpha.point(lambda p: p * stamp_opts['opacity']); img.putalpha(alpha)
                             img.save(stamp_to_apply_path, "PDF", resolution=100.0)
 
-                    if stamp_to_apply_path and Path(stamp_to_apply_path).exists():
-                        stamp_mode_cmd = "-stamp-on" if stamp_opts['on_top'] else "-stamp-under"
-                        cmd_final_stamp = [cpdf_path, str(first_page_pdf), stamp_mode_cmd, str(stamp_to_apply_path), "-o", str(modified_pdf)]
-                        run_command(cmd_final_stamp)
+                        cmd = [cpdf_path, str(first_page_pdf), "-stamp-on" if stamp_opts['on_top'] else "-stamp-under", str(stamp_to_apply_path)]
+                        cmd.extend(pos_cmd)
+                        cmd.extend(["-o", str(modified_pdf)])
+                        run_command(cmd)
+
                 else:
+                    final_text = mode_opts['text'].strip()
+                    if mode_opts.get('bates_start') and "%Bates" in final_text:
+                        final_text = final_text.replace("%Bates", str(mode_opts['bates_start']).zfill(6))
+                    
                     cmd = [cpdf_path, str(first_page_pdf)]
-                    text_parts = [
-                        "-add-text", mode_opts['text'].strip(),
-                        "-font", mode_opts['font'],
-                        "-font-size", str(mode_opts['size']),
-                        "-color", mode_opts['color'],
-                        "-opacity", str(stamp_opts['opacity'])
-                    ]
+                    text_parts = ["-add-text", final_text, "-font", mode_opts['font'], "-font-size", str(mode_opts['size']), "-color", mode_opts['color'], "-opacity", str(stamp_opts['opacity'])]
                     cmd.extend(text_parts)
-                    if not stamp_opts['on_top']:
-                        cmd.append("-underneath")
+                    if not stamp_opts['on_top']: cmd.append("-underneath")
                     cmd.extend(pos_cmd)
                     cmd.extend(["-o", str(modified_pdf)])
                     run_command(cmd)
@@ -194,7 +216,7 @@ def generate_preview(gs_path, cpdf_path, pdf_path, operation, options):
             shutil.copy(first_page_pdf, modified_pdf)
 
         try:
-            render_cmd = [gs_path, "-sDEVICE=png16m", "-r150", "-dNOPAUSE", "-dBATCH", "-dSAFER", f"-sOutputFile={preview_image_path}", str(modified_pdf)]
+            render_cmd = [gs_path, "-sDEVICE=png16m", "-r96", "-dNOPAUSE", "-dBATCH", "-dSAFER", f"-sOutputFile={preview_image_path}", str(modified_pdf)]
             run_command(render_cmd)
         except Exception as e:
             logging.error(f"Failed to render preview image with Ghostscript: {e}")
@@ -211,24 +233,72 @@ def generate_preview(gs_path, cpdf_path, pdf_path, operation, options):
 def run_compress_task(params, is_folder, q):
     try:
         optimizer = PdfOptimizer(
-            gs_path=params['gs_path'], sam2p_path=params['sam2p_path'],
-            cpdf_path=params['cpdf_path'], jbig2_path=params['jbig2_path'],
-            pngout_path=params['pngout_path'], compress_level=params['compress_level'],
+            gs_path=params['gs_path'], cpdf_path=params['cpdf_path'],
+            pngquant_path=params['pngquant_path'],
+            jpegoptim_path=params['jpegoptim_path'],
+            jbig2_path=params['jbig2_path'], ect_path=params['ect_path'],
+            zopfli_path=params['zopfli_path'],
+            q=q if not is_folder else None,
             user_password=params['user_password'], darken_text=params['darken_text'],
             remove_open_action=params.get('remove_open_action'),
-            q=q if not is_folder else None
+            deep_png_compress=params.get('deep_png_compress'),
+            fast_web_view=params.get('fast_web_view'),
+            fast_mode=params.get('fast_mode'),
+            convert_to_grayscale=params.get('convert_to_grayscale', False)
         )
+
         input_path = Path(params['input_path'])
         output_path = Path(params['output_path'])
-        total_in_size = get_total_size(input_path, is_folder)
+        total_in_size = get_total_size(params['input_path'], is_folder)
+        files_skipped = 0
 
         def process_a_file(input_file, output_file):
-            if params['is_lossless']:
-                q.put(('status', f"Optimizing (lossless) {input_file.name}..."))
-                optimizer.optimize_lossless(input_file, output_file, strip_metadata=params['strip_metadata'])
-            else:
-                q.put(('status', f"Smart optimizing (lossy) {input_file.name}..."))
-                optimizer.optimize_lossy(input_file, output_file, params['dpi'], strip_metadata=params['strip_metadata'], remove_interactive=params['remove_interactive'])
+            nonlocal files_skipped
+            mode = params.get('mode', 'Lossy')
+            only_if_smaller = params.get('only_if_smaller', False)
+            original_size = input_file.stat().st_size
+
+            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_out:
+                temp_output_path = Path(temp_out.name)
+            
+            try:
+                if mode == 'Lossless':
+                    optimizer.optimize_lossless(input_file, temp_output_path, strip_metadata=params['strip_metadata'])
+                elif mode == 'PDF/A':
+                    optimizer.optimize_pdfa(input_file, temp_output_path)
+                elif mode == 'Remove Images':
+                    optimizer.optimize_text_only(input_file, temp_output_path, strip_metadata=params['strip_metadata'])
+                else:
+                    optimizer.optimize_lossy(
+                        input_file, temp_output_path, params['dpi'],
+                        strip_metadata=params['strip_metadata'],
+                        remove_interactive=params['remove_interactive'],
+                        use_bicubic=params['use_bicubic']
+                    )
+
+                if not temp_output_path.exists() or temp_output_path.stat().st_size == 0:
+                    logging.warning(f"Processing failed for {input_file.name}, temp file is empty. Copying original.")
+                    shutil.copy2(input_file, output_file)
+                    return
+
+                if mode == 'PDF/A':
+                    shutil.move(str(temp_output_path), output_file)
+                    return
+
+                new_size = temp_output_path.stat().st_size
+                if new_size < original_size:
+                    shutil.move(str(temp_output_path), output_file)
+                else:
+                    if only_if_smaller:
+                        files_skipped += 1
+                        logging.info(f"Skipping save for {input_file.name}, new size {new_size} >= original size {original_size}")
+                    else:
+                        shutil.copy2(input_file, output_file)
+                        logging.info(f"Saving original for {input_file.name}, new size {new_size} >= original size {original_size}")
+
+            finally:
+                if temp_output_path.exists():
+                    os.remove(temp_output_path)
 
         if is_folder:
             output_path.mkdir(parents=True, exist_ok=True)
@@ -236,12 +306,16 @@ def run_compress_task(params, is_folder, q):
             total_files = len(pdf_files)
             if total_files == 0: raise ProcessingError(f"No PDF files found in '{input_path}'")
             for i, pdf_file in enumerate(pdf_files):
+                q.put(('status', f"Processing {pdf_file.name} ({i+1}/{total_files})..."))
                 process_a_file(pdf_file, output_path / pdf_file.name)
                 q.put(('overall', ((i + 1) / total_files) * 100))
         else:
+            q.put(('status', f"Processing {input_path.name}..."))
             process_a_file(input_path, output_path)
 
         total_out_size = get_total_size(output_path, is_folder)
+        final_message = "Processing complete."
+
         if total_in_size > 0 and total_out_size > 0:
             saved_bytes = total_in_size - total_out_size
             if saved_bytes > 0:
@@ -249,11 +323,13 @@ def run_compress_task(params, is_folder, q):
                 if abs(saved_bytes) > 1024*1024: saved_str = f"{saved_bytes / (1024*1024):.2f} MB"
                 elif abs(saved_bytes) > 1024: saved_str = f"{saved_bytes / 1024:.2f} KB"
                 else: saved_str = f"{saved_bytes} bytes"
-                final_message = f"Processing complete. Saved {saved_str} ({percent_saved:.1f}%)."
+                final_message = f"Complete. Saved {saved_str} ({percent_saved:.1f}%)."
             else:
-                final_message = "Processing complete. Original was smaller or already optimized."
-        else:
-            final_message = "Processing complete."
+                final_message = "Complete. File size did not decrease."
+        
+        if files_skipped > 0:
+            final_message += f" ({files_skipped} file(s) not saved)."
+            
         q.put(('complete', final_message))
 
     except (ToolNotFound, ProcessingError, FileNotFoundError, ValueError) as e:
@@ -278,27 +354,29 @@ def run_merge_task(file_list, output_path, q):
 def run_split_task(input_path, output_dir, mode, value, q):
     try:
         q.put(('status', "Opening PDF...")); p_in = Path(input_path)
+        output_dir_path = Path(output_dir)
+        output_dir_path.mkdir(parents=True, exist_ok=True)
         with pikepdf.open(p_in) as pdf:
             total = len(pdf.pages)
             if mode == SPLIT_SINGLE:
                 for i, page in enumerate(pdf.pages):
                     prog = ((i + 1) / total) * 100
                     q.put(('status', f"Saving page {i+1}/{total}")); q.put(('progress', prog)); q.put(('overall', prog))
-                    with pikepdf.Pdf.new() as dst: dst.pages.append(page); dst.save(Path(output_dir) / f"{p_in.stem}_page_{i+1}.pdf")
+                    with pikepdf.Pdf.new() as dst: dst.pages.append(page); dst.save(output_dir_path / f"{p_in.stem}_page_{i+1}.pdf")
             elif mode == SPLIT_EVERY_N:
                 n = int(value);
                 if n <= 0: raise ValueError("Number of pages must be positive.")
                 for i in range(0, total, n):
                     prog = (min(i + n, total) / total) * 100
                     q.put(('status', f"Saving pages {i+1}-{min(i+n, total)}")); q.put(('progress', prog)); q.put(('overall', prog))
-                    with pikepdf.Pdf.new() as dst: dst.pages.extend(pdf.pages[i:i+n]); dst.save(Path(output_dir) / f"{p_in.stem}_pages_{i+1}-{i+n}.pdf")
+                    with pikepdf.Pdf.new() as dst: dst.pages.extend(pdf.pages[i:i+n]); dst.save(output_dir_path / f"{p_in.stem}_pages_{i+1}-{i+n}.pdf")
             elif mode == SPLIT_CUSTOM:
                 indices = parse_page_ranges(value, total); q.put(('status', f"Extracting {len(indices)} pages..."))
                 with pikepdf.Pdf.new() as dst:
                     for i, page_index in enumerate(sorted([i for i in indices if i < total])):
                         prog = ((i+1)/len(indices)) * 100
                         dst.pages.append(pdf.pages[page_index]); q.put(('progress', prog)); q.put(('overall', prog))
-                dst.save(Path(output_dir) / f"{p_in.stem}_custom_range.pdf")
+                dst.save(output_dir_path / f"{p_in.stem}_custom_range.pdf")
             else: raise ProcessingError(f"Unknown split mode: {mode}")
         q.put(('complete', "Splitting complete."))
     except Exception as e: logging.error(f"Split task failed: {e}"); q.put(('complete', f"Error: {e}"))
@@ -330,37 +408,49 @@ def run_stamp_task(pdf_in, pdf_out, stamp_opts, cpdf_path, q, mode, mode_opts):
         temp_dir = Path(temp_dir_str)
         try:
             q.put(('status', "Applying stamp..."))
-            pos_map = {POS_CENTER: ["-center"], POS_BOTTOM_LEFT: ["-bottomleft", "10"], POS_BOTTOM_RIGHT: ["-bottomright", "10"]}
-            pos_cmd = pos_map.get(stamp_opts['pos'], ["-center"])
+
+            pos = stamp_opts['pos']
+            margin = "20"
+            pos_map = {
+                POS_TOP_LEFT: ["-topleft", margin], POS_TOP_CENTER: ["-top", margin], POS_TOP_RIGHT: ["-topright", margin],
+                POS_MIDDLE_LEFT: ["-left", margin], POS_CENTER: ["-center"], POS_MIDDLE_RIGHT: ["-right", margin],
+                POS_BOTTOM_LEFT: ["-bottomleft", margin], POS_BOTTOM_CENTER: ["-bottom", margin], POS_BOTTOM_RIGHT: ["-bottomright", margin],
+            }
+            pos_cmd = pos_map.get(pos, ["-center"])
 
             if mode == STAMP_IMAGE:
                 stamp_to_apply_path = temp_dir / "image_stamp.pdf"
+                scale = mode_opts.get('image_scale', 1.0)
+
                 with Image.open(mode_opts['image_path']) as img:
+                    if scale != 1.0:
+                        try:
+                            w = int(img.width * scale)
+                            h = int(img.height * scale)
+                            if w > 0 and h > 0:
+                                resample = Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.ANTIALIAS
+                                img = img.resize((w, h), resample)
+                        except Exception as e:
+                            logging.warning(f"Invalid image scale, using original. Error: {e}")
+
                     if stamp_opts['opacity'] < 1.0:
                         if img.mode != 'RGBA': img = img.convert('RGBA')
                         alpha = img.split()[3]; alpha = alpha.point(lambda p: p * stamp_opts['opacity']); img.putalpha(alpha)
                     img.save(stamp_to_apply_path, "PDF", resolution=100.0)
-
-                cmd_final = [cpdf_path, pdf_in, "-stamp-on" if stamp_opts['on_top'] else "-stamp-under", str(stamp_to_apply_path), "-o", pdf_out]
-                run_command(cmd_final)
+                
+                cmd = [cpdf_path, pdf_in, "-stamp-on" if stamp_opts['on_top'] else "-stamp-under", str(stamp_to_apply_path)]
+                cmd.extend(pos_cmd)
+                cmd.extend(["-o", pdf_out])
+                run_command(cmd)
 
             else:
+                final_text = mode_opts['text'].strip()
                 cmd = [cpdf_path, pdf_in]
-                text_parts = [
-                    "-add-text", mode_opts['text'].strip(),
-                    "-font", mode_opts['font'],
-                    "-font-size", str(mode_opts['size']),
-                    "-color", mode_opts['color'],
-                    "-opacity", str(stamp_opts['opacity'])
-                ]
+                text_parts = ["-add-text", final_text, "-font", mode_opts['font'], "-font-size", str(mode_opts['size']), "-color", mode_opts['color'], "-opacity", str(stamp_opts['opacity'])]
                 if mode_opts.get('bates_start'):
                     text_parts.extend(["-bates", mode_opts['bates_start']])
-
                 cmd.extend(text_parts)
-
-                if not stamp_opts['on_top']:
-                    cmd.append("-underneath")
-
+                if not stamp_opts['on_top']: cmd.append("-underneath")
                 cmd.extend(pos_cmd)
                 cmd.extend(["-o", pdf_out])
                 run_command(cmd)
@@ -370,10 +460,45 @@ def run_stamp_task(pdf_in, pdf_out, stamp_opts, cpdf_path, q, mode, mode_opts):
             logging.error(f"Stamp task failed: {e}", exc_info=True)
             q.put(('complete', f"Error: {e}"))
 
+def run_page_number_task(pdf_in, pdf_out, cpdf_path, q, options):
+    try:
+        q.put(('status', "Adding page numbers/headers/footers..."))
+        
+        cmd = [cpdf_path, "-utf8"]
+        
+        cmd.extend(["-add-text", options['text']])
+        cmd.extend(["-font", options['font']])
+        cmd.extend(["-font-size", str(options['font_size'])])
+        cmd.extend(["-color", options['color']])
+
+        pos = options['pos']
+        margin = "15" 
+        pos_map = {
+            POS_TOP_LEFT: ["-topleft", margin], POS_TOP_CENTER: ["-top", margin], POS_TOP_RIGHT: ["-topright", margin],
+            POS_BOTTOM_LEFT: ["-bottomleft", margin], POS_BOTTOM_CENTER: ["-bottom", margin], POS_BOTTOM_RIGHT: ["-bottomright", margin],
+        }
+        pos_cmd = pos_map.get(pos, ["-bottom", margin])
+        cmd.extend(pos_cmd)
+
+        cmd.append(pdf_in)
+        page_range = options.get('page_range', '').strip()
+        if page_range:
+            cmd.append(page_range)
+
+        cmd.extend(["-o", pdf_out])
+        
+        run_command(cmd)
+
+        q.put(('progress', 100))
+        q.put(('overall', 100))
+        q.put(('complete', "Header/Footer task complete."))
+    except Exception as e:
+        logging.error(f"Page Number task failed: {e}", exc_info=True)
+        q.put(('complete', f"Error: {e}"))
 
 def run_metadata_task(task_type, pdf_path, cpdf_path, metadata_dict=None):
     if task_type == META_LOAD:
-        proc = subprocess.run([cpdf_path, "-info", pdf_path], capture_output=True, text=True, encoding='utf-8', errors='ignore')
+        proc = subprocess.run([cpdf_path, "-utf8", "-info", pdf_path], capture_output=True, text=True, encoding='utf-8', errors='ignore')
         if proc.returncode != 0: raise ProcessingError(f"cpdf failed to read info: {proc.stderr.strip()}")
         info = {}
         for line in proc.stdout.splitlines():
@@ -385,7 +510,7 @@ def run_metadata_task(task_type, pdf_path, cpdf_path, metadata_dict=None):
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_out:
             temp_path = temp_out.name
         try:
-            cmd = [cpdf_path, pdf_path]
+            cmd = [cpdf_path, "-utf8", pdf_path]
             valid_metadata = {k: v for k, v in metadata_dict.items() if v}
             is_first_op = True
             for key, value in valid_metadata.items():
@@ -402,16 +527,6 @@ def run_metadata_task(task_type, pdf_path, cpdf_path, metadata_dict=None):
             if os.path.exists(temp_path):
                 os.remove(temp_path)
 
-def run_pdfa_task(gs_path, pdf_in, pdf_out, q):
-    try:
-        q.put(('status', "Converting to PDF/A..."))
-        pdfa_def = resource_path('lib/PDFA_def.ps')
-        if not pdfa_def.exists(): raise FileNotFoundError("PDFA_def.ps not found in lib folder.")
-        cmd = [gs_path, "-dPDFA=2", "-dBATCH", "-dNOPAUSE", "-sDEVICE=pdfwrite", "-dPDFACompatibilityPolicy=1", "-sColorConversionStrategy=sRGB", f"-sOutputFile={pdf_out}", str(pdfa_def), pdf_in]
-        run_command(cmd)
-        q.put(('progress', 100)); q.put(('overall', 100)); q.put(('complete', "PDF/A conversion complete."))
-    except Exception as e: logging.error(f"PDF/A task failed: {e}"); q.put(('complete', f"Error: {e}"))
-
 def run_pdf_to_image_task(gs_path, pdf_in, out_dir, options, q):
     try:
         q.put(('status', f"Converting PDF to {options.get('format')}..."))
@@ -423,15 +538,6 @@ def run_pdf_to_image_task(gs_path, pdf_in, out_dir, options, q):
         q.put(('progress', 100)); q.put(('overall', 100)); q.put(('complete', "Conversion to images complete."))
     except Exception as e: logging.error(f"PDF to image task failed: {e}"); q.put(('complete', f"Error: {e}"))
 
-def run_remove_open_action_task(pdf_in, cpdf_path, q):
-    try:
-        q.put(('status', "Removing opening action..."))
-        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_out: temp_path = temp_out.name
-        cmd = [cpdf_path, pdf_in, "-remove-dict-entry", "/OpenAction", "-o", temp_path]
-        run_command(cmd); shutil.move(temp_path, pdf_in)
-        q.put(('progress', 100)); q.put(('overall', 100)); q.put(('complete', "Opening action removed."))
-    except Exception as e: logging.error(f"Remove open action task failed: {e}"); q.put(('complete', f"Error: {e}"))
-
 def run_repair_task(pdf_in, pdf_out, q):
     try:
         q.put(('status', "Attempting to repair PDF..."))
@@ -442,4 +548,37 @@ def run_repair_task(pdf_in, pdf_out, q):
         q.put(('complete', "Repair attempt finished."))
     except Exception as e:
         logging.error(f"Repair task failed: {e}")
+        q.put(('complete', f"Error: {e}"))
+
+def run_toc_task(cpdf_path, pdf_in, pdf_out, options, q):
+    try:
+        q.put(('status', "Generating Table of Contents..."))
+        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_out:
+            temp_path = temp_out.name
+
+        cmd = [cpdf_path, "-table-of-contents"]
+
+        if options.get('title'):
+            cmd.extend(["-toc-title", options.get('title')])
+        if options.get('font'):
+            cmd.extend(["-font", options.get('font')])
+        if options.get('font_size'):
+            cmd.extend(["-font-size", str(options.get('font_size'))])
+        if options.get('dot_leaders'):
+            cmd.append("-toc-dot-leaders")
+        if options.get('no_bookmark'):
+            cmd.append("-toc-no-bookmark")
+
+        cmd.extend([pdf_in, "-o", temp_path])
+        run_command(cmd)
+
+        if not Path(temp_path).exists() or Path(temp_path).stat().st_size == 0:
+            raise ProcessingError("cpdf failed to generate the table of contents. The output file is empty.")
+
+        shutil.move(temp_path, pdf_out)
+        q.put(('progress', 100))
+        q.put(('overall', 100))
+        q.put(('complete', "Table of Contents generation complete."))
+    except Exception as e:
+        logging.error(f"Table of Contents task failed: {e}", exc_info=True)
         q.put(('complete', f"Error: {e}"))

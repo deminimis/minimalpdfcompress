@@ -39,7 +39,18 @@ def apply_theme(root, mode='dark'):
     style.configure('TButton', padding=(10, 5), background=colors["WIDGET_HOVER"], foreground=colors["TEXT"], font=(FONT_FAMILY, 10), highlightthickness=0, borderwidth=0, relief='flat')
     style.map('TButton', background=[('pressed', colors["WIDGET_BG"]), ('active', colors["WIDGET_HOVER"])])
     style.configure('Accent.TButton', background=colors["ACCENT"], foreground="#ffffff", font=(FONT_FAMILY, 12, 'bold'))
-    style.map('Accent.TButton', background=[('pressed', colors["ACCENT"]), ('active', colors["ACCENT_HOVER"])], foreground=[('pressed', "#ffffff")])
+    style.map('Accent.TButton',
+        background=[
+            ('disabled', colors["DISABLED_BG"]),
+            ('pressed', colors["ACCENT"]),
+            ('active', colors["ACCENT_HOVER"])
+        ],
+        foreground=[
+            ('disabled', colors["DISABLED"]),
+            ('pressed', "#ffffff"),
+            ('active', "#ffffff")
+        ]
+    )
     style.configure('Outline.TButton', background=colors["WIDGET_BG"], foreground=colors["ACCENT"], borderwidth=1, bordercolor=colors["ACCENT"], highlightthickness=0, padding=(8,4), font=(FONT_FAMILY, 9))
     style.map('Outline.TButton', background=[('active', colors["WIDGET_HOVER"])], bordercolor=[('active', colors["ACCENT_HOVER"])], foreground=[('active', colors["ACCENT_HOVER"])])
     style.configure('Large.Outline.TButton', background=colors["WIDGET_BG"], foreground=colors["ACCENT"], borderwidth=1, bordercolor=colors["ACCENT"], highlightthickness=0, padding=(10, 6), font=(FONT_FAMILY, 11))
@@ -80,7 +91,14 @@ def apply_theme(root, mode='dark'):
         bordercolor=[('disabled', colors["BORDER"])]
     )
 
-    style.configure('Treeview', background=colors["WIDGET_BG"], fieldbackground=colors["WIDGET_BG"], foreground=colors["TEXT"], relief='solid', borderwidth=1, bordercolor=colors["BORDER"])
+    style.layout('Position.TRadiobutton', [('Radiobutton.padding', {'sticky': 'nswe', 'children': [('Radiobutton.indicator', {'sticky': 'nswe'})]})])
+    style.configure('Position.TRadiobutton', indicatoron=0, relief='flat', padding=15, background=colors["WIDGET_BG"], borderwidth=1, bordercolor=colors["BORDER"])
+    style.map('Position.TRadiobutton',
+        background=[('selected', colors["ACCENT"]), ('active', colors["WIDGET_HOVER"])],
+        bordercolor=[('selected', colors["ACCENT_HOVER"])]
+    )
+
+    style.configure('Treeview', rowheight=25, background=colors["WIDGET_BG"], fieldbackground=colors["WIDGET_BG"], foreground=colors["TEXT"], relief='solid', borderwidth=1, bordercolor=colors["BORDER"])
     style.map('Treeview', background=[('selected', colors["ACCENT"])], foreground=[('selected', "#ffffff")])
     style.configure('Treeview.Heading', background=colors["BG"], foreground=colors["TEXT"], font=(FONT_FAMILY, 10, 'bold'), relief='flat', borderwidth=0)
     style.map('Treeview.Heading', background=[('active', colors["WIDGET_HOVER"])])
@@ -94,3 +112,4 @@ def apply_theme(root, mode='dark'):
     root.option_add('*TCombobox*Listbox.borderwidth', 0)
 
     return colors
+

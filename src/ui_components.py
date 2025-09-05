@@ -1,8 +1,5 @@
-# ui_components.py
 import tkinter as tk
 from tkinter import ttk
-import math
-from constants import PRESET_TICKS
 from PIL import Image, ImageDraw, ImageTk
 
 class ScrolledFrame(ttk.Frame):
@@ -104,117 +101,148 @@ class ModernToggle(ttk.Frame):
         self.variable.set(not self.variable.get());
         if self.command: self.command()
 
-class QualityDial(ttk.Frame):
+class CompressionGauge(ttk.Frame):
     def __init__(self, parent, variable=None, palette=None, **kwargs):
         super().__init__(parent, style="Card.TFrame", **kwargs)
-        self.variable = variable
+        self.variable = variable if variable else tk.DoubleVar(value=0.0)
         self.palette = palette if palette else {}
-        self.entry = None; self.text_id = None; self._dial_image_cache = None
-        self.min_val, self.max_val = 50, 400
+        self.text_id = None
         self.state = "normal"
         
         self.canvas = tk.Canvas(self, highlightthickness=0)
-        self.canvas.pack(expand=True, fill="both", pady=(0, 10))
-        
-        self.slider_canvas = tk.Canvas(self, height=20, highlightthickness=0)
-        self.slider_canvas.pack(expand=True, fill='x', padx=20, pady=(0,5))
+        self.canvas.pack(expand=True, fill="both")
         
         self.canvas.bind("<Configure>", self.draw_dial)
-        self.canvas.bind("<Button-1>", self._on_click)
-        self.slider_canvas.bind("<Configure>", self.draw_slider)
-        self.slider_canvas.bind("<Button-1>", self._handle_slider_event)
-        self.slider_canvas.bind("<B1-Motion>", self._handle_slider_event)
-        
-        self.variable.trace_add("write", self._update_all_visuals)
-        
-    def _update_all_visuals(self, *args):
-        self.draw_dial()
-        self.draw_slider()
+        self.variable.trace_add("write", self.draw_dial)
         
     def update_colors(self, palette):
         self.palette = palette
         self.canvas.configure(bg=self.palette.get("WIDGET_BG"))
-        self.slider_canvas.configure(bg=self.palette.get("WIDGET_BG"))
-        self._update_all_visuals()
+        self.draw_dial()
         
     def set_state(self, state):
         self.state = state
-        self._update_all_visuals()
+        self.draw_dial()
         
     def draw_dial(self, *args):
-        self.canvas.delete("all"); width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
+        self.canvas.delete("all")
+        width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
         if width < 10 or height < 10: return
-        radius = min(width, height) / 2.8; center_x, center_y = width / 2, height / 2
-        bg = self.palette.get("DISABLED_BG") if self.state == "disabled" else self.palette.get("BG")
-        fg = self.palette.get("DISABLED") if self.state == "disabled" else self.palette.get("ACCENT")
-        txt = self.palette.get("DISABLED") if self.state == "disabled" else self.palette.get("TEXT")
-        start_angle, end_angle = 225, -45
-        self.canvas.create_arc(center_x-radius, center_y-radius, center_x+radius, center_y+radius, start=start_angle, extent=(end_angle-start_angle), outline=bg, width=12, style=tk.ARC)
-        angle = self._value_to_angle(self.variable.get())
-        self.canvas.create_arc(center_x-radius, center_y-radius, center_x+radius, center_y+radius, start=start_angle, extent=(angle-start_angle), outline=fg, width=14, style=tk.ARC)
-        self.text_id = self.canvas.create_text(center_x, center_y, text=f"{self.variable.get()}", font=("Segoe UI", 28, "bold"), fill=txt)
-        self.canvas.create_text(center_x, center_y + 30, text="DPI", font=("Segoe UI", 10), fill=txt)
-        for name, dpi in PRESET_TICKS.items():
-            a = self._value_to_angle(dpi); r = math.radians(a)
-            x1=center_x+(radius+8)*math.cos(r); y1=center_y-(radius+8)*math.sin(r)
-            x2=center_x+(radius+15)*math.cos(r); y2=center_y-(radius+15)*math.sin(r)
-            self.canvas.create_line(x1, y1, x2, y2, fill=txt, width=2)
-            xt=center_x+(radius+28)*math.cos(r); yt=center_y-(radius+28)*math.sin(r)
-            self.canvas.create_text(xt, yt, text=name, fill=txt, font=("Segoe UI", 8))
-            
-    def draw_slider(self, *args):
-        self.slider_canvas.delete("all")
-        width = self.slider_canvas.winfo_width()
-        height = self.slider_canvas.winfo_height()
-        if width < 20: return
-        track_y = height / 2
-        slider_color = self.palette.get("DISABLED") if self.state == "disabled" else self.palette.get("ACCENT")
         
-        self.slider_canvas.create_line(10, track_y, width - 10, track_y, fill=self.palette.get("BORDER"), width=2)
-        value_ratio = (self.variable.get() - self.min_val) / (self.max_val - self.min_val)
-        thumb_x = 10 + value_ratio * (width - 20)
-        self.slider_canvas.create_rectangle(thumb_x - 4, 2, thumb_x + 4, height - 2, fill=slider_color, outline="")
+        radius = min(width, height) / 2.8
+        center_x, center_y = width / 2, height / 2
+        
+        bg_color = self.palette.get("BORDER")
+        value = self.variable.get()
+        fg_color = self.palette.get("SUCCESS") if value > 0 else self.palette.get("ACCENT")
+        text_color = self.palette.get("TEXT")
 
-    def _handle_slider_event(self, event):
-        if self.state == "disabled": return
-        width = self.slider_canvas.winfo_width()
-        x = max(10, min(event.x, width - 10))
-        value_ratio = (x - 10) / (width - 20)
-        new_value = self.min_val + value_ratio * (self.max_val - self.min_val)
-        if self.variable.get() != int(new_value):
-            self.variable.set(int(new_value))
-            
-    def _start_edit_mode(self):
-        if self.entry or self.state == "disabled": return
-        x1, y1, x2, y2 = self.canvas.bbox(self.text_id)
-        self.canvas.itemconfig(self.text_id, state='hidden')
-        entry_var = tk.StringVar(value=str(self.variable.get()))
-        self.entry = ttk.Entry(self.canvas, textvariable=entry_var, justify='center', font=("Segoe UI", 24, "bold"))
-        self.entry.bind("<Return>", self._end_edit_mode)
-        self.entry.bind("<FocusOut>", self._end_edit_mode)
-        self.canvas.create_window((x1+x2)/2, (y1+y2)/2, window=self.entry, width=x2-x1)
-        self.entry.focus_set(); self.entry.select_range(0, 'end')
+        if self.state == 'disabled':
+            bg_color = self.palette.get("DISABLED_BG")
+            fg_color = self.palette.get("DISABLED")
+            text_color = self.palette.get("DISABLED")
+
+        start_angle, end_angle = 225, -45
         
-    def _end_edit_mode(self, event=None):
-        if not self.entry: return
-        try:
-            value = int(self.entry.get())
-            clamped_value = max(self.min_val, min(self.max_val, value))
-            self.variable.set(clamped_value)
-        except ValueError: pass
-        self.entry.destroy(); self.entry = None
-        self.canvas.itemconfig(self.text_id, state='normal'); self.draw_dial()
+        self.canvas.create_arc(center_x-radius, center_y-radius, center_x+radius, center_y+radius, 
+                               start=start_angle, extent=(end_angle-start_angle), 
+                               outline=bg_color, width=12, style=tk.ARC)
         
+        angle = self._value_to_angle(value)
+        if value > 0:
+            self.canvas.create_arc(center_x-radius, center_y-radius, center_x+radius, center_y+radius,
+                                   start=start_angle, extent=(angle-start_angle),
+                                   outline=fg_color, width=14, style=tk.ARC)
+        
+        self.text_id = self.canvas.create_text(center_x, center_y, text=f"{value:.1f}%", 
+                                               font=("Segoe UI", 28, "bold"), fill=text_color)
+        self.canvas.create_text(center_x, center_y + 30, text="SAVED", 
+                                font=("Segoe UI", 10), fill=text_color)
+
     def _value_to_angle(self, value):
         start_angle, end_angle = 225, -45
-        value = max(self.min_val, min(self.max_val, value))
-        ratio = (value - self.min_val) / (self.max_val - self.min_val)
+        value = max(0.0, min(100.0, value))
+        ratio = value / 100.0
         return start_angle + ratio * (end_angle - start_angle)
+
+class CustomSlider(ttk.Frame):
+    def __init__(self, parent, from_=0, to=100, variable=None, palette=None, **kwargs):
+        super().__init__(parent, style="Card.TFrame", **kwargs)
+        self.from_ = from_
+        self.to = to
+        self.variable = variable
+        self.palette = palette if palette else {}
+        self.state = "normal"
+        self.thumb_radius = 8
+
+        self.canvas = tk.Canvas(self, height=self.thumb_radius * 2 + 4, highlightthickness=0)
+        self.canvas.pack(expand=True, fill="x")
+
+        self.canvas.bind("<Configure>", self._draw_slider)
+        self.canvas.bind("<Button-1>", self._handle_mouse_event)
+        self.canvas.bind("<B1-Motion>", self._handle_mouse_event)
+        self.variable.trace_add("write", self._draw_slider)
+
+    def update_colors(self, palette):
+        self.palette = palette
+        self.canvas.configure(bg=self.palette.get("WIDGET_BG"))
+        self._draw_slider()
+
+    def config(self, state=None):
+        if state in ("normal", "disabled"):
+            self.state = state
+            self._draw_slider()
+
+    def _draw_slider(self, *args):
+        self.canvas.delete("all")
+        width = self.canvas.winfo_width()
+        height = self.canvas.winfo_height()
+        if width < 20: return
+
+        track_y = height / 2
+        track_start_x = self.thumb_radius + 2
+        track_end_x = width - self.thumb_radius - 2
+        track_width = track_end_x - track_start_x
+
+        track_color = self.palette.get("BORDER")
+        thumb_color = self.palette.get("ACCENT")
+        if self.state == "disabled":
+            track_color = self.palette.get("DISABLED_BG")
+            thumb_color = self.palette.get("DISABLED")
+
+        self.canvas.create_line(track_start_x, track_y, track_end_x, track_y, fill=track_color, width=4, capstyle='round')
+
+        try:
+            value = self.variable.get()
+        except (ValueError, tk.TclError):
+            value = self.from_
+
+        value_ratio = (value - self.from_) / (self.to - self.from_)
+        value_ratio = max(0, min(1, value_ratio))
         
-    def _on_click(self, event):
-        if self.state == "disabled" or self.entry: return
-        items = self.canvas.find_withtag("current")
-        if self.text_id in items: self._start_edit_mode()
+        thumb_x = track_start_x + value_ratio * track_width
+        
+        self.canvas.create_oval(
+            thumb_x - self.thumb_radius, track_y - self.thumb_radius,
+            thumb_x + self.thumb_radius, track_y + self.thumb_radius,
+            fill=thumb_color, outline=""
+        )
+
+    def _handle_mouse_event(self, event):
+        if self.state == "disabled": return
+        
+        width = self.canvas.winfo_width()
+        track_start_x = self.thumb_radius + 2
+        track_end_x = width - self.thumb_radius - 2
+        track_width = track_end_x - track_start_x
+        
+        x = max(track_start_x, min(event.x, track_end_x))
+        
+        value_ratio = (x - track_start_x) / track_width
+        new_value = self.from_ + value_ratio * (self.to - self.from_)
+        
+        if self.variable.get() != int(new_value):
+            self.variable.set(int(new_value))
 
 class DropZone(tk.Canvas):
     def __init__(self, parent, browse_file_cmd, browse_folder_cmd, palette, **kwargs):
@@ -236,3 +264,15 @@ class DropZone(tk.Canvas):
             self.folder_btn = ttk.Button(self, text="Select Folder", command=self.browse_folder_cmd, style="Large.Outline.TButton")
         self.create_window(width/2 - 75, height/2 + 25, window=self.file_btn)
         self.create_window(width/2 + 75, height/2 + 25, window=self.folder_btn)
+
+class PositionSelector(ttk.Frame):
+    def __init__(self, parent, variable, positions, **kwargs):
+        super().__init__(parent, style="Card.TFrame", **kwargs)
+        self.variable = variable
+
+        for i, pos in enumerate(positions):
+            row, col = divmod(i, 3)
+            rb = ttk.Radiobutton(self, text="", variable=self.variable, value=pos, style="Position.TRadiobutton", width=-5)
+            rb.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
+            self.rowconfigure(row, weight=1)
+            self.columnconfigure(col, weight=1)
