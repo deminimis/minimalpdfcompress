@@ -28,6 +28,7 @@ The main tab offers a streamlined approach with four distinct optimization modes
 - **Compression**: Recreates the PDF using Ghostscript to intelligently downsample images. An interactive **custom slider** makes it easy to set the desired image resolution (DPI).
     
 - **Lossless**: A powerful pipeline that reduces file size without any quality degradation. It works by re-compressing data streams and intelligently optimizing embedded images (PNG, JPG, etc.) using `oxipng`, `ECT`, and `jbig2`.
+     - **Note**: actively being worked on, it's not truely lossless yet. 
     
 - **PDF/A**: Converts the document to the PDF/A-2b archival format. This ensures long-term viewability but may increase file size.
     
