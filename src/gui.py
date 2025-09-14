@@ -33,7 +33,7 @@ if IS_WINDOWS:
         logging.warning("windnd library not found. Drag and drop will be disabled.")
         IS_WINDOWS = False
 
-COFFEE_ICON_B64 = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAE6ElEQVRogdWZX2hcRRTGf67LstQYQgghlBBCjHkIWm0oQfNQi4oU8UGLiNQipcQHixQtIr74ICKCoYhIn6QPElsJUYtIUYs+VFGordSoaatpTaRqtCk2prba/On68J2be/fm7mZ2906jH1zu3NmZb87MnHPmnFnwh3qgxyM/ABmP3M8B5zzye0UDMInfBQKPA9wLzAJXPPEvwtcEbvfIXQRfgzQCLUCdJ/5FpD2BXntPA1ngvpT5vWO3vTcDBWCEq6RKaaAZGLNyHXAeTaJ/xSSqEOuBBaDNvp9HE5gCmlZKqEpwExJ40L7rgF+sbnepTv8lZIAjSOD7ra7fvueAzhWSqyKsQ8L+jlxpFjiNJjHgY8BrU+b7FYURdyN7+Bip0l3IyF9LeTwvaAL+RisPsAbtQAFFqP8LfABcRiqUs3IBD3bg65A5DswA8yiom7b62bQHyqbA0QR0If//JfAj8CfwRWycS8hGQHbxVwpjV4Um5B6HCf188NxjbXYRxkGrkGf6KNJ/DtnIILCFq2QbLcAeQn1eAEaBN4BngYcjgmwnVM8ea7/FvruBITSBBfvtAnKz3ibSSbjah9EOtJRpn4+Ut6MYKZfQrg3YAZww7hN4Cjv22gDPVNF3mFC1SiGDwo0C8EIl5K5eKHB/uQr6gIz3K+CggxzBDrVXwO+MM4SGegypRatDvzzlJ9yFdnUswn8AqdYGlCAlqd4irnEQAuQWAd4EtiLPAnKZR4GTwDhyk9PIRc5bmywyzkZgNXADMuQewkWYBt5GtnWF4kmfBR4H3nWUNREXUFwPinUeRS4w6kkqeeaQB3sdeBAtSGvk9xHk3Q4Y/xwKFJfAdQembJDrEn6rRzbShjxTI3A94SE5awvwB/AbMAGcQgdbFB1oQT4F7ojUP4GCwH3AI47yLsEoWomGagkc0ItWfzhW32D1o0mdXD3KKWvbVa10Duiw98+x+rKXY64T+NrevWVb1Ya19h6J1ffZ+2Qt5HeibdxfC8kyOGxjxHf5E6vfXAt5HrnSi/i5bVuNbGw8Vv80YYhR9jxwwaCRba2VKAE7jXuXfdcBr1jdRVJS3fWEJ3GaiVA08X8RxURT9n0e5depIdDTh1Lk3EbyQbcXt3ClIgTGfIZ0zoQmdAWzgAQeQHlDcwrcS9ABPImMuQC8Q22qlAHeN65JtBOpC54BNgGfURzzBOVXqW4S0fg/+lxGrrqvdFd3tCPBA/LTwEtGvgZtfQFtfSWudRVhgjQJ3ApsRBMKOAvAW9SQYrYSppDH0H9e8ZXuBn4inNymhZRZNCdaRD7jxtHFDnkpoP84wjF6akzAp+/h/JXL83AexTv0gAKkfuA26w8QHHSsp/yuW8D4e7vrGYC31vnRsf2G4FDLNXp+HPI2rpgg0UZKteo1OoeRzFJP/Cyw2Af2tOODp6bCT3KWeBbdNE74cAVyPWYlRPD6OXQTeguh/AbRsfRB3xuY49Rw3mzjlBvF9DN2jbK3wdVi06k68EfJAVkA8uexMullHl0A/FUjOwHdA86YuUJlNDPUPoCN0+Y2LejXb4FBWpR7m+Q0e/D4Z9+15w4i4zqAaTjnSS7zFngH5TvBrcSOeT78yTb3LwJfRCd7kcdZQLcJxBHM7oW6QZuRCvaglxjvQkcTeovoauTc2inJpCn+w5lezNVysG/s35Qp+p2ynIAAAAASUVORK5CYII="
+COFFEE_ICON_B64 = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAE6ElEQVRogdWZX2hcRRTGf67LstQYQgghlBBCjHkIWm0oQfNQi4oU8UGLiNQipcQHixQtIr74ICKCoYhIn6QPElsJUYtIUYs+VFGordSoaatpTaRqtCk2prba/On68J2be/fm7mZ2906jH1zu3NmZb87MnHPmnFnwh3qgxyM/ABmP3M8B5zzye0UDMInfBQKPA9wLzAJXPPEvwtcEbvfIXQRfgzQCLUCdJ/5FpD2BXntPA1ngvpT5vWO3vTcDBWCEq6RKaaAZGLNyHXAeTaJ/xSSqEOuBBaDNvp9HE5gCmlZKqEpwExJ40L7rgF+sbnepTv8lZIAjSOD7ra7fvueAzhWSqyKsQ8L+jlxpFjiNJjHgY8BrU+b7FYURdyN7+Bip0l3IyF9LeTwvaAL+RisPsAbtQAFFqP8LfABcRiqUs3IBD3bg65A5DswA8yiom7b62bQHyqbA0QR0If//JfAj8CfwRWycS8hGQHbxVwpjV4Um5B6HCf188NxjbXYRxkGrkGf6KNJ/DtnIILCFq2QbLcAeQn1eAEaBN4BngYcjgmwnVM8ea7/FvruBITSBBfvtAnKz3ibSSbjah9EOtJRpn4+Ut6MYKZfQrg3YAZww7hN4Cjv22gDPVNF3mFC1SiGDwo0C8EIl5K5eKHB/uQr6gIz3K+CggxzBDrVXwO+MM4SGegypRatDvzzlJ9yFdnUswn8AqdYGlCAlqd4irnEQAuQWAd4EtiLPAnKZR4GTwDhyk9PIRc5bmywyzkZgNXADMuQewkWYBt5GtnWF4kmfBR4H3nWUNREXUFwPinUeRS4w6kkqeeaQB3sdeBAtSGvk9xHk3Q4Y/xwKFJfAdQembJDrEn6rRzbShjxTI3A94SE5awvwB/AbMAGcQgdbFB1oQT4F7ojUP4GCwH3AI47yLsEoWomGagkc0ItWfzhW32D1o0mdXD3KKWvbVa10Duiw98+x+rKXY64T+NrevWVb1Ya19h6J1ffZ+2Qt5HeibdxfC8kyOGxjxHf5E6vfXAt5HrnSi/i5bVuNbGw8Vv80YYhR9jxwwaCRba2VKAE7jXuXfdcBr1jdRVJS3fWEJ3GaiVA08X8RxURT9n0e5depIdDTh1Lk3EbyQbcXt3ClIgTGfIZ0zoQmdAWzgAQeQHlDcwrcS9ABPImMuQC8Q22qlAHeN65JtBOpC54BNgGfURzzBOVXqW4S0fg/+lxGrrqvdFd3tCPBA/LTwEtGvgZtfQFtfSWudRVhgjQJ3ApsRBMKOAvAW9SQYrYSppDH0H9e8ZXuBn4inNymhDZRZNCdaRD7jxtHFDnkpoP84wjF6akzAp+/h/JXL83AexTv0gAKkfuA26w8QHHSsp/yuW8D4e7vrGYC31vnRsf2G4FDLNXp+HPI2rpgg/UZKteo1OoeRzFJP/Cyw2Af2tOODp6bCT3KWeBbdNE74cAVyPWYlRPD6OXQTeguh/AbRsfRB3xuY49Rw3mzjlBvF9DN2jbK3wdVi06k68EfJAVkA8uexMullHl0A/FUjOwHdA86YuUJlNDPUPoCN0+Y2LejXb4FBWpR7m+Q0e/D4Z9+15w4i4zqAaTjnSS7zFngH5TvBrcSOeT78yTb3LwJfRCd7kcdZQLcJxBHM7oW6QZuRCvaglxjvQkcTeovoauTc2inJpCn+w5lezNVysG/s35Qp+p2ynIAAAAASUVORK5CYII="
 
 @dataclass
 class GeneralSettings:
@@ -159,14 +159,14 @@ class TocSettings:
 class PasswordSettings:
     input_path: tk.StringVar = field(default_factory=tk.StringVar)
     output_path: tk.StringVar = field(default_factory=tk.StringVar)
-    mode: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="add"))
     user_password: tk.StringVar = field(default_factory=tk.StringVar)
     owner_password: tk.StringVar = field(default_factory=tk.StringVar)
+    decrypt_password: tk.StringVar = field(default_factory=tk.StringVar)
     show_passwords: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    allow_printing: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
+    allow_printing: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=True))
     allow_modification: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
-    allow_copy_and_extract: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
-    allow_annotations_and_forms: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
+    allow_copy_and_extract: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=True))
+    allow_annotations_and_forms: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=True))
 
 
 class GhostscriptGUI:
@@ -470,8 +470,7 @@ class GhostscriptGUI:
         self.delete_settings.input_path.trace_add("write", lambda *a: self._update_preview(self.delete_settings.input_path.get(), self.delete_preview_canvas))
 
         self.password_settings.input_path.trace_add("write", lambda *a: self._update_output_path(self.password_settings.input_path, self.password_settings.output_path))
-        self.password_settings.mode.trace_add("write", self._update_password_options)
-
+        
         stamp_vars_to_trace = [s.input_path, s.output_path, s.mode, s.image_path, s.image_scale, s.text, s.font, s.font_size, s.font_color, s.pos, s.opacity, s.on_top, s.bates_enabled, s.bates_start]
         for var in stamp_vars_to_trace:
             var.trace_add("write", self._trigger_stamp_preview)
@@ -859,54 +858,47 @@ class GhostscriptGUI:
         self.drop_zones['password'] = self._create_drop_zone(io_frame, s.input_path)
         FileSelector(io_frame, s.input_path, s.output_path, lambda: self.browse_save_file(s.output_path))
 
-        options_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
-        options_card.grid(row=1, column=0, sticky="ew", pady=10)
-        options_card.columnconfigure(0, weight=1)
+        # --- Encrypt Frame ---
+        encrypt_frame = ttk.LabelFrame(parent, text="Encrypt PDF", padding=15)
+        encrypt_frame.grid(row=1, column=0, sticky="ew", pady=(10, 5))
+        encrypt_frame.columnconfigure(1, weight=1)
+
+        ttk.Label(encrypt_frame, text="User Password:", style="Card.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10), pady=4)
+        self.pass_encrypt_user_entry = ttk.Entry(encrypt_frame, textvariable=s.user_password, show="*")
+        self.pass_encrypt_user_entry.grid(row=0, column=1, sticky="ew", pady=4)
+        Tooltip(self.pass_encrypt_user_entry, TOOLTIP_TEXT.get("password_user_entry"))
         
-        ttk.Label(options_card, text="Password Options", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, sticky="w", pady=(0, 15))
+        ttk.Label(encrypt_frame, text="Owner Password:", style="Card.TLabel").grid(row=1, column=0, sticky="w", padx=(0, 10), pady=4)
+        self.pass_encrypt_owner_entry = ttk.Entry(encrypt_frame, textvariable=s.owner_password, show="*")
+        self.pass_encrypt_owner_entry.grid(row=1, column=1, sticky="ew", pady=4)
+        Tooltip(self.pass_encrypt_owner_entry, TOOLTIP_TEXT.get("password_owner_entry"))
 
-        mode_frame = ttk.Frame(options_card, style="Card.TFrame")
-        mode_frame.grid(row=1, column=0, sticky="w", pady=(0, 10))
-        rb_add = ttk.Radiobutton(mode_frame, text="Add / Encrypt", variable=s.mode, value="add", style="Card.TRadiobutton"); rb_add.pack(side="left"); Tooltip(rb_add, TOOLTIP_TEXT.get("password_mode_add"))
-        rb_remove = ttk.Radiobutton(mode_frame, text="Remove / Decrypt", variable=s.mode, value="remove", style="Card.TRadiobutton"); rb_remove.pack(side="left", padx=10); Tooltip(rb_remove, TOOLTIP_TEXT.get("password_mode_remove"))
-
-        self.password_add_frame = ttk.Frame(options_card, style="Card.TFrame")
-        self.password_add_frame.grid(row=2, column=0, sticky="nsew")
-        self.password_add_frame.columnconfigure(1, weight=1)
-        self.password_remove_frame = ttk.Frame(options_card, style="Card.TFrame")
-        self.password_remove_frame.grid(row=2, column=0, sticky="nsew")
-        self.password_remove_frame.columnconfigure(1, weight=1)
-
-        ttk.Label(self.password_add_frame, text="User Password:", style="Card.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10), pady=4)
-        self.pass_user_entry = ttk.Entry(self.password_add_frame, textvariable=s.user_password, show="*"); self.pass_user_entry.grid(row=0, column=1, sticky="ew", pady=4); Tooltip(self.pass_user_entry, TOOLTIP_TEXT.get("password_user_entry"))
-        
-        ttk.Label(self.password_add_frame, text="Owner Password:", style="Card.TLabel").grid(row=1, column=0, sticky="w", padx=(0, 10), pady=4)
-        self.pass_owner_entry = ttk.Entry(self.password_add_frame, textvariable=s.owner_password, show="*"); self.pass_owner_entry.grid(row=1, column=1, sticky="ew", pady=4); Tooltip(self.pass_owner_entry, TOOLTIP_TEXT.get("password_owner_entry"))
-
-        self.permissions_frame = ttk.LabelFrame(self.password_add_frame, text="Owner Permissions", padding=10)
+        self.permissions_frame = ttk.LabelFrame(encrypt_frame, text="Permissions (when using User Password)", padding=10)
         self.permissions_frame.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(10,0))
         cb_print = ttk.Checkbutton(self.permissions_frame, text="Allow Printing", variable=s.allow_printing); cb_print.pack(anchor="w"); Tooltip(cb_print, TOOLTIP_TEXT.get("password_allow_printing"))
         cb_modify = ttk.Checkbutton(self.permissions_frame, text="Allow Modification", variable=s.allow_modification); cb_modify.pack(anchor="w"); Tooltip(cb_modify, TOOLTIP_TEXT.get("password_allow_modification"))
         cb_copy = ttk.Checkbutton(self.permissions_frame, text="Allow Copy & Extract", variable=s.allow_copy_and_extract); cb_copy.pack(anchor="w"); Tooltip(cb_copy, TOOLTIP_TEXT.get("password_allow_copy"))
         cb_annotate = ttk.Checkbutton(self.permissions_frame, text="Allow Annotations & Forms", variable=s.allow_annotations_and_forms); cb_annotate.pack(anchor="w"); Tooltip(cb_annotate, TOOLTIP_TEXT.get("password_allow_annotations"))
+        
+        self.encrypt_button = self._create_process_button(encrypt_frame, "ENCRYPT PDF", self.process_encrypt, row=3, columnspan=2, tooltip_key="password_encrypt_btn")
 
-        ttk.Label(self.password_remove_frame, text="Current Password:", style="Card.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10), pady=4)
-        self.pass_remove_entry = ttk.Entry(self.password_remove_frame, textvariable=s.user_password, show="*"); self.pass_remove_entry.grid(row=0, column=1, sticky="ew", pady=4); Tooltip(self.pass_remove_entry, TOOLTIP_TEXT.get("password_remove_entry"))
+        # --- Decrypt Frame ---
+        decrypt_frame = ttk.LabelFrame(parent, text="Decrypt PDF", padding=15)
+        decrypt_frame.grid(row=2, column=0, sticky="ew", pady=5)
+        decrypt_frame.columnconfigure(1, weight=1)
 
-        show_pass_cb = ttk.Checkbutton(options_card, text="Show Passwords", variable=s.show_passwords, command=self.toggle_password_visibility)
-        show_pass_cb.grid(row=3, column=0, sticky="w", pady=10)
+        ttk.Label(decrypt_frame, text="Current Password:", style="Card.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10), pady=4)
+        self.pass_decrypt_entry = ttk.Entry(decrypt_frame, textvariable=s.decrypt_password, show="*")
+        self.pass_decrypt_entry.grid(row=0, column=1, sticky="ew", pady=4)
+        Tooltip(self.pass_decrypt_entry, TOOLTIP_TEXT.get("password_decrypt_entry"))
+        
+        self.decrypt_button = self._create_process_button(decrypt_frame, "DECRYPT PDF", self.process_decrypt, row=1, columnspan=2, tooltip_key="password_decrypt_btn")
 
-        ttk.Label(parent, textvariable=self.tab_statuses['password'], anchor="center").grid(row=2, column=0, sticky="ew", pady=(10, 0))
-        self.password_button = self._create_process_button(parent, "APPLY SECURITY", self.process_password, row=3, tooltip_key="password_process_btn")
-        self._update_password_options()
-
-    def _update_password_options(self, *args):
-        if not hasattr(self, 'password_add_frame'): return
-        if self.password_settings.mode.get() == 'add':
-            self.password_add_frame.tkraise()
-        else:
-            self.password_remove_frame.tkraise()
-            self.password_settings.owner_password.set("")
+        # --- Shared Controls ---
+        show_pass_cb = ttk.Checkbutton(parent, text="Show Passwords", variable=s.show_passwords, command=self.toggle_password_visibility)
+        show_pass_cb.grid(row=3, column=0, sticky="w", pady=(5, 10), padx=5)
+        
+        ttk.Label(parent, textvariable=self.tab_statuses['password'], anchor="center").grid(row=4, column=0, sticky="ew", pady=(10, 0))
 
     def _build_stamp_tab(self, parent):
         parent.columnconfigure(0, weight=1)
@@ -1329,9 +1321,9 @@ class GhostscriptGUI:
 
     def toggle_password_visibility(self):
         show = "" if self.password_settings.show_passwords.get() else "*"
-        if hasattr(self, 'pass_user_entry'): self.pass_user_entry.config(show=show)
-        if hasattr(self, 'pass_owner_entry'): self.pass_owner_entry.config(show=show)
-        if hasattr(self, 'pass_remove_entry'): self.pass_remove_entry.config(show=show)
+        if hasattr(self, 'pass_encrypt_user_entry'): self.pass_encrypt_user_entry.config(show=show)
+        if hasattr(self, 'pass_encrypt_owner_entry'): self.pass_encrypt_owner_entry.config(show=show)
+        if hasattr(self, 'pass_decrypt_entry'): self.pass_decrypt_entry.config(show=show)
 
     def update_is_folder(self, *args):
         path = self.compress_settings.input_path.get()
@@ -1660,14 +1652,34 @@ class GhostscriptGUI:
         args = (s.input_path.get(), s.output_path.get(), page_range, self.progress_queue)
         self.start_task(self.delete_button, backend.run_delete_pages_task, args, status_var=self.tab_statuses['delete'])
 
-    def process_password(self):
+    def process_encrypt(self):
         s = self.password_settings
         in_path, out_path = s.input_path.get(), s.output_path.get()
         if not in_path or not out_path:
             messagebox.showerror("Error", "Input and Output paths must be set.", parent=self.root)
             return
-        params = self._get_tk_vars_as_dict(s)
-        self.start_task(self.password_button, backend.run_password_task, (params, self.progress_queue), status_var=self.tab_statuses['password'])
+        params = {
+            'input_path': in_path, 'output_path': out_path, 'mode': 'add',
+            'user_password': s.user_password.get(),
+            'owner_password': s.owner_password.get(),
+            'allow_printing': s.allow_printing.get(),
+            'allow_modification': s.allow_modification.get(),
+            'allow_copy_and_extract': s.allow_copy_and_extract.get(),
+            'allow_annotations_and_forms': s.allow_annotations_and_forms.get()
+        }
+        self.start_task(self.encrypt_button, backend.run_password_task, (params, self.progress_queue), status_var=self.tab_statuses['password'])
+
+    def process_decrypt(self):
+        s = self.password_settings
+        in_path, out_path = s.input_path.get(), s.output_path.get()
+        if not in_path or not out_path:
+            messagebox.showerror("Error", "Input and Output paths must be set.", parent=self.root)
+            return
+        params = {
+            'input_path': in_path, 'output_path': out_path, 'mode': 'remove',
+            'user_password': s.decrypt_password.get()
+        }
+        self.start_task(self.decrypt_button, backend.run_password_task, (params, self.progress_queue), status_var=self.tab_statuses['password'])
 
     def process_stamp(self):
         s = self.stamp_settings

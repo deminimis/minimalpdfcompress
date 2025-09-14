@@ -45,16 +45,15 @@ TOOLTIP_TEXT = {
     "delete_preview": "A preview of the first page of the document. This preview does not reflect deleted pages.",
     "delete_process_btn": "Permanently remove the specified pages from the PDF.",
 
-    "password_mode_add": "Choose this to add a new password and encrypt the PDF.",
-    "password_mode_remove": "Choose this to remove the existing password and decrypt the PDF.",
-    "password_user_entry": "The 'User Password'. This password is required to open and view the PDF.",
-    "password_owner_entry": "The 'Owner Password'. If set, this password allows bypassing all restrictions. If only an owner password is set, the PDF can be opened without a password, but its features will be restricted.",
-    "password_remove_entry": "Enter the current User or Owner password to decrypt the PDF.",
+    "password_user_entry": "The 'User Password'. Required to open the PDF. If only an owner password is set, this can be left blank.",
+    "password_owner_entry": "The 'Owner Password'. Allows full access and bypasses all permissions. Can be set without a user password.",
+    "password_decrypt_entry": "Enter the current User or Owner password to remove all encryption from the PDF.",
     "password_allow_printing": "Allows the user to print the document.",
     "password_allow_modification": "Allows the user to modify the document content.",
     "password_allow_copy": "Allows the user to copy text and images from the document.",
     "password_allow_annotations": "Allows the user to add or modify annotations and form fields.",
-    "password_process_btn": "Apply the selected encryption or decryption settings to the PDF.",
+    "password_encrypt_btn": "Encrypt the PDF with the specified passwords and permissions.",
+    "password_decrypt_btn": "Remove all passwords and encryption from the PDF.",
 
     "stamp_image_browse": "Select an image file to use as a stamp. PNGs with transparency work best.",
     "stamp_image_scale": "Adjust the size of the stamp image as a percentage of its original dimensions (10% to 200%).",
@@ -110,3 +109,4 @@ TOOLTIP_TEXT = {
     "settings_buy_coffee": "If you find this app useful, please consider supporting its development!",
     "settings_check_updates": "Open the application's download page to check for new versions.",
 }
+

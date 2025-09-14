@@ -590,10 +590,10 @@ def run_password_task(params, q):
         input_path = params.get('input_path')
         output_path = params.get('output_path')
         mode = params.get('mode')
-        user_password = params.get('user_password')
 
         if mode == 'add':
             q.put(('status', "Encrypting PDF..."))
+            user_password = params.get('user_password')
             owner_password = params.get('owner_password')
 
             if not user_password and not owner_password:
@@ -619,19 +619,26 @@ def run_password_task(params, q):
 
         elif mode == 'remove':
             q.put(('status', "Decrypting PDF..."))
-            if not user_password:
-                raise ProcessingError("A password is required to decrypt the PDF.")
+            password_provided = params.get('user_password')
 
             try:
-                with pikepdf.open(input_path, password=user_password, allow_overwriting_input=True) as pdf:
-                    if not pdf.is_encrypted:
+                with pikepdf.open(input_path, allow_overwriting_input=True) as pdf:
+                    if pdf.is_encrypted:
+                        pdf.save(output_path)
+                        q.put(('complete', "Decryption complete (owner password removed)."))
+                    else:
+                        shutil.copy2(input_path, output_path)
                         q.put(('complete', "Info: This PDF is not encrypted."))
-                        return
-                    pdf.save(output_path)
-                q.put(('complete', "Decryption complete."))
-            except pikepdf.PasswordError:
-                raise ProcessingError("Wrong password provided.")
 
+            except pikepdf.PasswordError:
+                if not password_provided:
+                    raise ProcessingError("This PDF requires a user password to open. Please provide it.")
+                try:
+                    with pikepdf.open(input_path, password=password_provided, allow_overwriting_input=True) as pdf:
+                        pdf.save(output_path)
+                    q.put(('complete', "Decryption complete."))
+                except pikepdf.PasswordError:
+                    raise ProcessingError("Wrong password provided.")
         else:
             raise ProcessingError(f"Unknown password mode: {mode}")
 
