@@ -235,7 +235,7 @@ def run_compress_task(params, is_folder, q):
             ect_path=params['ect_path'],
             optipng_path=params['optipng_path'],
             q=q if not is_folder else None,
-            user_password=params['user_password'], darken_text=params['darken_text'],
+            darken_text=params['darken_text'],
             remove_open_action=params.get('remove_open_action'),
             fast_web_view=params.get('fast_web_view'),
             fast_mode=params.get('fast_mode'),
@@ -584,3 +584,61 @@ def run_toc_task(cpdf_path, pdf_in, pdf_out, options, q):
     except Exception as e:
         logging.error(f"Table of Contents task failed: {e}", exc_info=True)
         q.put(('complete', f"Error: {e}"))
+
+def run_password_task(params, q):
+    try:
+        input_path = params.get('input_path')
+        output_path = params.get('output_path')
+        mode = params.get('mode')
+        user_password = params.get('user_password')
+
+        if mode == 'add':
+            q.put(('status', "Encrypting PDF..."))
+            owner_password = params.get('owner_password')
+
+            if not user_password and not owner_password:
+                raise ProcessingError("At least one password (user or owner) must be provided for encryption.")
+
+            permissions = pikepdf.Permissions(
+                print_highres=params.get('allow_printing'),
+                print_lowres=params.get('allow_printing'),
+                modify_other=params.get('allow_modification'),
+                extract=params.get('allow_copy_and_extract'),
+                modify_annotation=params.get('allow_annotations_and_forms'),
+                modify_form=params.get('allow_annotations_and_forms')
+            )
+
+            with pikepdf.open(input_path) as pdf:
+                pdf.save(output_path, encryption=pikepdf.Encryption(
+                    user=user_password,
+                    owner=owner_password,
+                    allow=permissions,
+                    R=6
+                ))
+            q.put(('complete', "Encryption complete."))
+
+        elif mode == 'remove':
+            q.put(('status', "Decrypting PDF..."))
+            if not user_password:
+                raise ProcessingError("A password is required to decrypt the PDF.")
+
+            try:
+                with pikepdf.open(input_path, password=user_password, allow_overwriting_input=True) as pdf:
+                    if not pdf.is_encrypted:
+                        q.put(('complete', "Info: This PDF is not encrypted."))
+                        return
+                    pdf.save(output_path)
+                q.put(('complete', "Decryption complete."))
+            except pikepdf.PasswordError:
+                raise ProcessingError("Wrong password provided.")
+
+        else:
+            raise ProcessingError(f"Unknown password mode: {mode}")
+
+    except (ProcessingError, ValueError, RuntimeError) as e:
+        logging.error(f"Password task failed: {e}")
+        q.put(('complete', f"Error: {e}"))
+    except Exception as e:
+        logging.error(f"An unexpected error occurred in password task: {e}", exc_info=True)
+        q.put(('complete', f"An unexpected error occurred: {e}"))
+

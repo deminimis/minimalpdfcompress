@@ -29,7 +29,6 @@ class PdfOptimizer:
         self.ect_path = kwargs.get('ect_path')
         self.optipng_path = kwargs.get('optipng_path')
         self.q = q
-        self.user_password = kwargs.get('user_password')
         self.darken_text = kwargs.get('darken_text')
         self.remove_open_action = kwargs.get('remove_open_action')
         self.linearize = kwargs.get('fast_web_view', False)
@@ -281,15 +280,6 @@ class PdfOptimizer:
             shutil.move(str(temp_output_path), str(final_path))
         else:
             logging.warning("cpdf processing step failed.")
-
-        if self.user_password:
-            encrypted_path = final_path.with_name(f"encrypted_{final_path.name}")
-            try:
-                with pikepdf.open(final_path) as pdf:
-                    pdf.save(encrypted_path, encryption=pikepdf.Encryption(user=self.user_password, owner=self.user_password, R=6))
-                shutil.move(str(encrypted_path), str(final_path))
-            except Exception as e:
-                logging.error(f"Pikepdf encryption failed: {e}")
 
     def optimize_lossless(self, input_file, output_file, strip_metadata=False):
         with tempfile.TemporaryDirectory() as temp_dir_str:

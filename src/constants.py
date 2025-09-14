@@ -1,5 +1,5 @@
 # constants.py
-APP_VERSION = "1.8"
+APP_VERSION = "1.9"
 
 SPLIT_SINGLE = "Split to Single Pages"
 SPLIT_EVERY_N = "Split Every N Pages"

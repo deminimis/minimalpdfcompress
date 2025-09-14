@@ -63,8 +63,6 @@ class CompressSettings:
     convert_to_grayscale: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     convert_to_cmyk: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     darken_text: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    user_password: tk.StringVar = field(default_factory=tk.StringVar)
-    show_passwords: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     strip_metadata: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     remove_interactive: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     remove_open_action: tk.BooleanVar = field(default_factory=tk.BooleanVar)
@@ -157,6 +155,20 @@ class TocSettings:
     dot_leaders: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=True))
     no_bookmark: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
 
+@dataclass
+class PasswordSettings:
+    input_path: tk.StringVar = field(default_factory=tk.StringVar)
+    output_path: tk.StringVar = field(default_factory=tk.StringVar)
+    mode: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="add"))
+    user_password: tk.StringVar = field(default_factory=tk.StringVar)
+    owner_password: tk.StringVar = field(default_factory=tk.StringVar)
+    show_passwords: tk.BooleanVar = field(default_factory=tk.BooleanVar)
+    allow_printing: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
+    allow_modification: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
+    allow_copy_and_extract: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
+    allow_annotations_and_forms: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
+
+
 class GhostscriptGUI:
     def __init__(self, root):
         self.root = root
@@ -183,6 +195,7 @@ class GhostscriptGUI:
         self.convert_settings = ConvertSettings()
         self.repair_settings = RepairSettings()
         self.toc_settings = TocSettings()
+        self.password_settings = PasswordSettings()
 
         self.palette = {}
         self.toggles = []
@@ -229,6 +242,7 @@ class GhostscriptGUI:
         self.configure_logging()
         self.palette = styles.apply_theme(self.root, 'dark' if self.general_settings.dark_mode_enabled.get() else 'light')
         self.build_gui()
+        self.toggle_password_visibility()
         self._update_widget_colors()
         self.setup_drag_and_drop()
         self.check_tools()
@@ -316,6 +330,7 @@ class GhostscriptGUI:
             'convert': self._get_tk_vars_as_dict(self.convert_settings),
             'repair': self._get_tk_vars_as_dict(self.repair_settings),
             'toc': self._get_tk_vars_as_dict(self.toc_settings),
+            'password': self._get_tk_vars_as_dict(self.password_settings),
         }
         try:
             with open(self.settings_file, 'w') as f: json.dump(settings, f, indent=4)
@@ -348,6 +363,7 @@ class GhostscriptGUI:
             self._set_tk_vars_from_dict(self.convert_settings, s.get('convert', {}))
             self._set_tk_vars_from_dict(self.repair_settings, s.get('repair', {}))
             self._set_tk_vars_from_dict(self.toc_settings, s.get('toc', {}))
+            self._set_tk_vars_from_dict(self.password_settings, s.get('password', {}))
             self.update_merge_view()
         except Exception as e: logging.warning(f"Failed to load settings: {e}")
 
@@ -407,9 +423,9 @@ class GhostscriptGUI:
 
         utility_tab_configs = [
             ("merge", "Merge"), ("split", "Split/Extract"), ("rotate", "Rotate"),
-            ("delete", "Delete Pages"), ("stamp", "Stamp/Watermark"), ("page_number", "Header/Footer"),
-            ("toc", "Table of Contents"), ("metadata", "Metadata"), ("convert", "PDF to Image"),
-            ("repair", "PDF Repair")
+            ("delete", "Delete Pages"), ("password", "Password"), ("stamp", "Stamp/Watermark"), 
+            ("page_number", "Header/Footer"), ("toc", "Table of Contents"), 
+            ("metadata", "Metadata"), ("convert", "PDF to Image"), ("repair", "PDF Repair")
         ]
 
         for name, text in utility_tab_configs:
@@ -422,6 +438,7 @@ class GhostscriptGUI:
         self._build_split_tab(self.tab_frames["split"].scrollable_frame)
         self._build_rotate_tab(self.tab_frames["rotate"].scrollable_frame)
         self._build_delete_tab(self.tab_frames["delete"].scrollable_frame)
+        self._build_password_tab(self.tab_frames["password"].scrollable_frame)
         self._build_stamp_tab(self.tab_frames["stamp"].scrollable_frame)
         self._build_page_number_tab(self.tab_frames["page_number"].scrollable_frame)
         self._build_toc_tab(self.tab_frames["toc"].scrollable_frame)
@@ -451,6 +468,9 @@ class GhostscriptGUI:
 
         self.delete_settings.input_path.trace_add("write", lambda *a: self._update_output_path(self.delete_settings.input_path, self.delete_settings.output_path))
         self.delete_settings.input_path.trace_add("write", lambda *a: self._update_preview(self.delete_settings.input_path.get(), self.delete_preview_canvas))
+
+        self.password_settings.input_path.trace_add("write", lambda *a: self._update_output_path(self.password_settings.input_path, self.password_settings.output_path))
+        self.password_settings.mode.trace_add("write", self._update_password_options)
 
         stamp_vars_to_trace = [s.input_path, s.output_path, s.mode, s.image_path, s.image_scale, s.text, s.font, s.font_size, s.font_color, s.pos, s.opacity, s.on_top, s.bates_enabled, s.bates_start]
         for var in stamp_vars_to_trace:
@@ -482,6 +502,7 @@ class GhostscriptGUI:
             (self.split_settings.input_path, self.split_settings.output_dir, {'is_dir': True}),
             (self.rotate_settings.input_path, self.rotate_settings.output_path, {}),
             (self.delete_settings.input_path, self.delete_settings.output_path, {}),
+            (self.password_settings.input_path, self.password_settings.output_path, {}),
             (self.stamp_settings.input_path, self.stamp_settings.output_path, {}),
             (self.page_number_settings.input_path, self.page_number_settings.output_path, {}),
             (self.toc_settings.input_path, self.toc_settings.output_path, {}),
@@ -648,13 +669,6 @@ class GhostscriptGUI:
         self.true_lossless_check = ttk.Checkbutton(f2, text="True Lossless (preserves JPEGs)", variable=cs.true_lossless)
         self.true_lossless_check.pack(anchor="w", pady=(5,0))
         Tooltip(self.true_lossless_check, TOOLTIP_TEXT.get("compress_true_lossless"))
-
-        sec_f = ttk.Frame(adv_frame); sec_f.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(10,0))
-        ttk.Label(sec_f, text="Password protect:").pack(side="left", anchor="w")
-        self.user_pass_entry = ttk.Entry(sec_f, textvariable=cs.user_password, show="*", width=20); self.user_pass_entry.pack(side="left", padx=5)
-        Tooltip(self.user_pass_entry, TOOLTIP_TEXT.get("output_password_entry"))
-        cb7 = ttk.Checkbutton(sec_f, text="Show Password", variable=cs.show_passwords, command=self.toggle_password_visibility); cb7.pack(side="left", padx=5)
-        Tooltip(cb7, TOOLTIP_TEXT.get("output_password_show"))
 
         self._update_compress_options()
 
@@ -834,6 +848,65 @@ class GhostscriptGUI:
             else:
                 text_content = "%Bates"
         return text_content.replace('\n', '\\n')
+        
+    def _build_password_tab(self, parent):
+        parent.columnconfigure(0, weight=1)
+        s = self.password_settings
+
+        io_frame = ttk.Frame(parent, style="Card.TFrame", padding=20)
+        io_frame.grid(row=0, column=0, sticky="ew")
+        io_frame.columnconfigure(0, weight=1)
+        self.drop_zones['password'] = self._create_drop_zone(io_frame, s.input_path)
+        FileSelector(io_frame, s.input_path, s.output_path, lambda: self.browse_save_file(s.output_path))
+
+        options_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
+        options_card.grid(row=1, column=0, sticky="ew", pady=10)
+        options_card.columnconfigure(0, weight=1)
+        
+        ttk.Label(options_card, text="Password Options", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, sticky="w", pady=(0, 15))
+
+        mode_frame = ttk.Frame(options_card, style="Card.TFrame")
+        mode_frame.grid(row=1, column=0, sticky="w", pady=(0, 10))
+        rb_add = ttk.Radiobutton(mode_frame, text="Add / Encrypt", variable=s.mode, value="add", style="Card.TRadiobutton"); rb_add.pack(side="left"); Tooltip(rb_add, TOOLTIP_TEXT.get("password_mode_add"))
+        rb_remove = ttk.Radiobutton(mode_frame, text="Remove / Decrypt", variable=s.mode, value="remove", style="Card.TRadiobutton"); rb_remove.pack(side="left", padx=10); Tooltip(rb_remove, TOOLTIP_TEXT.get("password_mode_remove"))
+
+        self.password_add_frame = ttk.Frame(options_card, style="Card.TFrame")
+        self.password_add_frame.grid(row=2, column=0, sticky="nsew")
+        self.password_add_frame.columnconfigure(1, weight=1)
+        self.password_remove_frame = ttk.Frame(options_card, style="Card.TFrame")
+        self.password_remove_frame.grid(row=2, column=0, sticky="nsew")
+        self.password_remove_frame.columnconfigure(1, weight=1)
+
+        ttk.Label(self.password_add_frame, text="User Password:", style="Card.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10), pady=4)
+        self.pass_user_entry = ttk.Entry(self.password_add_frame, textvariable=s.user_password, show="*"); self.pass_user_entry.grid(row=0, column=1, sticky="ew", pady=4); Tooltip(self.pass_user_entry, TOOLTIP_TEXT.get("password_user_entry"))
+        
+        ttk.Label(self.password_add_frame, text="Owner Password:", style="Card.TLabel").grid(row=1, column=0, sticky="w", padx=(0, 10), pady=4)
+        self.pass_owner_entry = ttk.Entry(self.password_add_frame, textvariable=s.owner_password, show="*"); self.pass_owner_entry.grid(row=1, column=1, sticky="ew", pady=4); Tooltip(self.pass_owner_entry, TOOLTIP_TEXT.get("password_owner_entry"))
+
+        self.permissions_frame = ttk.LabelFrame(self.password_add_frame, text="Owner Permissions", padding=10)
+        self.permissions_frame.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(10,0))
+        cb_print = ttk.Checkbutton(self.permissions_frame, text="Allow Printing", variable=s.allow_printing); cb_print.pack(anchor="w"); Tooltip(cb_print, TOOLTIP_TEXT.get("password_allow_printing"))
+        cb_modify = ttk.Checkbutton(self.permissions_frame, text="Allow Modification", variable=s.allow_modification); cb_modify.pack(anchor="w"); Tooltip(cb_modify, TOOLTIP_TEXT.get("password_allow_modification"))
+        cb_copy = ttk.Checkbutton(self.permissions_frame, text="Allow Copy & Extract", variable=s.allow_copy_and_extract); cb_copy.pack(anchor="w"); Tooltip(cb_copy, TOOLTIP_TEXT.get("password_allow_copy"))
+        cb_annotate = ttk.Checkbutton(self.permissions_frame, text="Allow Annotations & Forms", variable=s.allow_annotations_and_forms); cb_annotate.pack(anchor="w"); Tooltip(cb_annotate, TOOLTIP_TEXT.get("password_allow_annotations"))
+
+        ttk.Label(self.password_remove_frame, text="Current Password:", style="Card.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10), pady=4)
+        self.pass_remove_entry = ttk.Entry(self.password_remove_frame, textvariable=s.user_password, show="*"); self.pass_remove_entry.grid(row=0, column=1, sticky="ew", pady=4); Tooltip(self.pass_remove_entry, TOOLTIP_TEXT.get("password_remove_entry"))
+
+        show_pass_cb = ttk.Checkbutton(options_card, text="Show Passwords", variable=s.show_passwords, command=self.toggle_password_visibility)
+        show_pass_cb.grid(row=3, column=0, sticky="w", pady=10)
+
+        ttk.Label(parent, textvariable=self.tab_statuses['password'], anchor="center").grid(row=2, column=0, sticky="ew", pady=(10, 0))
+        self.password_button = self._create_process_button(parent, "APPLY SECURITY", self.process_password, row=3, tooltip_key="password_process_btn")
+        self._update_password_options()
+
+    def _update_password_options(self, *args):
+        if not hasattr(self, 'password_add_frame'): return
+        if self.password_settings.mode.get() == 'add':
+            self.password_add_frame.tkraise()
+        else:
+            self.password_remove_frame.tkraise()
+            self.password_settings.owner_password.set("")
 
     def _build_stamp_tab(self, parent):
         parent.columnconfigure(0, weight=1)
@@ -1255,8 +1328,10 @@ class GhostscriptGUI:
             self.compress_settings.convert_to_cmyk.set(False)
 
     def toggle_password_visibility(self):
-        show = "" if self.compress_settings.show_passwords.get() else "*"
-        if hasattr(self, 'user_pass_entry'): self.user_pass_entry.config(show=show)
+        show = "" if self.password_settings.show_passwords.get() else "*"
+        if hasattr(self, 'pass_user_entry'): self.pass_user_entry.config(show=show)
+        if hasattr(self, 'pass_owner_entry'): self.pass_owner_entry.config(show=show)
+        if hasattr(self, 'pass_remove_entry'): self.pass_remove_entry.config(show=show)
 
     def update_is_folder(self, *args):
         path = self.compress_settings.input_path.get()
@@ -1470,7 +1545,7 @@ class GhostscriptGUI:
             'ect_path': self.ect_path,
             'optipng_path': self.optipng_path,
             'darken_text': cs.darken_text.get(),
-            'user_password': cs.user_password.get(), 'strip_metadata': cs.strip_metadata.get(),
+            'strip_metadata': cs.strip_metadata.get(),
             'remove_interactive': cs.remove_interactive.get(),
             'remove_open_action': cs.remove_open_action.get(),
             'use_bicubic': cs.use_bicubic.get(),
@@ -1584,6 +1659,15 @@ class GhostscriptGUI:
             return
         args = (s.input_path.get(), s.output_path.get(), page_range, self.progress_queue)
         self.start_task(self.delete_button, backend.run_delete_pages_task, args, status_var=self.tab_statuses['delete'])
+
+    def process_password(self):
+        s = self.password_settings
+        in_path, out_path = s.input_path.get(), s.output_path.get()
+        if not in_path or not out_path:
+            messagebox.showerror("Error", "Input and Output paths must be set.", parent=self.root)
+            return
+        params = self._get_tk_vars_as_dict(s)
+        self.start_task(self.password_button, backend.run_password_task, (params, self.progress_queue), status_var=self.tab_statuses['password'])
 
     def process_stamp(self):
         s = self.stamp_settings
@@ -1734,6 +1818,7 @@ class GhostscriptGUI:
                 elif key == 'split': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.split_settings.input_path))
                 elif key == 'rotate': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.rotate_settings.input_path))
                 elif key == 'delete': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.delete_settings.input_path))
+                elif key == 'password': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.password_settings.input_path))
                 elif key == 'stamp': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.stamp_settings.input_path))
                 elif key == 'page_number': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.page_number_settings.input_path))
                 elif key == 'toc': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.toc_settings.input_path))
@@ -1745,3 +1830,4 @@ class GhostscriptGUI:
             decoded_files = [f.decode('utf-8') for f in files]
             if decoded_files: target_var.set(decoded_files[0]); self.root.attributes('-topmost', 1); self.root.attributes('-topmost', 0)
         except Exception as e: logging.error(f"Drag and drop failed: {e}"); self.status.set(f"Error during drop: {e}")
+
