@@ -33,13 +33,13 @@ if IS_WINDOWS:
         logging.warning("windnd library not found. Drag and drop will be disabled.")
         IS_WINDOWS = False
 
-
-COFFEE_ICON_B64 = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAE6ElEQVRogdWZX2hcRRTGf67LstQYQgghlBBCjHkIWm0oQfNQi4oU8UGLiNQipcQHixQtIr74ICKCoYhIn6QPElsJUYtIUYs+VFGordSoaatpTaRqtCk2prba/On68J2be/fm7mZ2906jH1zu3NmZb87MnHPmnFnwh3qgxyM/ABmP3M8B5zzye0UDMInfBQKPA9wLzAJXPPEvwtcEbvfIXQRfgzQCLUCdJ/5FpD2BXntPA1ngvpT5vWO3vTcDBWCEq6RKaaAZGLNyHXAeTaJ/xSSqEOuBBaDNvp9HE5gCmlZKqEpwExJ40L7rgF+sbnepTv8lZIAjSOD7ra7fvueAzhWSqyKsQ8L+jlxpFjiNJjHgY8BrU+b7FYURdyN7+Bip0l3IyF9LeTwvaAL+RisPsAbtQAFFqP8LfABcRiqUs3IBD3bg65A5DswA8yiom7b62bQHyqbA0QR0If//JfAj8CfwRWycS8hGQHbxVwpjV4Um5B6HCf188NxjbXYRxkGrkGf6KNJ/DtnIILCFq2QbLcAeQn1eAEaBN4BngYcjgmwnVM8ea7/FvruBITSBBfvtAnKz3ibSSbjah9EOtJRpn4+Ut6MYKZfQrg3YAZww7hN4Cjv22gDPVNF3mFC1SiGDwo0C8EIl5K5eKHB/uQr6gIz3K+CggxzBDrVXwO+MM4SGegypRatDvzzlJ9yFdnUswn8AqdYGlCAlqd4irnEQAuQWAd4EtiLPAnKZR4GTwDhyk9PIRc5bmywyzkZgNXADMuQewkWYBt5GtnWF4kmfBR4H3nWUNREXUFwPinUeRS4w6kkqeeaQB3sdeBAtSGvk9xHk3Q4Y/xwKFJfAdQembJDrEn6rRzbShjxTI3A94SE5awvwB/AbMAGcQgdbFB1oQT4F7ojUP4GCwH3AI47yLsEoWomGagkc0ItWfzhW32D1o0mdXD3KKWvbVa10Duiw98+x+rKXY64T+NrevWVb1Ya19h6J1ffZ+2Qt5HeibdxfC8kyOGxjxHf5E6vfXAt5HrnSi/i5bVuNbGw8Vv80YYhR9jxwwaCRba2VKAE7jXuXfdcBr1jdRVJS3fWEJ3GaiVA08X8RxURT9n0e5depIdDTh1Lk3EbyQbcXt3ClIgTGfIZ0zoQmdAWzgAQeQHlDcwrcS9ABPImMuQC8Q22qlAHeN65JtBOpC54BNgGfURzzBOVXqW4S0fg/+lxGrrqvdFd3tCPBA/LTwEtGvgZtfQFtfSWudRVhgjQJ3ApsRBMKOAvAW9SQYrYSppDH0H9e8ZXuBn4inNymhDZRZNCdaRD7jxtHFDnkpoP84wjF6akzAp+/h/JXL83AexTv0gAKkfuA26w8QHHSsp/yuW8D4e7vrGYC31vnRsf2G4FDLNXp+HPI2rpgg/UZKteo1OoeRzFJP/Cyw2Af2tOODp6bCT3KWeBbdNE74cAVyPWYlRPD6OXQTeguh/AbRsfRB3xuY49Rw3mzjlBvF9DN2jbK3wdVi06k68EfJAVkA8uexMullHl0A/FUjOwHdA86YuUJlNDPUPoCN0+Y2LejXb4FBWpR7m+Q0e/D4Z9+15w4i4zqAaTjnSS7zFngH5TvBrcSOeT78yTb3LwJfRCd7kcdZQLcJxBHM7oW6QZuRCvaglxjvQkcTeovoauTc2inJpCn+w5lezNVysG/s35Qp+p2ynIAAAAASUVORK5CYII="
+COFFEE_ICON_B64 = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAE6ElEQVRogdWZX2hcRRTGf67LstQYQgghlBBCjHkIWm0oQfNQi4oU8UGLiNQipcQHixQtIr74ICKCoYhIn6QPElsJUYtIUYs+VFGordSoaatpTaRqtCk2prba/On68J2be/fm7mZ2906jH1zu3NmZb87MnHPmnFnwh3qgxyM/ABmP3M8B5zzye0UDMInfBQKPA9wLzAJXPPEvwtcEbvfIXQRfgzQCLUCdJ/5FpD2BXntPA1ngvpT5vWO3vTcDBWCEq6RKaaAZGLNyHXAeTaJ/xSSqEOuBBaDNvp9HE5gCmlZKqEpwExJ40L7rgF+sbnepTv8lZIAjSOD7ra7fvueAzhWSqyKsQ8L+jlxpFjiNJjHgY8BrU+b7FYURdyN7+Bip0l3IyF9LeTwvaAL+RisPsAbtQAFFqP8LfABcRiqUs3IBD3bg65A5DswA8yiom7b62bQHyqbA0QR0If//JfAj8CfwRWycS8hGQHbxVwpjV4Um5B6HCf188NxjbXYRxkGrkGf6KNJ/DtnIILCFq2QbLcAeQn1eAEaBN4BngYcjgmwnVM8ea7/FvruBITSBBfvtAnKz3ibSSbjah9EOtJRpn4+Ut6MYKZfQrg3YAZww7hN4Cjv22gDPVNF3mFC1SiGDwo0C8EIl5K5eKHB/uQr6gIz3K+CggxzBDrVXwO+MM4SGegypRatDvzzlJ9yFdnUswn8AqdYGlCAlqd4irnEQAuQWAd4EtiLPAnKZR4GTwDhyk9PIRc5bmywyzkZgNXADMuQewkWYBt5GtnWF4kmfBR4H3nWUNREXUFwPinUeRS4w6kkqeeaQB3sdeBAtSGvk9xHk3Q4Y/xwKFJfAdQembJDrEn6rRzbShjxTI3A94SE5awvwB/AbMAGcQgdbFB1oQT4F7ojUP4GCwH3AI47yLsEoWomGagkc0ItWfzhW32D1o0mdXD3KKWvbVa10Duiw98+x+rKXY64T+NrevWVb1Ya19h6J1ffZ+2Qt5HeibdxfC8kyOGxjxHf5E6vfXAt5HrnSi/i5bVuNbGw8Vv80YYhR9jxwwaCRba2VKAE7jXuXfdcBr1jdRVJS3fWEJ3GaiVA08X8RxURT9n0e5depIdDTh1Lk3EbyQbcXt3ClIgTGfIZ0zoQmdAWzgAQeQHlDcwrcS9ABPImMuQC8Q22qlAHeN65JtBOpC54BNgGfURzzBOVXqW4S0fg/+lxGrrqvdFd3tCPBA/LTwEtGvgZtfQFtfSWudRVhgjQJ3ApsRBMKOAvAW9SQYrYSppDH0H9e8ZXuBn4inNymhZRZNCdaRD7jxtHFDnkpoP84wjF6akzAp+/h/JXL83AexTv0gAKkfuA26w8QHHSsp/yuW8D4e7vrGYC31vnRsf2G4FDLNXp+HPI2rpgg0UZKteo1OoeRzFJP/Cyw2Af2tOODp6bCT3KWeBbdNE74cAVyPWYlRPD6OXQTeguh/AbRsfRB3xuY49Rw3mzjlBvF9DN2jbK3wdVi06k68EfJAVkA8uexMullHl0A/FUjOwHdA86YuUJlNDPUPoCN0+Y2LejXb4FBWpR7m+Q0e/D4Z9+15w4i4zqAaTjnSS7zFngH5TvBrcSOeT78yTb3LwJfRCd7kcdZQLcJxBHM7oW6QZuRCvaglxjvQkcTeovoauTc2inJpCn+w5lezNVysG/s35Qp+p2ynIAAAAASUVORK5CYII="
 
 @dataclass
 class GeneralSettings:
     dark_mode_enabled: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=True))
     logging_enabled: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
+    window_geometry: tk.StringVar = field(default_factory=tk.StringVar)
 
 @dataclass
 class OutputSettings:
@@ -57,17 +57,21 @@ class CompressSettings:
     compress_mode: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="Compression"))
     dpi: tk.IntVar = field(default_factory=lambda: tk.IntVar(value=72))
     use_bicubic: tk.BooleanVar = field(default_factory=tk.BooleanVar)
+    downsample_threshold_enabled: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=True))
+    quantize_colors: tk.BooleanVar = field(default_factory=tk.BooleanVar)
+    quantize_level: tk.IntVar = field(default_factory=lambda: tk.IntVar(value=4))
     convert_to_grayscale: tk.BooleanVar = field(default_factory=tk.BooleanVar)
+    convert_to_cmyk: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     darken_text: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     user_password: tk.StringVar = field(default_factory=tk.StringVar)
     show_passwords: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     strip_metadata: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     remove_interactive: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     remove_open_action: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    deep_png_compress: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     fast_web_view: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     only_if_smaller: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     fast_mode: tk.BooleanVar = field(default_factory=tk.BooleanVar)
+    true_lossless: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
 
 @dataclass
 class MergeSettings:
@@ -158,10 +162,6 @@ class GhostscriptGUI:
         self.root = root
         self.root.title(f"MinimalPDF Compress v{APP_VERSION}")
         self.root.minsize(860, 640)
-        try:
-            self.root.state('zoomed')
-        except tk.TclError:
-            pass
         self.settings_file = Path("settings.json")
         self.is_folder = tk.BooleanVar(value=False)
         self.status = tk.StringVar(value="Ready")
@@ -186,7 +186,7 @@ class GhostscriptGUI:
 
         self.palette = {}
         self.toggles = []
-        self.gs_path, self.cpdf_path, self.pngquant_path, self.jpegoptim_path, self.jbig2_path, self.ect_path, self.zopfli_path = None, None, None, None, None, None, None
+        self.gs_path, self.cpdf_path, self.pngquant_path, self.jpegoptim_path, self.ect_path, self.optipng_path = None, None, None, None, None, None
         self.active_process_button = None
         self.tab_frames = {}
         self.drop_zones = {}
@@ -214,6 +214,18 @@ class GhostscriptGUI:
         self.root.rowconfigure(0, weight=1)
 
         self.load_settings()
+
+        if self.general_settings.window_geometry.get():
+            try:
+                self.root.geometry(self.general_settings.window_geometry.get())
+            except tk.TclError:
+                self.root.state('zoomed')
+        else:
+            try:
+                self.root.state('zoomed')
+            except tk.TclError:
+                pass
+
         self.configure_logging()
         self.palette = styles.apply_theme(self.root, 'dark' if self.general_settings.dark_mode_enabled.get() else 'light')
         self.build_gui()
@@ -237,7 +249,7 @@ class GhostscriptGUI:
 
     def _validate_page_range(self, P):
         return all(c in "0123456789,-endEND " for c in P)
-        
+
     def _clamp_dpi(self, event=None):
         try:
             value = self.compress_settings.dpi.get()
@@ -247,6 +259,14 @@ class GhostscriptGUI:
                 self.compress_settings.dpi.set(0)
         except (ValueError, tk.TclError):
             self.compress_settings.dpi.set(72)
+
+    def _clamp_quantize_level(self, event=None):
+        try:
+            value = self.compress_settings.quantize_level.get()
+            if value > 8: self.compress_settings.quantize_level.set(8)
+            elif value < 2: self.compress_settings.quantize_level.set(2)
+        except (ValueError, tk.TclError):
+            self.compress_settings.quantize_level.set(4)
 
     def check_progress_queue(self):
         try:
@@ -269,6 +289,8 @@ class GhostscriptGUI:
             self.root.after(100, self.check_progress_queue)
 
     def on_closing(self):
+        if self.root.state() != 'iconic':
+            self.general_settings.window_geometry.set(self.root.winfo_geometry())
         self.save_settings()
         self.root.destroy()
 
@@ -501,6 +523,13 @@ class GhostscriptGUI:
             Tooltip(btn, TOOLTIP_TEXT.get(tooltip_key))
         return btn
 
+    def _update_color_conversion_checks(self, changed_var):
+        cs = self.compress_settings
+        if changed_var == 'cmyk' and cs.convert_to_cmyk.get():
+            cs.convert_to_grayscale.set(False)
+        elif changed_var == 'grayscale' and cs.convert_to_grayscale.get():
+            cs.convert_to_cmyk.set(False)
+
     def _build_compress_tab(self, parent):
         cs = self.compress_settings
         parent.columnconfigure(0, weight=1)
@@ -532,7 +561,7 @@ class GhostscriptGUI:
         ttk.Label(options_frame, text="Mode", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, sticky="w", pady=(0, 15))
         mode_frame = ttk.Frame(options_frame, style="TFrame")
         mode_frame.grid(row=1, column=0, sticky="ew", pady=5)
-        
+
         rb_comp = ttk.Radiobutton(mode_frame, text="Compression", variable=cs.compress_mode, value="Compression", style="Segmented.TRadiobutton"); rb_comp.pack(side="left", fill="x", expand=True)
         Tooltip(rb_comp, TOOLTIP_TEXT.get("compress_mode_compression"))
         ttk.Separator(mode_frame, orient='vertical').pack(side="left", fill='y', padx=2)
@@ -548,7 +577,7 @@ class GhostscriptGUI:
         dpi_frame = ttk.Frame(options_frame, style="TFrame")
         dpi_frame.grid(row=2, column=0, sticky="ew", pady=(20, 0))
         dpi_frame.columnconfigure(0, weight=1)
-        
+
         dpi_label_frame = ttk.Frame(dpi_frame, style="TFrame")
         dpi_label_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0,5))
         ttk.Label(dpi_label_frame, text="Image Quality", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").pack(side="left")
@@ -560,7 +589,7 @@ class GhostscriptGUI:
 
         self.dpi_slider = CustomSlider(dpi_frame, from_=50, to=150, variable=cs.dpi, palette=self.palette)
         self.dpi_slider.grid(row=1, column=0, sticky="ew", padx=(0, 10))
-        
+
         self.dpi_entry = ttk.Entry(dpi_frame, textvariable=cs.dpi, width=5, validate='key', validatecommand=self.vcmd_int)
         self.dpi_entry.grid(row=1, column=1, sticky="w")
         self.dpi_entry.bind("<FocusOut>", self._clamp_dpi)
@@ -577,23 +606,48 @@ class GhostscriptGUI:
 
         self.compress_button = self._create_process_button(control_panel, "PROCESS PDF", self.process_compression, row=1, columnspan=2, tooltip_key="compress_process_btn")
 
-        adv_frame = ttk.LabelFrame(parent, text="Output Settings", padding=10)
+        adv_frame = ttk.LabelFrame(parent, text="Advanced Settings", padding=10)
         adv_frame.grid(row=3, column=0, sticky="nsew", pady=5); adv_frame.columnconfigure(1, weight=1)
         f1 = ttk.Frame(adv_frame); f1.grid(row=0, column=0, sticky="nsew");
         f2 = ttk.Frame(adv_frame); f2.grid(row=0, column=1, sticky="nsew", padx=20);
+
         cb1 = ttk.Checkbutton(f1, text="Remove Interactive (Compression)", variable=cs.remove_interactive); cb1.pack(anchor="w"); Tooltip(cb1, TOOLTIP_TEXT.get("output_remove_interactive"))
         cb2 = ttk.Checkbutton(f1, text="Strip All Metadata", variable=cs.strip_metadata); cb2.pack(anchor="w"); Tooltip(cb2, TOOLTIP_TEXT.get("output_strip_metadata"))
-        
         self.bicubic_check = ttk.Checkbutton(f1, text="Use Bicubic Sampling (Higher Quality)", variable=cs.use_bicubic)
         self.bicubic_check.pack(anchor="w"); Tooltip(self.bicubic_check, TOOLTIP_TEXT.get("output_bicubic"))
-        cb3 = ttk.Checkbutton(f1, text="Deep PNG Compress (zopfli)", variable=cs.deep_png_compress); cb3.pack(anchor="w"); Tooltip(cb3, TOOLTIP_TEXT.get("output_deep_png"))
+        self.downsample_threshold_check = ttk.Checkbutton(f1, text="Only Downsample Larger Images (Recommended)", variable=cs.downsample_threshold_enabled)
+        self.downsample_threshold_check.pack(anchor="w"); Tooltip(self.downsample_threshold_check, TOOLTIP_TEXT.get("compress_downsample_threshold"))
         cb4 = ttk.Checkbutton(f1, text="Linearize for Fast Web View", variable=cs.fast_web_view); cb4.pack(anchor="w"); Tooltip(cb4, TOOLTIP_TEXT.get("output_fast_web"))
+        cb5 = ttk.Checkbutton(f1, text="Darken Text", variable=cs.darken_text); cb5.pack(anchor="w"); Tooltip(cb5, TOOLTIP_TEXT.get("output_darken_text"))
+        cb6 = ttk.Checkbutton(f1, text="Remove Open Action", variable=cs.remove_open_action); cb6.pack(anchor="w"); Tooltip(cb6, TOOLTIP_TEXT.get("output_remove_openaction"))
 
-        self.grayscale_check = ttk.Checkbutton(f2, text="Convert to Grayscale", variable=cs.convert_to_grayscale); self.grayscale_check.pack(anchor="w"); Tooltip(self.grayscale_check, TOOLTIP_TEXT.get("compress_grayscale_check"))
-        cb5 = ttk.Checkbutton(f2, text="Darken Text", variable=cs.darken_text); cb5.pack(anchor="w"); Tooltip(cb5, TOOLTIP_TEXT.get("output_darken_text"))
-        cb6 = ttk.Checkbutton(f2, text="Remove Open Action", variable=cs.remove_open_action); cb6.pack(anchor="w"); Tooltip(cb6, TOOLTIP_TEXT.get("output_remove_openaction"))
-        cb8 = ttk.Checkbutton(f2, text="Don't save if larger than original", variable=cs.only_if_smaller); cb8.pack(anchor="w"); Tooltip(cb8, TOOLTIP_TEXT.get("compress_only_if_smaller"))
+        self.grayscale_check = ttk.Checkbutton(f2, text="Convert to Grayscale", variable=cs.convert_to_grayscale, command=lambda: self._update_color_conversion_checks('grayscale')); self.grayscale_check.pack(anchor="w"); Tooltip(self.grayscale_check, TOOLTIP_TEXT.get("compress_grayscale_check"))
+        self.cmyk_check = ttk.Checkbutton(f2, text="Convert to CMYK (for printing)", variable=cs.convert_to_cmyk, command=lambda: self._update_color_conversion_checks('cmyk')); self.cmyk_check.pack(anchor="w"); Tooltip(self.cmyk_check, TOOLTIP_TEXT.get("compress_cmyk_check"))
+
+        quantize_frame = ttk.Frame(f2)
+        quantize_frame.pack(anchor="w", fill="x", pady=(10,0))
+        self.quantize_toggle = ModernToggle(quantize_frame, text="Quantize Colors (Posterize)", variable=cs.quantize_colors, palette=self.palette)
+        self.quantize_toggle.pack(side="left")
+        self.toggles.append(self.quantize_toggle)
+        Tooltip(self.quantize_toggle, TOOLTIP_TEXT.get("compress_quantize"))
+
+        self.quantize_level_entry = ttk.Entry(quantize_frame, textvariable=cs.quantize_level, width=3, validate='key', validatecommand=self.vcmd_int)
+        self.quantize_level_entry.pack(side="left", padx=5)
+        ttk.Label(quantize_frame, text="Levels (2-8)").pack(side="left")
+        self.quantize_level_entry.bind("<FocusOut>", self._clamp_quantize_level)
+
+        def toggle_quantize_entry_state(*args):
+            state = "normal" if cs.quantize_colors.get() else "disabled"
+            if hasattr(self, 'quantize_level_entry'):
+                self.quantize_level_entry.config(state=state)
+        cs.quantize_colors.trace_add("write", toggle_quantize_entry_state)
+        toggle_quantize_entry_state()
+
+        cb8 = ttk.Checkbutton(f2, text="Don't save if larger than original", variable=cs.only_if_smaller); cb8.pack(anchor="w", pady=(10,0)); Tooltip(cb8, TOOLTIP_TEXT.get("compress_only_if_smaller"))
         cb9 = ttk.Checkbutton(f2, text="Fast Mode (lower compression)", variable=cs.fast_mode); cb9.pack(anchor="w"); Tooltip(cb9, TOOLTIP_TEXT.get("compress_fast_mode"))
+        self.true_lossless_check = ttk.Checkbutton(f2, text="True Lossless (preserves JPEGs)", variable=cs.true_lossless)
+        self.true_lossless_check.pack(anchor="w", pady=(5,0))
+        Tooltip(self.true_lossless_check, TOOLTIP_TEXT.get("compress_true_lossless"))
 
         sec_f = ttk.Frame(adv_frame); sec_f.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(10,0))
         ttk.Label(sec_f, text="Password protect:").pack(side="left", anchor="w")
@@ -601,7 +655,7 @@ class GhostscriptGUI:
         Tooltip(self.user_pass_entry, TOOLTIP_TEXT.get("output_password_entry"))
         cb7 = ttk.Checkbutton(sec_f, text="Show Password", variable=cs.show_passwords, command=self.toggle_password_visibility); cb7.pack(side="left", padx=5)
         Tooltip(cb7, TOOLTIP_TEXT.get("output_password_show"))
-        
+
         self._update_compress_options()
 
     def _build_merge_tab(self, parent):
@@ -809,7 +863,7 @@ class GhostscriptGUI:
         ttk.Entry(image_tab, textvariable=s.image_path).grid(row=0, column=1, sticky="ew", pady=4)
         btn_img_browse = ttk.Button(image_tab, text="Browse", command=lambda: self.browse_image(s.image_path)); btn_img_browse.grid(row=0, column=2, sticky="e", padx=(10,0), pady=4)
         Tooltip(btn_img_browse, TOOLTIP_TEXT.get("stamp_image_browse"))
-        
+
         size_frame = ttk.Frame(image_tab)
         size_frame.grid(row=1, column=0, columnspan=3, sticky="ew", pady=4)
         size_frame.columnconfigure(1, weight=1)
@@ -840,23 +894,23 @@ class GhostscriptGUI:
         cb_bates = ttk.Checkbutton(bates_frame, text="Enable Bates Numbering (%Bates)", variable=s.bates_enabled); cb_bates.pack(side="left"); Tooltip(cb_bates, TOOLTIP_TEXT.get("stamp_bates_check"))
         ttk.Label(bates_frame, text="Start at:").pack(side="left", padx=(10, 5))
         entry_bates = ttk.Entry(bates_frame, textvariable=s.bates_start, width=8); entry_bates.pack(side="left"); Tooltip(entry_bates, TOOLTIP_TEXT.get("stamp_bates_start"))
-        
+
         ttk.Label(text_tab, text="Font:").grid(row=2, column=0, sticky="w", pady=4, padx=(0,10))
         font_combo = ttk.Combobox(text_tab, textvariable=s.font, values=PDF_FONTS, state="readonly"); font_combo.grid(row=2, column=1, sticky="ew", pady=4); Tooltip(font_combo, TOOLTIP_TEXT.get("stamp_font_combo"))
         ttk.Label(text_tab, text="Size:").grid(row=3, column=0, sticky="w", pady=4, padx=(0,10))
         font_size_entry = ttk.Entry(text_tab, textvariable=s.font_size, width=5); font_size_entry.grid(row=3, column=1, sticky="w", pady=4); Tooltip(font_size_entry, TOOLTIP_TEXT.get("stamp_font_size"))
         btn_color = ttk.Button(text_tab, text="Pick Color", command=self.pick_stamp_color); btn_color.grid(row=3, column=2, sticky="e", padx=(10,0), pady=4); Tooltip(btn_color, TOOLTIP_TEXT.get("stamp_font_color"))
-        
+
         options_card = ttk.Frame(left_panel, style="Card.TFrame")
         options_card.grid(row=3, column=0, sticky="ew", pady=(20,0))
         options_card.columnconfigure(1, weight=1)
         ttk.Label(options_card, text="Position:").grid(row=0, column=0, sticky="nw", padx=(0,10), pady=5)
         pos_selector = PositionSelector(options_card, variable=s.pos, positions=STAMP_POSITIONS)
         pos_selector.grid(row=0, column=1, sticky="w", pady=5); Tooltip(pos_selector, TOOLTIP_TEXT.get("stamp_position"))
-        
+
         ttk.Label(options_card, text="Opacity:").grid(row=1, column=0, sticky="w", padx=(0,10), pady=5)
         opacity_slider = ttk.Scale(options_card, from_=0.1, to=1.0, orient="horizontal", variable=s.opacity, style="Horizontal.TScale"); opacity_slider.grid(row=1, column=1, sticky="ew", pady=5); Tooltip(opacity_slider, TOOLTIP_TEXT.get("stamp_opacity"))
-        
+
         stamp_on_top_toggle = ModernToggle(options_card, text="Stamp on Top", variable=s.on_top, palette=self.palette)
         stamp_on_top_toggle.grid(row=2, column=0, columnspan=2, sticky="w", pady=10); Tooltip(stamp_on_top_toggle, TOOLTIP_TEXT.get("stamp_on_top"))
         self.toggles.append(stamp_on_top_toggle)
@@ -902,9 +956,9 @@ class GhostscriptGUI:
 
         mode_frame = ttk.Frame(options_card, style="Card.TFrame")
         mode_frame.grid(row=1, column=0, columnspan=3, sticky="ew", pady=5)
-        
+
         MODES = ["Page Number", "Page X of Y", "Custom"]
-        
+
         def toggle_custom_entry_state(*args):
             state = "normal" if s.mode.get() == "Custom" else "disabled"
             if hasattr(self, 'pn_custom_entry'):
@@ -914,7 +968,7 @@ class GhostscriptGUI:
 
         rb_pn1 = ttk.Radiobutton(mode_frame, text="Page Number (e.g., 1)", variable=s.mode, value=MODES[0], style="Card.TRadiobutton"); rb_pn1.pack(anchor="w"); Tooltip(rb_pn1, TOOLTIP_TEXT.get("hf_mode_page_num"))
         rb_pn2 = ttk.Radiobutton(mode_frame, text="Page X of Y (e.g., 1 of 10)", variable=s.mode, value=MODES[1], style="Card.TRadiobutton"); rb_pn2.pack(anchor="w"); Tooltip(rb_pn2, TOOLTIP_TEXT.get("hf_mode_page_x_of_y"))
-        
+
         custom_frame = ttk.Frame(mode_frame, style="Card.TFrame")
         custom_frame.pack(fill="x", expand=True)
         rb_pn3 = ttk.Radiobutton(custom_frame, text="Custom:", variable=s.mode, value=MODES[2], style="Card.TRadiobutton"); rb_pn3.pack(side="left", anchor="n");
@@ -931,11 +985,11 @@ class GhostscriptGUI:
         font_frame.grid(row=3, column=1, sticky="ew", pady=5)
         font_frame.columnconfigure(0, weight=1)
         combo_font = ttk.Combobox(font_frame, textvariable=s.font, values=PDF_FONTS, state="readonly"); combo_font.grid(row=0, column=0, sticky="ew"); Tooltip(combo_font, TOOLTIP_TEXT.get("hf_font_combo"))
-        
+
         ttk.Label(font_frame, text="Size:", style="Card.TLabel").grid(row=0, column=1, sticky="w", padx=(10,5))
         entry_size = ttk.Entry(font_frame, textvariable=s.font_size, width=5, validate='key', validatecommand=self.vcmd_int); entry_size.grid(row=0, column=2, sticky="w"); Tooltip(entry_size, TOOLTIP_TEXT.get("hf_font_size"))
         btn_color = ttk.Button(font_frame, text="Color", command=self.pick_page_number_color); btn_color.grid(row=0, column=3, sticky="e", padx=(10,0)); Tooltip(btn_color, TOOLTIP_TEXT.get("hf_font_color"))
-        
+
         ttk.Label(options_card, text="Page Range:", style="Card.TLabel").grid(row=4, column=0, sticky="w", pady=5, padx=(0,10))
         page_range_entry = ttk.Entry(options_card, textvariable=s.page_range, validate='key', validatecommand=self.vcmd_pagerange)
         page_range_entry.grid(row=4, column=1, sticky="ew", pady=5)
@@ -968,7 +1022,7 @@ class GhostscriptGUI:
         combo_font = ttk.Combobox(options_card, textvariable=s.font, values=PDF_FONTS, state="readonly"); combo_font.grid(row=2, column=1, sticky="ew", pady=5); Tooltip(combo_font, TOOLTIP_TEXT.get("toc_font"))
         ttk.Label(options_card, text="Font Size:", style="Card.TLabel").grid(row=3, column=0, sticky="w", pady=5, padx=(0,10))
         entry_size = ttk.Entry(options_card, textvariable=s.font_size, width=8, validate='key', validatecommand=self.vcmd_int); entry_size.grid(row=3, column=1, sticky="w", pady=5); Tooltip(entry_size, TOOLTIP_TEXT.get("toc_font_size"))
-        
+
         toggle_frame = ttk.Frame(options_card, style="Card.TFrame")
         toggle_frame.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(15,0))
         dot_leader_toggle = ModernToggle(toggle_frame, text="Use Dot Leaders", variable=s.dot_leaders, palette=self.palette)
@@ -992,7 +1046,7 @@ class GhostscriptGUI:
         in_entry = ttk.Entry(io_frame, textvariable=s.input_path); in_entry.grid(row=0, column=1, sticky="we", pady=(0,10))
         btn_browse = ttk.Button(io_frame, text="Browse", command=lambda: self.browse_file(s.input_path), width=8); btn_browse.grid(row=0, column=2, padx=(5,0), pady=(0,10))
         Tooltip(btn_browse, TOOLTIP_TEXT.get("meta_browse_btn"))
-        
+
         fields_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
         fields_card.grid(row=1, column=0, sticky="ew", pady=10)
         fields_card.columnconfigure(1, weight=1)
@@ -1108,7 +1162,7 @@ class GhostscriptGUI:
         entry_prefix = ttk.Entry(pattern_frame, textvariable=os.prefix, width=15); entry_prefix.grid(row=0, column=1, sticky="ew", pady=2, padx=5); Tooltip(entry_prefix, TOOLTIP_TEXT.get("settings_prefix"))
         ttk.Label(pattern_frame, text="Suffix:", style="Card.TLabel").grid(row=0, column=3, sticky="w", pady=2, padx=5)
         entry_suffix = ttk.Entry(pattern_frame, textvariable=os.suffix, width=15); entry_suffix.grid(row=0, column=4, sticky="ew", pady=2, padx=5); Tooltip(entry_suffix, TOOLTIP_TEXT.get("settings_suffix"))
-        
+
         date_toggle = ModernToggle(pattern_frame, text="Add Date (YYYY-MM-DD)", variable=os.add_date, palette=self.palette)
         date_toggle.grid(row=1, column=0, columnspan=5, sticky="w", pady=5); Tooltip(date_toggle, TOOLTIP_TEXT.get("settings_add_date"))
         self.toggles.append(date_toggle)
@@ -1172,22 +1226,33 @@ class GhostscriptGUI:
     def _update_compress_options(self, *args):
         mode = self.compress_settings.compress_mode.get()
         is_lossy = mode == "Compression"
-        
+        is_lossless = mode == "Lossless"
+
         widget_state = "normal" if is_lossy else "disabled"
 
         if hasattr(self, 'dpi_slider'):
             self.dpi_slider.config(state=widget_state)
             self.dpi_entry.config(state=widget_state)
+        if hasattr(self, 'bicubic_check'): self.bicubic_check.config(state=widget_state)
+        if hasattr(self, 'downsample_threshold_check'): self.downsample_threshold_check.config(state=widget_state)
+        if hasattr(self, 'grayscale_check'): self.grayscale_check.config(state=widget_state)
+        if hasattr(self, 'cmyk_check'): self.cmyk_check.config(state=widget_state)
+        if hasattr(self, 'quantize_toggle'):
+            self.quantize_toggle.config(state=widget_state)
+            if not is_lossy:
+                self.compress_settings.quantize_colors.set(False)
 
-        if hasattr(self, 'bicubic_check'):
-            self.bicubic_check.config(state=widget_state)
 
-        if hasattr(self, 'grayscale_check'):
-            self.grayscale_check.config(state=widget_state)
+        if hasattr(self, 'true_lossless_check'):
+            state = "normal" if is_lossless else "disabled"
+            self.true_lossless_check.config(state=state)
+            if not is_lossless:
+                self.compress_settings.true_lossless.set(False)
 
         if not is_lossy:
             self.compress_settings.use_bicubic.set(False)
             self.compress_settings.convert_to_grayscale.set(False)
+            self.compress_settings.convert_to_cmyk.set(False)
 
     def toggle_password_visibility(self):
         show = "" if self.compress_settings.show_passwords.get() else "*"
@@ -1256,9 +1321,9 @@ class GhostscriptGUI:
         except backend.JpegoptimNotFound as e: logging.warning(f"jpegoptim not found: {e}")
         try: self.ect_path = backend.find_ect()
         except backend.EctNotFound as e: logging.warning(f"ECT not found: {e}")
-        try: self.zopfli_path = backend.find_zopfli()
-        except backend.ZopfliNotFound as e: logging.warning(f"zopfli not found: {e}")
-        self.jbig2_path = backend.find_jbig2()
+        try: self.optipng_path = backend.find_optipng()
+        except backend.OptipngNotFound as e: logging.warning(f"OptiPNG not found: {e}")
+
 
     def start_task(self, button, target_func, args, status_var):
         if self.active_process_button:
@@ -1283,12 +1348,12 @@ class GhostscriptGUI:
         if self.active_status_var:
             self.active_status_var.set(message)
             self.active_status_var = None
-        
+
         match = re.search(r'\((\d+\.\d+)%\)', message)
         if match:
             percent_saved = float(match.group(1))
             self.compression_ratio_var.set(percent_saved)
-        
+
         if "Error" in message:
             messagebox.showerror("Error", message, parent=self.root)
 
@@ -1363,7 +1428,7 @@ class GhostscriptGUI:
             return
 
         stamp_opts = { 'pos': s.pos.get(), 'opacity': s.opacity.get(), 'on_top': s.on_top.get() }
-        
+
         text_content = self._get_stamp_text_content()
 
         mode_opts = {
@@ -1392,26 +1457,30 @@ class GhostscriptGUI:
         cs = self.compress_settings
         in_path, out_path = cs.input_path.get(), cs.output_path.get()
         if not in_path or not out_path: messagebox.showerror("Error", "Input and Output paths must be set.", parent=self.root); return
-        
+
         self.compression_ratio_var.set(0.0)
         self.status.set("Starting compression...")
         params = {
             'input_path': in_path, 'output_path': out_path, 'mode': cs.compress_mode.get(),
             'convert_to_grayscale': cs.convert_to_grayscale.get(),
+            'convert_to_cmyk': cs.convert_to_cmyk.get(),
             'dpi': cs.dpi.get(), 'gs_path': self.gs_path, 'cpdf_path': self.cpdf_path,
             'pngquant_path': self.pngquant_path,
             'jpegoptim_path': self.jpegoptim_path,
-            'jbig2_path': self.jbig2_path, 'ect_path': self.ect_path,
-            'zopfli_path': self.zopfli_path,
+            'ect_path': self.ect_path,
+            'optipng_path': self.optipng_path,
             'darken_text': cs.darken_text.get(),
             'user_password': cs.user_password.get(), 'strip_metadata': cs.strip_metadata.get(),
             'remove_interactive': cs.remove_interactive.get(),
             'remove_open_action': cs.remove_open_action.get(),
             'use_bicubic': cs.use_bicubic.get(),
-            'deep_png_compress': cs.deep_png_compress.get(),
+            'downsample_threshold_enabled': cs.downsample_threshold_enabled.get(),
+            'quantize_colors': cs.quantize_colors.get(),
+            'quantize_level': cs.quantize_level.get(),
             'fast_web_view': cs.fast_web_view.get(),
             'only_if_smaller': cs.only_if_smaller.get(),
-            'fast_mode': cs.fast_mode.get()
+            'fast_mode': cs.fast_mode.get(),
+            'true_lossless': cs.true_lossless.get()
         }
         self.start_task(self.compress_button, backend.run_compress_task, (params, self.is_folder.get(), self.progress_queue), status_var=self.compress_progress_status)
 
@@ -1524,7 +1593,7 @@ class GhostscriptGUI:
         if s.mode.get() == STAMP_IMAGE and not s.image_path.get():
             messagebox.showerror("Error", "Please select an image file for stamping.", parent=self.root)
             return
-        
+
         text_content = self._get_stamp_text_content()
 
         stamp_opts = { 'pos': s.pos.get(), 'opacity': s.opacity.get(), 'on_top': s.on_top.get() }

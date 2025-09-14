@@ -1,3 +1,4 @@
+# ui_components.py
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageDraw, ImageTk
@@ -31,7 +32,8 @@ class Tooltip:
         self.widget.bind("<Leave>", self.hide_tooltip)
     def show_tooltip(self, event=None):
         if not self.widget.winfo_exists() or not self.text: return
-        x, y, _, _ = self.widget.bbox("insert"); x += self.widget.winfo_rootx() + 25; y += self.widget.winfo_rooty() + 25
+        x = self.widget.winfo_rootx() + 25
+        y = self.widget.winfo_rooty() + 25
         self.tooltip_window = tk.Toplevel(self.widget); self.tooltip_window.wm_overrideredirect(True); self.tooltip_window.wm_geometry(f"+{x}+{y}")
         tk.Label(self.tooltip_window, text=self.text, justify='left', background="#383c40", foreground="#e8eaed", relief='solid', borderwidth=1, wraplength=250, padx=8, pady=5).pack(ipadx=1)
     def hide_tooltip(self, event=None):
@@ -53,29 +55,50 @@ class FileSelector(ttk.Frame):
 class ModernToggle(ttk.Frame):
     def __init__(self, parent, text, variable, palette, command=None, **kwargs):
         super().__init__(parent, style="Card.TFrame", **kwargs)
-        self.variable = variable; self.command = command; self.palette = palette
+        self.variable = variable
+        self.command = command
+        self.palette = palette
         self._image_cache = None
+        self.state = 'normal'
         self.variable.trace_add("write", self._update_toggle)
-        self.label = ttk.Label(self, text=text, style="Card.TLabel"); self.label.pack(side="left", padx=(0, 10))
-        self.canvas = tk.Canvas(self, width=50, height=26, highlightthickness=0); self.canvas.pack(side="left")
+        self.label = ttk.Label(self, text=text, style="Card.TLabel")
+        self.label.pack(side="left", padx=(0, 10))
+        self.canvas = tk.Canvas(self, width=50, height=26, highlightthickness=0)
+        self.canvas.pack(side="left")
         self.canvas.bind("<Button-1>", self._toggle)
         self.update_colors(palette)
 
+    def configure(self, cnf=None, **kw):
+        if 'state' in kw:
+            new_state = kw.pop('state')
+            if new_state in ('normal', 'disabled'):
+                self.state = new_state
+                self._update_toggle()
+        if cnf or kw:
+            super().configure(cnf, **kw)
+    config = configure
+
     def update_colors(self, palette):
-        self.palette = palette; self.configure(style="Card.TFrame"); self.label.configure(style="Card.TLabel")
-        self.canvas.configure(bg=self.palette.get("WIDGET_BG")); self._update_toggle()
+        self.palette = palette
+        self.configure(style="Card.TFrame")
+        self.label.configure(style="Card.TLabel")
+        self.canvas.configure(bg=self.palette.get("WIDGET_BG"))
+        self._update_toggle()
 
     def _update_toggle(self, *args):
         scale = 4
         width, height = 50 * scale, 26 * scale
         radius = height / 2
-
         img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(img)
-
         colors = self.palette
-        bg_color = colors.get("ACCENT") if self.variable.get() else colors.get("BORDER")
-        handle_color = "#ffffff"
+
+        if self.state == 'disabled':
+            bg_color = colors.get("DISABLED_BG")
+            handle_color = colors.get("DISABLED")
+        else:
+            bg_color = colors.get("ACCENT") if self.variable.get() else colors.get("BORDER")
+            handle_color = "#ffffff"
 
         draw.rounded_rectangle((0, 0, width, height), radius=radius, fill=bg_color)
         
@@ -98,7 +121,9 @@ class ModernToggle(ttk.Frame):
         self.canvas.create_image(0, 0, anchor="nw", image=self._image_cache)
 
     def _toggle(self, event=None):
-        self.variable.set(not self.variable.get());
+        if self.state == 'disabled':
+            return
+        self.variable.set(not self.variable.get())
         if self.command: self.command()
 
 class CompressionGauge(ttk.Frame):

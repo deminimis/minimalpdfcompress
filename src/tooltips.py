@@ -1,23 +1,22 @@
 # tooltips.py
 TOOLTIP_TEXT = {
-    # General
     "drop_zone": "Drag and drop a PDF file or folder here, or use the buttons below to select.",
     "file_selector_input": "The currently selected source file or folder. This field is not editable.",
     "file_selector_output": "The destination path for the processed file(s). You can edit this path manually.",
     "file_selector_browse": "Browse for an output location or filename.",
 
-    # Compress Tab
-    "compress_mode_compression": "Lossy compression. Reduces file size by downsampling and recompressing images. Ideal for screen viewing.",
+    "compress_mode_compression": "Lossy compression. Reduces file size by downsampling and recompressing color images, while losslessly compressing grayscale images.",
     "compress_mode_lossless": "Lossless compression. Optimizes images and streams without reducing quality. File size reduction may be minimal.",
     "compress_mode_pdfa": "Converts the PDF to PDF/A-2b format, an archival standard. May increase file size.",
     "compress_mode_remove_images": "Removes all image data from the PDF, replacing them with blank placeholders.",
+    "compress_true_lossless": "Performs the strictest lossless optimization. It does not re-encode JPEGs at all (as they are a lossy format), perfectly preserving their original data. This may result in less compression than the standard 'Lossless' mode.",
     "compress_grayscale_check": "Convert the entire PDF to grayscale. Significantly reduces file size while preserving photo quality. Only available in 'Compression' mode.",
-    "compress_dpi_slider": "Sets the target resolution (Dots Per Inch) for images during lossy compression. Lower values result in smaller files.",
+    "compress_cmyk_check": "Convert the entire PDF to the CMYK color space. This is often required for professional printing but may increase file size.",
+    "compress_dpi_slider": "Sets the target resolution (Dots Per Inch) for images during lossy compression. You can also type a custom value from 0-600 in the box. Lower values result in smaller files.",
     "compress_process_btn": "Begin the compression process with the selected settings.",
     "output_remove_interactive": "Strips all interactive elements like annotations, links, and form fields from the PDF.",
-    "output_strip_metadata": "Removes all metadata such as Title, Author, Subject, and Keywords from the document.",
+    "output_strip_metadata": "Removes all document metadata such as Title, Author, Subject, Keywords, and creation information.",
     "output_bicubic": "Uses a higher-quality algorithm (Bicubic) to downsample images. Produces sharper results but is slightly slower.",
-    "output_deep_png": "Uses the ZopfliPNG algorithm for extra PNG compression. Very slow, but can yield smaller file sizes.",
     "output_fast_web": "Linearizes the PDF, allowing it to be streamed and viewed in a web browser before it has fully downloaded.",
     "output_darken_text": "Forces all text in the document to be pure black. Useful for improving readability of scanned documents.",
     "output_remove_openaction": "Removes instructions that execute when the PDF is opened, such as 'auto-print' or 'go to page'.",
@@ -25,8 +24,9 @@ TOOLTIP_TEXT = {
     "output_password_show": "Toggle the visibility of the password characters in the entry field.",
     "compress_only_if_smaller": "If checked, no output file will be saved if compression results in a larger or same-sized file. By default (unchecked), the original file is saved instead. This setting has no effect on PDF/A conversion.",
     "compress_fast_mode": "Prioritizes speed over compression ratio. Skips some of the most time-consuming optimization steps.",
+    "compress_downsample_threshold": "Prevents upsampling. Only reduces the resolution of images that are larger than the target DPI. This avoids making small images blurry and usually improves compression. It is highly recommended to keep this enabled.",
+    "compress_quantize": "Reduces the number of colors in images. A level of 4 reduces each color channel (Red, Green, Blue) to 4 shades, resulting in a 64-color palette (4x4x4). This can significantly reduce file size for complex images like photos or gradients, but may cause color banding. Only available in 'Compression' mode.",
 
-    # Merge Tab
     "merge_tree": "List of files to be merged. Drag and drop files here or use the 'Add Files' button.",
     "merge_add_btn": "Add one or more PDF files to the merge list.",
     "merge_remove_btn": "Remove the selected file(s) from the list.",
@@ -34,23 +34,19 @@ TOOLTIP_TEXT = {
     "merge_move_down_btn": "Move the selected file down in the merge order.",
     "merge_process_btn": "Combine all files in the list into a single PDF.",
 
-    # Split Tab
     "split_mode_single": "Create a new PDF file for every single page in the original document.",
     "split_mode_every_n": "Create new PDF files, each containing a specified number of pages (N).",
     "split_mode_custom": "Extract a custom set of pages or ranges into a single new PDF (e.g., '1, 3-5, 8-end').",
     "split_process_btn": "Start splitting the selected PDF.",
 
-    # Rotate Tab
     "rotate_angle_btns": "Select the angle to rotate all pages in the document.",
     "rotate_preview": "A preview of the first page with the selected rotation applied.",
     "rotate_process_btn": "Apply the selected rotation to all pages of the PDF.",
 
-    # Delete Pages Tab
     "delete_pages_entry": "Enter the specific pages or page ranges you want to remove (e.g., '1, 3-5, 8-end').",
     "delete_preview": "A preview of the first page of the document. This preview does not reflect deleted pages.",
     "delete_process_btn": "Permanently remove the specified pages from the PDF.",
 
-    # Stamp/Watermark Tab
     "stamp_image_browse": "Select an image file to use as a stamp. PNGs with transparency work best.",
     "stamp_image_scale": "Adjust the size of the stamp image as a percentage of its original dimensions (10% to 200%).",
     "stamp_text_entry": "Enter the text you want to apply as a stamp or watermark.",
@@ -64,7 +60,6 @@ TOOLTIP_TEXT = {
     "stamp_on_top": "Place the stamp over the page content (as a watermark) or under it (as a background).",
     "stamp_process_btn": "Apply the configured stamp to the PDF.",
 
-    # Header/Footer Tab
     "hf_mode_page_num": "Adds only the page number (e.g., '5'). Uses the '%Page' variable.",
     "hf_mode_page_x_of_y": "Adds page number and total pages (e.g., '5 of 20'). Uses '%Page of %EndPage'.",
     "hf_mode_custom": "Add custom text. Use variables like %Page, %EndPage, %Date, %Time, %File.",
@@ -75,7 +70,6 @@ TOOLTIP_TEXT = {
     "hf_page_range": "Apply the header/footer to only a specific range of pages (e.g., '2-end'). Leave blank for all pages.",
     "hf_process_btn": "Add the configured header or footer to the PDF.",
 
-    # ToC Tab
     "toc_title": "The title that will appear at the top of the Table of Contents page.",
     "toc_font": "The font to use for the Table of Contents text.",
     "toc_font_size": "The font size for the Table of Contents text.",
@@ -83,7 +77,6 @@ TOOLTIP_TEXT = {
     "toc_no_bookmark": "If enabled, the Table of Contents itself will not be bookmarked in the final PDF.",
     "toc_process_btn": "Generate a new page with a Table of Contents based on the PDF's bookmarks.",
 
-    # Metadata Tab
     "meta_browse_btn": "Select a PDF file to load and edit its metadata.",
     "meta_title": "The title of the document.",
     "meta_author": "The author of the document.",
@@ -91,15 +84,12 @@ TOOLTIP_TEXT = {
     "meta_keywords": "Comma-separated keywords associated with the document.",
     "meta_process_btn": "Save the changes. WARNING: This will overwrite the metadata in the original file.",
 
-    # Convert Tab
     "convert_format_btns": "Choose the output image format for each page.",
     "convert_dpi_slider": "Set the resolution (Dots Per Inch) for the output images. Higher values create larger, more detailed images.",
     "convert_process_btn": "Convert each page of the PDF into a separate image file.",
 
-    # Repair Tab
     "repair_process_btn": "Attempt to rebuild a corrupted or damaged PDF file. Success is not guaranteed.",
 
-    # Settings Tab
     "settings_dark_mode": "Toggle the application's appearance between light and dark themes.",
     "settings_logging": "Enable logging of detailed application activity to 'app.log' in the program folder. Useful for troubleshooting.",
     "settings_use_default_folder": "If enabled, all output files will be saved to the specified default folder instead of the input file's folder.",

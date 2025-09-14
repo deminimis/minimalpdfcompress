@@ -23,9 +23,8 @@ class GhostscriptNotFound(ToolNotFound): pass
 class CpdfNotFound(ToolNotFound): pass
 class PngquantNotFound(ToolNotFound): pass
 class JpegoptimNotFound(ToolNotFound): pass
-class Jbig2NotFound(ToolNotFound): pass
 class EctNotFound(ToolNotFound): pass
-class ZopfliNotFound(ToolNotFound): pass
+class OptipngNotFound(ToolNotFound): pass
 class ProcessingError(Exception): pass
 
 def resource_path(relative_path):
@@ -48,11 +47,8 @@ def find_ghostscript(): return find_executable("gswin64c" if sys.platform == "wi
 def find_cpdf(): return find_executable("cpdf", CpdfNotFound)
 def find_pngquant(): return find_executable("pngquant", PngquantNotFound)
 def find_jpegoptim(): return find_executable("jpegoptim", JpegoptimNotFound)
-def find_zopfli(): return find_executable("zopfli", ZopfliNotFound)
-def find_jbig2():
-    try: return find_executable("jbig2", Jbig2NotFound)
-    except Jbig2NotFound: return None
 def find_ect(): return find_executable("ect", EctNotFound)
+def find_optipng(): return find_executable("optipng", OptipngNotFound)
 
 def get_pdf_metadata(file_path):
     try:
@@ -158,9 +154,9 @@ def generate_preview(gs_path, cpdf_path, pdf_path, operation, options):
                 stamp_opts = options['stamp_opts']
                 mode_opts = options['mode_opts']
                 mode = options['mode']
-                
+
                 pos = stamp_opts['pos']
-                margin = "20" 
+                margin = "20"
                 pos_map = {
                     POS_TOP_LEFT: ["-topleft", margin], POS_TOP_CENTER: ["-top", margin], POS_TOP_RIGHT: ["-topright", margin],
                     POS_MIDDLE_LEFT: ["-left", margin], POS_CENTER: ["-center"], POS_MIDDLE_RIGHT: ["-right", margin],
@@ -172,7 +168,7 @@ def generate_preview(gs_path, cpdf_path, pdf_path, operation, options):
                     image_path = mode_opts.get('image_path')
                     if image_path and Path(image_path).exists():
                         stamp_to_apply_path = temp_dir_path / "image_stamp.pdf"
-                        
+
                         scale = mode_opts.get('image_scale', 1.0)
 
                         with Image.open(image_path) as img:
@@ -200,7 +196,7 @@ def generate_preview(gs_path, cpdf_path, pdf_path, operation, options):
                     final_text = mode_opts['text'].strip()
                     if mode_opts.get('bates_start') and "%Bates" in final_text:
                         final_text = final_text.replace("%Bates", str(mode_opts['bates_start']).zfill(6))
-                    
+
                     cmd = [cpdf_path, str(first_page_pdf)]
                     text_parts = ["-add-text", final_text, "-font", mode_opts['font'], "-font-size", str(mode_opts['size']), "-color", mode_opts['color'], "-opacity", str(stamp_opts['opacity'])]
                     cmd.extend(text_parts)
@@ -236,15 +232,18 @@ def run_compress_task(params, is_folder, q):
             gs_path=params['gs_path'], cpdf_path=params['cpdf_path'],
             pngquant_path=params['pngquant_path'],
             jpegoptim_path=params['jpegoptim_path'],
-            jbig2_path=params['jbig2_path'], ect_path=params['ect_path'],
-            zopfli_path=params['zopfli_path'],
+            ect_path=params['ect_path'],
+            optipng_path=params['optipng_path'],
             q=q if not is_folder else None,
             user_password=params['user_password'], darken_text=params['darken_text'],
             remove_open_action=params.get('remove_open_action'),
-            deep_png_compress=params.get('deep_png_compress'),
             fast_web_view=params.get('fast_web_view'),
             fast_mode=params.get('fast_mode'),
-            convert_to_grayscale=params.get('convert_to_grayscale', False)
+            convert_to_grayscale=params.get('convert_to_grayscale', False),
+            convert_to_cmyk=params.get('convert_to_cmyk', False),
+            downsample_threshold_enabled=params.get('downsample_threshold_enabled', False),
+            quantize_colors=params.get('quantize_colors', False),
+            quantize_level=params.get('quantize_level', 4)
         )
 
         input_path = Path(params['input_path'])
@@ -260,10 +259,13 @@ def run_compress_task(params, is_folder, q):
 
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_out:
                 temp_output_path = Path(temp_out.name)
-            
+
             try:
                 if mode == 'Lossless':
-                    optimizer.optimize_lossless(input_file, temp_output_path, strip_metadata=params['strip_metadata'])
+                    if params.get('true_lossless', False):
+                        optimizer.optimize_true_lossless(input_file, temp_output_path, strip_metadata=params['strip_metadata'])
+                    else:
+                        optimizer.optimize_lossless(input_file, temp_output_path, strip_metadata=params['strip_metadata'])
                 elif mode == 'PDF/A':
                     optimizer.optimize_pdfa(input_file, temp_output_path)
                 elif mode == 'Remove Images':
@@ -326,13 +328,13 @@ def run_compress_task(params, is_folder, q):
                 final_message = f"Complete. Saved {saved_str} ({percent_saved:.1f}%)."
             else:
                 final_message = "Complete. File size did not decrease."
-        
+
         if files_skipped > 0:
             final_message += f" ({files_skipped} file(s) not saved)."
-            
+
         q.put(('complete', final_message))
 
-    except (ToolNotFound, ProcessingError, FileNotFoundError, ValueError) as e:
+    except (ToolNotFound, ProcessingError, FileNotFoundError, ValueError, RuntimeError) as e:
         logging.error(f"Task failed: {e}"); q.put(('complete', f"Error: {e}"))
     except Exception as e:
         logging.error(f"An unexpected error occurred: {e}", exc_info=True); q.put(('complete', f"An unexpected error occurred: {e}"))
@@ -437,7 +439,7 @@ def run_stamp_task(pdf_in, pdf_out, stamp_opts, cpdf_path, q, mode, mode_opts):
                         if img.mode != 'RGBA': img = img.convert('RGBA')
                         alpha = img.split()[3]; alpha = alpha.point(lambda p: p * stamp_opts['opacity']); img.putalpha(alpha)
                     img.save(stamp_to_apply_path, "PDF", resolution=100.0)
-                
+
                 cmd = [cpdf_path, pdf_in, "-stamp-on" if stamp_opts['on_top'] else "-stamp-under", str(stamp_to_apply_path)]
                 cmd.extend(pos_cmd)
                 cmd.extend(["-o", pdf_out])
@@ -463,16 +465,16 @@ def run_stamp_task(pdf_in, pdf_out, stamp_opts, cpdf_path, q, mode, mode_opts):
 def run_page_number_task(pdf_in, pdf_out, cpdf_path, q, options):
     try:
         q.put(('status', "Adding page numbers/headers/footers..."))
-        
+
         cmd = [cpdf_path, "-utf8"]
-        
+
         cmd.extend(["-add-text", options['text']])
         cmd.extend(["-font", options['font']])
         cmd.extend(["-font-size", str(options['font_size'])])
         cmd.extend(["-color", options['color']])
 
         pos = options['pos']
-        margin = "15" 
+        margin = "15"
         pos_map = {
             POS_TOP_LEFT: ["-topleft", margin], POS_TOP_CENTER: ["-top", margin], POS_TOP_RIGHT: ["-topright", margin],
             POS_BOTTOM_LEFT: ["-bottomleft", margin], POS_BOTTOM_CENTER: ["-bottom", margin], POS_BOTTOM_RIGHT: ["-bottomright", margin],
@@ -486,7 +488,7 @@ def run_page_number_task(pdf_in, pdf_out, cpdf_path, q, options):
             cmd.append(page_range)
 
         cmd.extend(["-o", pdf_out])
-        
+
         run_command(cmd)
 
         q.put(('progress', 100))
