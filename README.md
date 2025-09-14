@@ -48,6 +48,8 @@ A comprehensive suite of tools for common PDF management tasks:
 - **Rotate**: Rotate all pages of a document by 90°, 180°, or 270°. Includes a live preview of the rotation.
     
 - **Delete Pages**: Remove specific pages or page ranges from a PDF.
+
+- **Password**: Encrypt or decrypt PDF password. Must know the password for user-encrypted pdf, but can decrypt owner passwords without knowing the password. 
     
 - **Stamp/Watermark**: Apply image or text-based watermarks. Features a live preview and full control over position, opacity, font, color, and size. Now includes image scaling.
     
