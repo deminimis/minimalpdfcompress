@@ -1,7 +1,7 @@
 # MinimalPDF Compress
 
 <div style="overflow: auto;">
-<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pdf.png?raw=true" alt="Project Logo" width="20%" align="left" style="margin-right: 20px;">
+<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pdf1.png?raw=true" alt="Project Logo" width="20%" align="left" style="margin-right: 20px;">
 <strong>MinimalPDF Compress</strong>  is a user-friendly, cross-platform application designed to simplify PDF compression and utility tasks. It leverages the power of multiple best-in-class backends, including Ghostscript, cpdf, oxipng, pngquant, jbig2, zopfli, and ECT, wrapping them in a single, intuitive interface. <br><br><br><br>
 
 
