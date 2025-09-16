@@ -48,7 +48,6 @@ def find_cpdf(): return find_executable("cpdf", CpdfNotFound)
 def find_pngquant(): return find_executable("pngquant", PngquantNotFound)
 def find_jpegoptim(): return find_executable("jpegoptim", JpegoptimNotFound)
 def find_ect(): return find_executable("ect", EctNotFound)
-def find_optipng(): return find_executable("optipng", OptipngNotFound)
 
 def get_pdf_metadata(file_path):
     try:
@@ -233,7 +232,6 @@ def run_compress_task(params, is_folder, q):
             pngquant_path=params['pngquant_path'],
             jpegoptim_path=params['jpegoptim_path'],
             ect_path=params['ect_path'],
-            optipng_path=params['optipng_path'],
             q=q if not is_folder else None,
             darken_text=params['darken_text'],
             remove_open_action=params.get('remove_open_action'),
@@ -648,4 +646,3 @@ def run_password_task(params, q):
     except Exception as e:
         logging.error(f"An unexpected error occurred in password task: {e}", exc_info=True)
         q.put(('complete', f"An unexpected error occurred: {e}"))
-

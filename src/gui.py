@@ -33,7 +33,7 @@ if IS_WINDOWS:
         logging.warning("windnd library not found. Drag and drop will be disabled.")
         IS_WINDOWS = False
 
-COFFEE_ICON_B64 = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAE6ElEQVRogdWZX2hcRRTGf67LstQYQgghlBBCjHkIWm0oQfNQi4oU8UGLiNQipcQHixQtIr74ICKCoYhIn6QPElsJUYtIUYs+VFGordSoaatpTaRqtCk2prba/On68J2be/fm7mZ2906jH1zu3NmZb87MnHPmnFnwh3qgxyM/ABmP3M8B5zzye0UDMInfBQKPA9wLzAJXPPEvwtcEbvfIXQRfgzQCLUCdJ/5FpD2BXntPA1ngvpT5vWO3vTcDBWCEq6RKaaAZGLNyHXAeTaJ/xSSqEOuBBaDNvp9HE5gCmlZKqEpwExJ40L7rgF+sbnepTv8lZIAjSOD7ra7fvueAzhWSqyKsQ8L+jlxpFjiNJjHgY8BrU+b7FYURdyN7+Bip0l3IyF9LeTwvaAL+RisPsAbtQAFFqP8LfABcRiqUs3IBD3bg65A5DswA8yiom7b62bQHyqbA0QR0If//JfAj8CfwRWycS8hGQHbxVwpjV4Um5B6HCf188NxjbXYRxkGrkGf6KNJ/DtnIILCFq2QbLcAeQn1eAEaBN4BngYcjgmwnVM8ea7/FvruBITSBBfvtAnKz3ibSSbjah9EOtJRpn4+Ut6MYKZfQrg3YAZww7hN4Cjv22gDPVNF3mFC1SiGDwo0C8EIl5K5eKHB/uQr6gIz3K+CggxzBDrVXwO+MM4SGegypRatDvzzlJ9yFdnUswn8AqdYGlCAlqd4irnEQAuQWAd4EtiLPAnKZR4GTwDhyk9PIRc5bmywyzkZgNXADMuQewkWYBt5GtnWF4kmfBR4H3nWUNREXUFwPinUeRS4w6kkqeeaQB3sdeBAtSGvk9xHk3Q4Y/xwKFJfAdQembJDrEn6rRzbShjxTI3A94SE5awvwB/AbMAGcQgdbFB1oQT4F7ojUP4GCwH3AI47yLsEoWomGagkc0ItWfzhW32D1o0mdXD3KKWvbVa10Duiw98+x+rKXY64T+NrevWVb1Ya19h6J1ffZ+2Qt5HeibdxfC8kyOGxjxHf5E6vfXAt5HrnSi/i5bVuNbGw8Vv80YYhR9jxwwaCRba2VKAE7jXuXfdcBr1jdRVJS3fWEJ3GaiVA08X8RxURT9n0e5depIdDTh1Lk3EbyQbcXt3ClIgTGfIZ0zoQmdAWzgAQeQHlDcwrcS9ABPImMuQC8Q22qlAHeN65JtBOpC54BNgGfURzzBOVXqW4S0fg/+lxGrrqvdFd3tCPBA/LTwEtGvgZtfQFtfSWudRVhgjQJ3ApsRBMKOAvAW9SQYrYSppDH0H9e8ZXuBn4inNymhDZRZNCdaRD7jxtHFDnkpoP84wjF6akzAp+/h/JXL83AexTv0gAKkfuA26w8QHHSsp/yuW8D4e7vrGYC31vnRsf2G4FDLNXp+HPI2rpgg/UZKteo1OoeRzFJP/Cyw2Af2tOODp6bCT3KWeBbdNE74cAVyPWYlRPD6OXQTeguh/AbRsfRB3xuY49Rw3mzjlBvF9DN2jbK3wdVi06k68EfJAVkA8uexMullHl0A/FUjOwHdA86YuUJlNDPUPoCN0+Y2LejXb4FBWpR7m+Q0e/D4Z9+15w4i4zqAaTjnSS7zFngH5TvBrcSOeT78yTb3LwJfRCd7kcdZQLcJxBHM7oW6QZuRCvaglxjvQkcTeovoauTc2inJpCn+w5lezNVysG/s35Qp+p2ynIAAAAASUVORK5CYII="
+COFFEE_ICON_B64 = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAE6ElEQVRogdWZX2hcRRTGf67LstQYQgghlBBCjHkIWm0oQfNQi4oU8UGLiNQipcQHixQtIr74ICKCoYhIn6QPElsJUYtIUYs+VFGordSoaatpTaRqtCk2prba/On68J2be/fm7mZ2906jH1zu3NmZb87MnHPmnFnwh3qgxyM/ABmP3M8B5zzye0UDMInfBQKPA9wLzAJXPPEvwtcEbvfIXQRfgzQCLUCdJ/5FpD2BXntPA1ngvpT5vWO3vTcDBWCEq6RKaaAZGLNyHXAeTaJ/xSSqEOuBBaDNvp9HE5gCmlZKqEpwExJ40L7rgF+sbnepTv8lZIAjSOD7ra7fvueAzhWSqyKsQ8L+jlxpFjiNJjHgY8BrU+b7FYURdyN7+Bip0l3IyF9LeTwvaAL+RisPsAbtQAFFqP8LfABcRiqUs3IBD3bg65A5DswA8yiom7b62bQHyqbA0QR0If//JfAj8CfwRWycS8hGQHbxVwpjV4Um5B6HCf188NxjbXYRxkGrkGf6KNJ/DtnIILCFq2QbLcAeQn1eAEaBN4BngYcjgmwnVM8ea7/FvruBITSBBfvtAnKz3ibSSbjah9EOtJRpn4+Ut6MYKZfQrg3YAZww7hN4Cjv22gDPVNF3mFC1SiGDwo0C8EIl5K5eKHB/uQr6gIz3K+CggxzBDrVXwO+MM4SGegypRatDvzzlJ9yFdnUswn8AqdYGlCAlqd4irnEQAuQWAd4EtiLPAnKZR4GTwDhyk9PIRc5bmywyzkZgNXADMuQewkWYBt5GtnWF4kmfBR4H3nWUNREXUFwPinUeRS4w6kkqeeaQB3sdeBAtSGvk9xHk3Q4Y/xwKFJfAdQembJDrEn6rRzbShjxTI3A94SE5awvwB/AbMAGcQgdbFB1oQT4F7ojUP4GCwH3AI47yLsEoWomGagkc0ItWfzhW32D1o0mdXD3KKWvbVa10Duiw98+x+rKXY64T+NrevWVb1Ya19h6J1ffZ+2Qt5HeibdxfC8kyOGxjxHf5E6vfXAt5HrnSi/i5bVuNbGw8Vv80YYhR9jxwwaCRba2VKAE7jXuXfdcBr1jdRVJS3fWEJ3GaiVA08X8RxURT9n0e5depIdDTh1Lk3EbyQbcXt3ClIgTGfIZ0zoQmdAWzgAQeQHlDcwrcS9ABPImMuQC8Q22qlAHeN65JtBOpC54BNgGfURzzBOVXqW4S0fg/+lxGrrqvdFd3tCPBA/LTwEtGvgZtfQFtfSWudRVhgjQJ3ApsRBMKOAvAW9SQYrYSppDH0H9e8ZXuBn4inNymhBZRZNCdaRD7jxtHFDnkpoP84wjF6akzAp+/h/JXL83AexTv0gAKkfuA26w8QHHSsp/yuW8D4e7vrGYC31vnRsf2G4FDLNXp+HPI2rpgg/UZKteo1OoeRzFJP/Cyw2Af2tOODp6bCT3KWeBbdNE74cAVyPWYlRPD6OXQTeguh/AbRsfRB3xuY49Rw3mzjlBvF9DN2jbK3wdVi06k68EfJAVkA8uexMullHl0A/FUjOwHdA86YuUJlNDPUPoCN0+Y2LejXb4FBWpR7m+Q0e/D4Z9+15w4i4zqAaTjnSS7zFngH5TvBrcSOeT78yTb3LwJfRCd7kcdZQLcJxBHM7oW6QZuRCvaglxjvQkcTeovoauTc2inJpCn+w5lezNVysG/s35Qp+p2ynIAAAAASUVORK5CYII="
 
 @dataclass
 class GeneralSettings:
@@ -199,7 +199,7 @@ class GhostscriptGUI:
 
         self.palette = {}
         self.toggles = []
-        self.gs_path, self.cpdf_path, self.pngquant_path, self.jpegoptim_path, self.ect_path, self.optipng_path = None, None, None, None, None, None
+        self.gs_path, self.cpdf_path, self.pngquant_path, self.jpegoptim_path, self.ect_path = None, None, None, None, None
         self.active_process_button = None
         self.tab_frames = {}
         self.drop_zones = {}
@@ -858,7 +858,6 @@ class GhostscriptGUI:
         self.drop_zones['password'] = self._create_drop_zone(io_frame, s.input_path)
         FileSelector(io_frame, s.input_path, s.output_path, lambda: self.browse_save_file(s.output_path))
 
-        # --- Encrypt Frame ---
         encrypt_frame = ttk.LabelFrame(parent, text="Encrypt PDF", padding=15)
         encrypt_frame.grid(row=1, column=0, sticky="ew", pady=(10, 5))
         encrypt_frame.columnconfigure(1, weight=1)
@@ -882,7 +881,6 @@ class GhostscriptGUI:
         
         self.encrypt_button = self._create_process_button(encrypt_frame, "ENCRYPT PDF", self.process_encrypt, row=3, columnspan=2, tooltip_key="password_encrypt_btn")
 
-        # --- Decrypt Frame ---
         decrypt_frame = ttk.LabelFrame(parent, text="Decrypt PDF", padding=15)
         decrypt_frame.grid(row=2, column=0, sticky="ew", pady=5)
         decrypt_frame.columnconfigure(1, weight=1)
@@ -894,7 +892,6 @@ class GhostscriptGUI:
         
         self.decrypt_button = self._create_process_button(decrypt_frame, "DECRYPT PDF", self.process_decrypt, row=1, columnspan=2, tooltip_key="password_decrypt_btn")
 
-        # --- Shared Controls ---
         show_pass_cb = ttk.Checkbutton(parent, text="Show Passwords", variable=s.show_passwords, command=self.toggle_password_visibility)
         show_pass_cb.grid(row=3, column=0, sticky="w", pady=(5, 10), padx=5)
         
@@ -1388,8 +1385,6 @@ class GhostscriptGUI:
         except backend.JpegoptimNotFound as e: logging.warning(f"jpegoptim not found: {e}")
         try: self.ect_path = backend.find_ect()
         except backend.EctNotFound as e: logging.warning(f"ECT not found: {e}")
-        try: self.optipng_path = backend.find_optipng()
-        except backend.OptipngNotFound as e: logging.warning(f"OptiPNG not found: {e}")
 
 
     def start_task(self, button, target_func, args, status_var):
@@ -1535,7 +1530,6 @@ class GhostscriptGUI:
             'pngquant_path': self.pngquant_path,
             'jpegoptim_path': self.jpegoptim_path,
             'ect_path': self.ect_path,
-            'optipng_path': self.optipng_path,
             'darken_text': cs.darken_text.get(),
             'strip_metadata': cs.strip_metadata.get(),
             'remove_interactive': cs.remove_interactive.get(),
@@ -1842,4 +1836,3 @@ class GhostscriptGUI:
             decoded_files = [f.decode('utf-8') for f in files]
             if decoded_files: target_var.set(decoded_files[0]); self.root.attributes('-topmost', 1); self.root.attributes('-topmost', 0)
         except Exception as e: logging.error(f"Drag and drop failed: {e}"); self.status.set(f"Error during drop: {e}")
-

@@ -27,7 +27,6 @@ class PdfOptimizer:
         self.pngquant_path = pngquant_path
         self.jpegoptim_path = kwargs.get('jpegoptim_path')
         self.ect_path = kwargs.get('ect_path')
-        self.optipng_path = kwargs.get('optipng_path')
         self.q = q
         self.darken_text = kwargs.get('darken_text')
         self.remove_open_action = kwargs.get('remove_open_action')
@@ -44,8 +43,8 @@ class PdfOptimizer:
         logging.info(f"Running command: {cmd}")
         try:
             kwargs = {
-                'check': check, 'capture_output': True, 'text': True,
-                'errors': 'ignore', 'shell': use_shell
+                'check': check, 'stdout': subprocess.DEVNULL, 'stderr': subprocess.PIPE,
+                'text': True, 'errors': 'ignore', 'shell': use_shell
             }
             if sys.platform == "win32":
                 kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
@@ -126,50 +125,6 @@ class PdfOptimizer:
                     logging.warning(f"Could not inspect image {obj.objgen} to check color space: {e}. Skipping optimization to be safe.")
                     return 0
 
-            if obj.get("/Filter") in ("/DCTDecode", "/JPXDecode"):
-                original_size = len(obj.read_raw_bytes())
-                if original_size == 0:
-                    return 0
-
-                temp_jpg_path = temp_dir / f"img_{obj.objgen}.jpg"
-                try:
-                    pdf_image = pikepdf.PdfImage(obj)
-                    pil_image = pdf_image.as_pil_image()
-
-                    if pil_image.mode == 'CMYK':
-                        pil_image = pil_image.convert('RGB')
-                    elif pil_image.mode not in ['RGB', 'L']:
-                        pil_image = pil_image.convert('RGB')
-
-                    pil_image.save(temp_jpg_path, "jpeg", quality=95 if mode == 'lossless' else 85, optimize=True)
-
-                    if self.jpegoptim_path and temp_jpg_path.exists():
-                        cmd_jpegoptim = [self.jpegoptim_path, "--strip-all", "-q", str(temp_jpg_path)]
-                        if mode == 'lossy':
-                            quality = 85
-                            if dpi <= 100: quality = 70
-                            elif dpi <= 200: quality = 80
-                            cmd_jpegoptim.insert(1, f"-m{quality}")
-                        self._run_command(cmd_jpegoptim)
-
-                    if self.ect_path and temp_jpg_path.exists() and not self.fast_mode:
-                        cmd_ect = [self.ect_path, "-quiet", "-strip", "-progressive", "-3", str(temp_jpg_path)]
-                        self._run_command(cmd_ect)
-
-                    if temp_jpg_path.exists():
-                        optimized_data = temp_jpg_path.read_bytes()
-                        new_size = len(optimized_data)
-                        if 0 < new_size < original_size:
-                            obj.write(optimized_data)
-                            obj.Filter = pikepdf.Name.DCTDecode
-                            if '/DecodeParms' in obj:
-                                del obj['/DecodeParms']
-                            logging.info(f"Optimized JPEG {obj.objgen} with re-encoding, saved {original_size - new_size} bytes.")
-                            return original_size - new_size
-                except Exception as e:
-                    logging.warning(f"Could not re-encode JPEG {obj.objgen}: {e}. Skipping.")
-                return 0
-
             original_size = len(obj.read_raw_bytes())
             temp_img_path = temp_dir / f"img_{obj.objgen}.png"
 
@@ -213,15 +168,6 @@ class PdfOptimizer:
                         current_best_data = oxipng_out_path.read_bytes()
                 except Exception as e:
                     logging.warning(f"Could not process PNG with pyoxipng: {e}")
-
-                if self.optipng_path:
-                    optipng_out_path = temp_dir / f"img_{obj.objgen}.optipng.png"
-                    shutil.copy(source_for_optimizers, optipng_out_path)
-                    cmd = [self.optipng_path, "-o7", "-strip", "all", "-quiet", str(optipng_out_path)]
-                    if self._run_command(cmd) and optipng_out_path.exists() and optipng_out_path.stat().st_size > 0:
-                        optipng_data = optipng_out_path.read_bytes()
-                        if current_best_data is None or len(optipng_data) < len(current_best_data):
-                            current_best_data = optipng_data
 
                 if current_best_data and self.ect_path and not self.fast_mode:
                     ect_target_path = temp_dir / f"img_{obj.objgen}.ect.png"
@@ -346,104 +292,133 @@ class PdfOptimizer:
             self._post_process_pdf(temp_pdf_path, strip_metadata)
             shutil.move(str(temp_pdf_path), output_file)
 
-    def optimize_lossy(self, input_file, output_file, dpi, strip_metadata=False, remove_interactive=False, use_bicubic=False):
-        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_out:
-            gs_output_path = Path(temp_out.name)
-
+    def _optimize_lossy_stable_mode(self, input_file, output_file, dpi, strip_metadata, remove_interactive, use_bicubic):
+        if self.q: self.q.put(('status', "Stable Mode: Compressing images..."))
         try:
-            cmd = [
-                self.gs_path,
-                f'-sOutputFile={gs_output_path}',
-                '-sDEVICE=pdfwrite',
-                '-dCompatibilityLevel=1.7',
-                '-dNOPAUSE', '-dQUIET', '-dBATCH',
-                '-dDetectDuplicateImages=true',
-                '-dDownsampleGrayImages=true',
-                '-dDownsampleMonoImages=true',
-                '-dDownsampleColorImages=true',
-                f'-dColorImageResolution={dpi}',
-                f'-dGrayImageResolution={dpi}',
-                f'-dMonoImageResolution={dpi}',
-                '-dMonoImageFilter=/CCITTFaxEncode',
-            ]
-
-            if self.quantize_colors:
-                level = max(2, min(8, self.quantize_level))
-                cmd.append(f'-dPosterize={level}')
-
-            if self.downsample_threshold_enabled:
-                cmd.extend([
-                    '-dColorImageDownsampleThreshold=1.0',
-                    '-dGrayImageDownsampleThreshold=1.0',
-                    '-dMonoImageDownsampleThreshold=1.0'
-                ])
-
-            if self.fast_mode:
-                jpeg_quality = "70"
-            else:
-                if dpi <= 100:
-                    jpeg_quality = "70"
-                elif dpi <= 200:
-                    jpeg_quality = "80"
-                else:
-                    jpeg_quality = "85"
-
-            gray_filter_cmd = ['-dGrayImageFilter=/FlateEncode', '-dApplyTrCF=true']
-
-            if self.convert_to_grayscale:
-                if self.q: self.q.put(('status', f"Converting to Grayscale and compressing..."))
-                cmd.extend(['-sColorConversionStrategy=Gray', '-dProcessColorModel=/DeviceGray',
-                            '-dOverrideICC', f'-dJPEGQ={jpeg_quality}'])
-                cmd.extend(gray_filter_cmd)
-            elif self.convert_to_cmyk:
-                if self.q: self.q.put(('status', f"Converting to CMYK and compressing..."))
-                cmd.extend(['-sColorConversionStrategy=CMYK', '-dProcessColorModel=/DeviceCMYK',
-                            '-dColorImageFilter=/DCTEncode', f'-dJPEGQ={jpeg_quality}'])
-            else:
-                if self.q: self.q.put(('status', f"Converting to RGB and compressing..."))
-                cmd.extend(['-sColorConversionStrategy=sRGB', '-dProcessColorModel=/DeviceRGB',
-                            '-dColorImageFilter=/DCTEncode', f'-dJPEGQ={jpeg_quality}'])
-                cmd.extend(gray_filter_cmd)
-
-            if use_bicubic:
-                cmd.extend(['-dColorImageDownsampleType=/Bicubic', '-dGrayImageDownsampleType=/Bicubic'])
-
-            if remove_interactive:
-                cmd.extend(["-dShowAnnots=false", "-dShowAcroForm=false"])
-
-            cmd.append(str(input_file))
-
-            if not self._run_command(cmd) or not gs_output_path.exists() or gs_output_path.stat().st_size == 0:
-                raise Exception("Ghostscript processing failed.")
-
             with tempfile.TemporaryDirectory() as temp_dir_str:
                 temp_dir = Path(temp_dir_str)
-                try:
-                    if self.q: self.q.put(('status', f"Performing lossless optimizations..."))
-                    with pikepdf.open(gs_output_path, allow_overwriting_input=True) as pdf:
-                        for obj in pdf.objects:
-                            if isinstance(obj, pikepdf.Stream) and obj.get("/Subtype") == "/Image":
-                                filt = obj.get("/Filter")
-                                if isinstance(filt, pikepdf.Array) and len(filt) > 0:
-                                    filt = filt[0]
+                temp_pdf_path = temp_dir / "processed.pdf"
 
-                                if filt == pikepdf.Name.DCTDecode:
-                                    self._lossless_optimize_jpeg_stream(obj, temp_dir)
-                                elif filt == pikepdf.Name.FlateDecode:
-                                    self._optimize_image_stream(pdf, obj, temp_dir, mode='lossless')
-                        
-                        if self.q: self.q.put(('status', f"Recompressing streams..."))
-                        pdf.save(recompress_flate=True)
-                except Exception as e:
-                    logging.warning(f"Post-Ghostscript optimization step failed: {e}. Proceeding without it.")
+                with pikepdf.open(input_file) as pdf:
+                    image_streams = [obj for obj in pdf.objects if isinstance(obj, pikepdf.Stream) and obj.get("/Subtype") == "/Image"]
+                    for stream in image_streams:
+                        try:
+                            pdf_image = pikepdf.PdfImage(stream)
+                            pil_image = pdf_image.as_pil_image()
+                            width_px, height_px = pil_image.size
+                            width_pt = stream.get("/Width", width_px)
+                            current_dpi = (width_px / width_pt) * 72 if width_pt > 0 else 72
+                            
+                            if self.downsample_threshold_enabled and current_dpi <= dpi:
+                                continue
 
-            if self.q: self.q.put(('status', f"Finalizing with cpdf..."))
-            self._post_process_pdf(gs_output_path, strip_metadata)
+                            if current_dpi > dpi:
+                                new_width = int(width_px * dpi / current_dpi)
+                                new_height = int(height_px * dpi / current_dpi)
+                                resample_filter = Image.Resampling.BICUBIC if use_bicubic else Image.Resampling.LANCZOS
+                                pil_image = pil_image.resize((new_width, new_height), resample_filter)
+                            
+                            if self.convert_to_grayscale and pil_image.mode != 'L':
+                                pil_image = pil_image.convert('L')
+                            elif pil_image.mode in ['P', 'PA', 'I', 'F', 'CMYK']:
+                                pil_image = pil_image.convert('RGB')
+                            
+                            output_buffer = BytesIO()
+                            jpeg_quality = 70 if self.fast_mode else (70 if dpi <= 100 else 85)
+                            pil_image.save(output_buffer, format='JPEG', quality=jpeg_quality, optimize=True)
+                            new_bytes = output_buffer.getvalue()
 
-            shutil.move(str(gs_output_path), output_file)
-        finally:
-            if gs_output_path.exists():
-                os.remove(gs_output_path)
+                            if self.jpegoptim_path:
+                                temp_jpg_path = temp_dir / "stable_temp.jpg"
+                                temp_jpg_path.write_bytes(new_bytes)
+                                self._run_command([self.jpegoptim_path, "--strip-all", "-q", str(temp_jpg_path)])
+                                if temp_jpg_path.exists(): new_bytes = temp_jpg_path.read_bytes()
+                            
+                            if len(new_bytes) < len(stream.read_raw_bytes()):
+                                stream.write(new_bytes)
+                                stream.Filter = pikepdf.Name.DCTDecode
+                                stream.Width, stream.Height = pil_image.size
+                                stream.ColorSpace = pikepdf.Name.DeviceGray if pil_image.mode == 'L' else pikepdf.Name.DeviceRGB
+                                if '/DecodeParms' in stream: del stream['/DecodeParms']
+                        except Exception as e:
+                            logging.error(f"Stable mode failed to process image {stream.objgen}: {e}")
+                            continue
+
+                    if remove_interactive:
+                        if '/AcroForm' in pdf.root: del pdf.root['/AcroForm']
+                        for page in pdf.pages:
+                            if '/Annots' in page: del page['/Annots']
+
+                    pdf.save(temp_pdf_path, object_stream_mode=pikepdf.ObjectStreamMode.generate, recompress_flate=True)
+                
+                self._post_process_pdf(temp_pdf_path, strip_metadata)
+                shutil.move(str(temp_pdf_path), output_file)
+        except Exception as e:
+            logging.error(f"Stable mode optimization failed entirely: {e}", exc_info=True)
+            raise
+
+    def optimize_lossy(self, input_file, output_file, dpi, strip_metadata=False, remove_interactive=False, use_bicubic=False):
+        try:
+            if self.q: self.q.put(('status', "Attempting high-compression mode..."))
+            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_out:
+                gs_output_path = Path(temp_out.name)
+            
+            try:
+                cmd = [
+                    self.gs_path, '-dNOSAFER', f'-sOutputFile={gs_output_path}',
+                    '-sDEVICE=pdfwrite', '-dCompatibilityLevel=1.7', '-dNOPAUSE', '-dQUIET', '-dBATCH',
+                    '-dDetectDuplicateImages=true', '-dDownsampleGrayImages=true',
+                    '-dDownsampleMonoImages=true', '-dDownsampleColorImages=true',
+                    f'-dColorImageResolution={dpi}', f'-dGrayImageResolution={dpi}', f'-dMonoImageResolution={dpi}',
+                    '-dMonoImageFilter=/CCITTFaxEncode',
+                ]
+                if self.downsample_threshold_enabled:
+                    cmd.extend(['-dColorImageDownsampleThreshold=1.0', '-dGrayImageDownsampleThreshold=1.0', '-dMonoImageDownsampleThreshold=1.0'])
+                jpeg_quality = "70" if self.fast_mode else ("70" if dpi <= 100 else "85")
+                gray_filter_cmd = ['-dGrayImageFilter=/FlateEncode', '-dApplyTrCF=true']
+                if self.convert_to_grayscale:
+                    cmd.extend(['-sColorConversionStrategy=Gray', '-dProcessColorModel=/DeviceGray', '-dOverrideICC', f'-dJPEGQ={jpeg_quality}'])
+                    cmd.extend(gray_filter_cmd)
+                else:
+                    cmd.extend(['-sColorConversionStrategy=sRGB', '-dProcessColorModel=/DeviceRGB', '-dColorImageFilter=/DCTEncode', f'-dJPEGQ={jpeg_quality}'])
+                    cmd.extend(gray_filter_cmd)
+                if use_bicubic:
+                    cmd.extend(['-dColorImageDownsampleType=/Bicubic', '-dGrayImageDownsampleType=/Bicubic'])
+                if remove_interactive:
+                    cmd.extend(["-dShowAnnots=false", "-dShowAcroForm=false"])
+                cmd.append(str(input_file))
+
+                if not self._run_command(cmd) or not gs_output_path.exists() or gs_output_path.stat().st_size == 0:
+                    raise Exception("Ghostscript high-compression failed.")
+
+                with tempfile.TemporaryDirectory() as final_opt_dir_str:
+                    final_opt_dir = Path(final_opt_dir_str)
+                    try:
+                        with pikepdf.open(gs_output_path, allow_overwriting_input=True) as pdf:
+                            for obj in pdf.objects:
+                                if isinstance(obj, pikepdf.Stream) and obj.get("/Subtype") == "/Image":
+                                    filt = obj.get("/Filter")
+                                    if isinstance(filt, pikepdf.Array) and len(filt) > 0: filt = filt[0]
+                                    
+                                    if filt == pikepdf.Name.DCTDecode:
+                                        self._lossless_optimize_jpeg_stream(obj, final_opt_dir)
+                                    elif filt == pikepdf.Name.FlateDecode:
+                                        self._optimize_image_stream(pdf, obj, final_opt_dir, mode='lossless')
+                            pdf.save(recompress_flate=True)
+                    except Exception as e:
+                        logging.warning(f"Post-Ghostscript optimization failed: {e}")
+                
+                self._post_process_pdf(gs_output_path, strip_metadata)
+                shutil.move(str(gs_output_path), output_file)
+
+            finally:
+                if gs_output_path.exists():
+                    os.remove(gs_output_path)
+        
+        except Exception as e:
+            logging.warning(f"High-compression mode failed: {e}. Switching to stable mode.")
+            if self.q: self.q.put(('status', "High-compression failed, switching to stable mode..."))
+            self._optimize_lossy_stable_mode(input_file, output_file, dpi, strip_metadata, remove_interactive, use_bicubic)
 
     def optimize_pdfa(self, input_file, output_file):
         if self.q: self.q.put(('status', "Converting to PDF/A..."))
