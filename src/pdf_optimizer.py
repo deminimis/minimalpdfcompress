@@ -10,6 +10,7 @@ from io import BytesIO
 import sys
 import os
 import oxipng
+import zlib
 
 def resource_path(relative_path):
     try:
@@ -116,80 +117,101 @@ class PdfOptimizer:
 
             if mode == 'lossless':
                 try:
-                    img = pikepdf.PdfImage(obj)
-                    pimg = img.as_pil_image()
-                    if pimg.mode == 'CMYK':
+                    color_space = obj.get('/ColorSpace')
+                    if color_space == '/DeviceCMYK' or (isinstance(color_space, pikepdf.Array) and color_space[0] == '/ICCBased'):
                         logging.info(f"Skipping CMYK image {obj.objgen} in lossless mode to preserve it.")
                         return 0
-                except Exception as e:
-                    logging.warning(f"Could not inspect image {obj.objgen} to check color space: {e}. Skipping optimization to be safe.")
-                    return 0
+                except Exception:
+                    pass
 
             original_size = len(obj.read_raw_bytes())
-            temp_img_path = temp_dir / f"img_{obj.objgen}.png"
+            if original_size == 0: return 0
 
             try:
                 pdf_image = pikepdf.PdfImage(obj)
                 pil_image = pdf_image.as_pil_image()
-                if pil_image.mode == 'CMYK':
-                    pil_image = pil_image.convert('RGB')
             except Exception as e:
                 logging.warning(f"Could not extract image {obj.objgen}: {e}")
                 return 0
 
+            temp_img_path = temp_dir / f"img_{obj.objgen}.png"
             pil_image.save(temp_img_path, "png")
+            
             optimized_path = None
-            best_data = None
-
             if mode == 'lossy' and self.pngquant_path:
                 quality_str = "80-95"
-                if dpi <= 100:
-                    quality_str = "40-60"
-                elif dpi <= 200:
-                    quality_str = "65-80"
-
+                if dpi <= 100: quality_str = "40-60"
+                elif dpi <= 200: quality_str = "65-80"
                 quant_path = temp_dir / f"img_{obj.objgen}.quant.png"
                 cmd = [self.pngquant_path, "--force", "--skip-if-larger", f"--quality={quality_str}", "--output", str(quant_path), "256", str(temp_img_path)]
                 if self._run_command(cmd) and quant_path.exists() and quant_path.stat().st_size > 0:
                     optimized_path = quant_path
+            
+            final_optimized_path = optimized_path if optimized_path else temp_img_path
 
-            current_best_data = None
-            source_for_optimizers = optimized_path if optimized_path else temp_img_path
+            try:
+                oxipng_out_path = temp_dir / f"img_{obj.objgen}.oxipng.png"
+                options = {"level": 2 if self.fast_mode else 6, "strip": oxipng.StripChunks.all()}
+                if mode == 'lossy':
+                    options["optimize_alpha"] = True
+                    options["scale_16"] = True
+                oxipng.optimize(final_optimized_path, oxipng_out_path, **options)
+                if oxipng_out_path.exists() and oxipng_out_path.stat().st_size > 0:
+                    final_optimized_path = oxipng_out_path
+            except Exception as e:
+                logging.warning(f"Could not process PNG with pyoxipng: {e}")
 
-            if source_for_optimizers.exists() and source_for_optimizers.stat().st_size > 0:
-                try:
-                    oxipng_out_path = temp_dir / f"img_{obj.objgen}.oxipng.png"
-                    options = {"level": 2 if self.fast_mode else 6, "strip": oxipng.StripChunks.safe()}
-                    if mode == 'lossy':
-                        options["optimize_alpha"] = True
-                        options["scale_16"] = True
-                    oxipng.optimize(source_for_optimizers, oxipng_out_path, **options)
-                    if oxipng_out_path.exists() and oxipng_out_path.stat().st_size > 0:
-                        current_best_data = oxipng_out_path.read_bytes()
-                except Exception as e:
-                    logging.warning(f"Could not process PNG with pyoxipng: {e}")
+            if self.ect_path and not self.fast_mode and final_optimized_path.exists():
+                ect_target_path = temp_dir / f"img_{obj.objgen}.ect.png"
+                shutil.copy(final_optimized_path, ect_target_path)
+                cmd_ect = [self.ect_path, "-S2", "-strip", "-quiet", str(ect_target_path)]
+                if self._run_command(cmd_ect) and ect_target_path.exists() and ect_target_path.stat().st_size < final_optimized_path.stat().st_size:
+                    final_optimized_path = ect_target_path
 
-                if current_best_data and self.ect_path and not self.fast_mode:
-                    ect_target_path = temp_dir / f"img_{obj.objgen}.ect.png"
-                    ect_target_path.write_bytes(current_best_data)
-                    cmd_ect = [self.ect_path, "-S2", "-strip", "-quiet", str(ect_target_path)]
-                    if self._run_command(cmd_ect) and ect_target_path.exists() and ect_target_path.stat().st_size > 0:
-                        ect_data = ect_target_path.read_bytes()
-                        if len(ect_data) < len(current_best_data):
-                            current_best_data = ect_data
+            final_pil_image = Image.open(final_optimized_path)
+            has_transparency = 'A' in final_pil_image.mode
+            total_new_size = float('inf')
 
-                if best_data is None or (current_best_data and len(current_best_data) < len(best_data)):
-                    best_data = current_best_data
-                    obj.Filter = pikepdf.Name("/FlateDecode")
+            if has_transparency:
+                if final_pil_image.mode != 'RGBA': final_pil_image = final_pil_image.convert('RGBA')
+                rgb_image = Image.new("RGB", final_pil_image.size); rgb_image.paste(final_pil_image)
+                alpha_image = final_pil_image.split()[3]
+                compressed_rgb = zlib.compress(rgb_image.tobytes())
+                compressed_alpha = zlib.compress(alpha_image.tobytes())
+                total_new_size = len(compressed_rgb) + len(compressed_alpha)
 
-            if best_data and len(best_data) < original_size:
-                obj.write(best_data)
-                logging.info(f"Optimized image {obj.objgen}, saved {original_size - len(best_data)} bytes.")
-                return original_size - len(best_data)
+                if total_new_size < original_size:
+                    for key in list(obj.keys()): del obj[key]
+                    obj.write(compressed_rgb)
+                    obj.Type = pikepdf.Name.XObject; obj.Subtype = pikepdf.Name.Image; obj.Filter = pikepdf.Name.FlateDecode
+                    obj.Width = final_pil_image.width; obj.Height = final_pil_image.height
+                    obj.ColorSpace = pikepdf.Name.DeviceRGB; obj.BitsPerComponent = 8
+
+                    smask_stream = pdf.new_stream(compressed_alpha)
+                    smask_stream.Type = pikepdf.Name.XObject; smask_stream.Subtype = pikepdf.Name.Image
+                    smask_stream.Filter = pikepdf.Name.FlateDecode
+                    smask_stream.Width = final_pil_image.width; smask_stream.Height = final_pil_image.height
+                    smask_stream.ColorSpace = pikepdf.Name.DeviceGray; smask_stream.BitsPerComponent = 8
+                    obj.SMask = smask_stream
+            else:
+                if final_pil_image.mode != 'RGB': final_pil_image = final_pil_image.convert('RGB')
+                compressed_rgb = zlib.compress(final_pil_image.tobytes())
+                total_new_size = len(compressed_rgb)
+
+                if total_new_size < original_size:
+                    for key in list(obj.keys()): del obj[key]
+                    obj.write(compressed_rgb)
+                    obj.Type = pikepdf.Name.XObject; obj.Subtype = pikepdf.Name.Image; obj.Filter = pikepdf.Name.FlateDecode
+                    obj.Width = final_pil_image.width; obj.Height = final_pil_image.height
+                    obj.ColorSpace = pikepdf.Name.DeviceRGB; obj.BitsPerComponent = 8
+
+            if total_new_size < original_size:
+                saved = original_size - total_new_size
+                logging.info(f"Optimized Flate image {obj.objgen}, saved {saved} bytes.")
+                return saved
 
         except Exception as e:
-            logging.warning(f"Could not process image {obj.objgen}: {e}")
-
+            logging.warning(f"Could not process image {obj.objgen}: {e}", exc_info=True)
         return 0
 
     def _post_process_pdf(self, pdf_path, strip_metadata=False):
@@ -320,7 +342,7 @@ class PdfOptimizer:
                             
                             if self.convert_to_grayscale and pil_image.mode != 'L':
                                 pil_image = pil_image.convert('L')
-                            elif pil_image.mode in ['P', 'PA', 'I', 'F', 'CMYK']:
+                            elif pil_image.mode in ['P', 'PA', 'I', 'F', 'CMYK', 'RGBA']:
                                 pil_image = pil_image.convert('RGB')
                             
                             output_buffer = BytesIO()
@@ -335,11 +357,14 @@ class PdfOptimizer:
                                 if temp_jpg_path.exists(): new_bytes = temp_jpg_path.read_bytes()
                             
                             if len(new_bytes) < len(stream.read_raw_bytes()):
+                                for key in list(stream.keys()): del stream[key]
                                 stream.write(new_bytes)
+                                stream.Type = pikepdf.Name.XObject
+                                stream.Subtype = pikepdf.Name.Image
                                 stream.Filter = pikepdf.Name.DCTDecode
                                 stream.Width, stream.Height = pil_image.size
                                 stream.ColorSpace = pikepdf.Name.DeviceGray if pil_image.mode == 'L' else pikepdf.Name.DeviceRGB
-                                if '/DecodeParms' in stream: del stream['/DecodeParms']
+                                stream.BitsPerComponent = 8
                         except Exception as e:
                             logging.error(f"Stable mode failed to process image {stream.objgen}: {e}")
                             continue
