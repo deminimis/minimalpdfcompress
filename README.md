@@ -2,7 +2,7 @@
 
 <div style="overflow: auto;">
 <img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pdf1.png?raw=true" alt="Project Logo" width="20%" align="left" style="margin-right: 20px;">
-<strong>MinimalPDF Compress</strong>  is a user-friendly, cross-platform application designed to simplify PDF compression and utility tasks. It leverages the power of multiple best-in-class backends, including Ghostscript, cpdf, oxipng, pngquant, jbig2, zopfli, and ECT, wrapping them in a single, intuitive interface. <br><br><br><br>
+<strong>MinimalPDF Compress</strong>  is a user-friendly, Windows application designed to simplify PDF compression and utility tasks. It leverages the power of multiple best-in-class backends, including Ghostscript, cpdf, oxipng, pngquant, jbig2, zopfli, and ECT, wrapping them in a single, intuitive interface. <br><br><br><br>
 
 
 This application employs a highly-refined compression pipeline tailored to the user's selected mode. For lossy Compression, the process begins with Ghostscript, which rebuilds the PDF while downsampling images to the user-selected DPI. The file is then passed through a granular optimization stage where each image is individually optimized using specialized tools. For Lossless mode, the application uses pikepdf to iterate through the document, optimizing each image and data stream without reducing quality. All modes conclude with a final processing step using cpdf to linearize the file for fast web viewing, apply security settings, and squeeze out any final structural redundancies.
