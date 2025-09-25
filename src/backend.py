@@ -16,16 +16,9 @@ from constants import (SPLIT_SINGLE, SPLIT_EVERY_N, SPLIT_CUSTOM, STAMP_IMAGE,
                        POS_TOP_LEFT, POS_TOP_CENTER, POS_TOP_RIGHT,
                        POS_MIDDLE_LEFT, POS_CENTER, POS_MIDDLE_RIGHT,
                        POS_BOTTOM_LEFT, POS_BOTTOM_CENTER, POS_BOTTOM_RIGHT,
-                       META_LOAD, META_SAVE)
-
-class ToolNotFound(Exception): pass
-class GhostscriptNotFound(ToolNotFound): pass
-class CpdfNotFound(ToolNotFound): pass
-class PngquantNotFound(ToolNotFound): pass
-class JpegoptimNotFound(ToolNotFound): pass
-class EctNotFound(ToolNotFound): pass
-class OptipngNotFound(ToolNotFound): pass
-class ProcessingError(Exception): pass
+                       META_LOAD, META_SAVE, ToolNotFound, GhostscriptNotFound,
+                       CpdfNotFound, PngquantNotFound, JpegoptimNotFound,
+                       EctNotFound, OptipngNotFound, ProcessingError)
 
 def resource_path(relative_path):
     try:
@@ -98,7 +91,7 @@ def run_command(command, check=True):
 def parse_page_ranges(page_string, max_pages):
     indices = set()
     if not page_string.strip(): return []
-    page_string = re.sub(r'\bend\b', str(max_pages), page_string, flags=re.IGNORECASE)
+    page_string = re.sub(r'\bendend\b', str(max_pages), page_string, flags=re.IGNORECASE)
     for part in page_string.split(','):
         part = part.strip()
         if not part: continue
@@ -241,7 +234,9 @@ def run_compress_task(params, is_folder, q):
             convert_to_cmyk=params.get('convert_to_cmyk', False),
             downsample_threshold_enabled=params.get('downsample_threshold_enabled', False),
             quantize_colors=params.get('quantize_colors', False),
-            quantize_level=params.get('quantize_level', 4)
+            quantize_level=params.get('quantize_level', 4),
+            pdfa_compression=params.get('pdfa_compression', False),
+            pdfa_dpi=params.get('pdfa_dpi', 300)
         )
 
         input_path = Path(params['input_path'])

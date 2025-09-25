@@ -33,7 +33,7 @@ if IS_WINDOWS:
         logging.warning("windnd library not found. Drag and drop will be disabled.")
         IS_WINDOWS = False
 
-COFFEE_ICON_B64 = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAE6ElEQVRogdWZX2hcRRTGf67LstQYQgghlBBCjHkIWm0oQfNQi4oU8UGLiNQipcQHixQtIr74ICKCoYhIn6QPElsJUYtIUYs+VFGordSoaatpTaRqtCk2prba/On68J2be/fm7mZ2906jH1zu3NmZb87MnHPmnFnwh3qgxyM/ABmP3M8B5zzye0UDMInfBQKPA9wLzAJXPPEvwtcEbvfIXQRfgzQCLUCdJ/5FpD2BXntPA1ngvpT5vWO3vTcDBWCEq6RKaaAZGLNyHXAeTaJ/xSSqEOuBBaDNvp9HE5gCmlZKqEpwExJ40L7rgF+sbnepTv8lZIAjSOD7ra7fvueAzhWSqyKsQ8L+jlxpFjiNJjHgY8BrU+b7FYURdyN7+Bip0l3IyF9LeTwvaAL+RisPsAbtQAFFqP8LfABcRiqUs3IBD3bg65A5DswA8yiom7b62bQHyqbA0QR0If//JfAj8CfwRWycS8hGQHbxVwpjV4Um5B6HCf188NxjbXYRxkGrkGf6KNJ/DtnIILCFq2QbLcAeQn1eAEaBN4BngYcjgmwnVM8ea7/FvruBITSBBfvtAnKz3ibSSbjah9EOtJRpn4+Ut6MYKZfQrg3YAZww7hN4Cjv22gDPVNF3mFC1SiGDwo0C8EIl5K5eKHB/uQr6gIz3K+CggxzBDrVXwO+MM4SGegypRatDvzzlJ9yFdnUswn8AqdYGlCAlqd4irnEQAuQWAd4EtiLPAnKZR4GTwDhyk9PIRc5bmywyzkZgNXADMuQewkWYBt5GtnWF4kmfBR4H3nWUNREXUFwPinUeRS4w6kkqeeaQB3sdeBAtSGvk9xHk3Q4Y/xwKFJfAdQembJDrEn6rRzbShjxTI3A94SE5awvwB/AbMAGcQgdbFB1oQT4F7ojUP4GCwH3AI47yLsEoWomGagkc0ItWfzhW32D1o0mdXD3KKWvbVa10Duiw98+x+rKXY64T+NrevWVb1Ya19h6J1ffZ+2Qt5HeibdxfC8kyOGxjxHf5E6vfXAt5HrnSi/i5bVuNbGw8Vv80YYhR9jxwwaCRba2VKAE7jXuXfdcBr1jdRVJS3fWEJ3GaiVA08X8RxURT9n0e5depIdDTh1Lk3EbyQbcXt3ClIgTGfIZ0zoQmdAWzgAQeQHlDcwrcS9ABPImMuQC8Q22qlAHeN65JtBOpC54BNgGfURzzBOVXqW4S0fg/+lxGrrqvdFd3tCPBA/LTwEtGvgZtfQFtfSWudRVhgjQJ3ApsRBMKOAvAW9SQYrYSppDH0H9e8ZXuBn4inNymhBZRZNCdaRD7jxtHFDnkpoP84wjF6akzAp+/h/JXL83AexTv0gAKkfuA26w8QHHSsp/yuW8D4e7vrGYC31vnRsf2G4FDLNXp+HPI2rpgg/UZKteo1OoeRzFJP/Cyw2Af2tOODp6bCT3KWeBbdNE74cAVyPWYlRPD6OXQTeguh/AbRsfRB3xuY49Rw3mzjlBvF9DN2jbK3wdVi06k68EfJAVkA8uexMullHl0A/FUjOwHdA86YuUJlNDPUPoCN0+Y2LejXb4FBWpR7m+Q0e/D4Z9+15w4i4zqAaTjnSS7zFngH5TvBrcSOeT78yTb3LwJfRCd7kcdZQLcJxBHM7oW6QZuRCvaglxjvQkcTeovoauTc2inJpCn+w5lezNVysG/s35Qp+p2ynIAAAAASUVORK5CYII="
+COFFEE_ICON_B64 = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAE6ElEQVRogdWZX2hcRRTGf67LstQYQgghlBBCjHkIWm0oQfNQi4oU8UGLiNQipcQHixQtIr74ICKCoYhIn6QPElsJUYtIUYs+VFGordSoaatpTaRqtCk2prba/On68J2be/fm7mZ2906jH1zu3NmZb87MnHPmnFnwh3qgxyM/ABmP3M8B5zzye0UDMInfBQKPA9wLzAJXPPEvwtcEbvfIXQRfgzQCLUCdJ/5FpD2BXntPA1ngvpT5vWO3vTcDBWCEq6RKaaAZGLNyHXAeTaJ/xSSqEOuBBaDNvp9HE5gCmlZKqEpwExJ40L7rgF+sbnepTv8lZIAjSOD7ra7fvueAzhWSqyKsQ8L+jlxpFjiNJjHgY8BrU+b7FYURdyN7+Bip0l3IyF9LeTwvaAL+RisPsAbtQAFFqP8LfABcRiqUs3IBD3bg65A5DswA8yiom7b62bQHyqbA0QR0If//JfAj8CfwRWycS8hGQHbxVwpjV4Um5B6HCf188NxjbXYRxkGrkGf6KNJ/DtnIILCFq2QbLcAeQn1eAEaBN4BngYcjgmwnVM8ea7/FvruBITSBBfvtAnKz3ibSSbjah9EOtJRpn4+Ut6MYKZfQrg3YAZww7hN4Cjv22gDPVNF3mFC1SiGDwo0C8EIl5K5eKHB/uQr6gIz3K+CggxzBDrVXwO+MM4SGegypRatDvzzlJ9yFdnUswn8AqdYGlCAlqd4irnEQAuQWAd4EtiLPAnKZR4GTwDhyk9PIRc5bmywyzkZgNXADMuQewkWYBt5GtnWF4kmfBR4H3nWUNREXUFwPinUeRS4w6kkqeeaQB3sdeBAtSGvk9xHk3Q4Y/xwKFJfAdQembJDrEn6rRzbShjxTI3A94SE5awvwB/AbMAGcQgdbFB1oQT4F7ojUP4GCwH3AI47yLsEoWomGagkc0ItWfzhW32D1o0mdXD3KKWvbVa10Duiw98+x+rKXY64T+NrevWVb1Ya19h6J1ffZ+2Qt5HeibdxfC8kyOGxjxHf5E6vfXAt5HrnSi/i5bVuNbGw8Vv80YYhR9jxwwaCRba2VKAE7jXuXfdcBr1jdRVJS3fWEJ3GaiVA08X8RxURT9n0e5depIdDTh1Lk3EbyQbcXt3ClIgTGfIZ0zoQmdAWzgAQeQHlDcwrcS9ABPImMuQC8Q22qlAHeN65JtBOpC54BNgGfURzzBOVXqW4S0fg/+lxGrrqvdFd3tCPBA/LTwEtGvgZtfQFtfSWudRVhgjQJ3ApsRBMKOAvAW9SQYrYSppDH0H9e8ZXuBn4inNymhDZRZNCdaRD7jxtHFDnkpoP84wjF6akzAp+/h/JXL83AexTv0gAKkfuA26w8QHHSsp/yuW8D4e7vrGYC31vnRsf2G4FDLNXp+HPI2rpgg/UZKteo1OoeRzFJP/Cyw2Af2tOODp6bCT3KWeBbdNE74cAVyPWYlRPD6OXQTeguh/AbRsfRB3xuY49Rw3mzjlBvF9DN2jbK3wdVi06k68EfJAVkA8uexMullHl0A/FUjOwHdA86YuUJlNDPUPoCN0+Y2LejXb4FBWpR7m+Q0e/D4Z9+15w4i4zqAaTjnSS7zFngH5TvBrcSOeT78yTb3LwJfRCd7kcdZQLcJxBHM7oW6QZuRCvaglxjvQkcTeovoauTc2inJpCn+w5lezNVysG/s35Qp+p2ynIAAAAASUVORK5CYII="
 
 @dataclass
 class GeneralSettings:
@@ -56,6 +56,7 @@ class CompressSettings:
     output_path: tk.StringVar = field(default_factory=tk.StringVar)
     compress_mode: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="Compression"))
     dpi: tk.IntVar = field(default_factory=lambda: tk.IntVar(value=72))
+    pdfa_dpi: tk.IntVar = field(default_factory=lambda: tk.IntVar(value=300))
     use_bicubic: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     downsample_threshold_enabled: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=True))
     quantize_colors: tk.BooleanVar = field(default_factory=tk.BooleanVar)
@@ -70,6 +71,7 @@ class CompressSettings:
     only_if_smaller: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     fast_mode: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     true_lossless: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
+    pdfa_compression: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
 
 @dataclass
 class MergeSettings:
@@ -274,6 +276,16 @@ class GhostscriptGUI:
         except (ValueError, tk.TclError):
             self.compress_settings.dpi.set(72)
 
+    def _clamp_pdfa_dpi(self, event=None):
+        try:
+            value = self.compress_settings.pdfa_dpi.get()
+            if value > 600:
+                self.compress_settings.pdfa_dpi.set(600)
+            elif value < 0:
+                self.compress_settings.pdfa_dpi.set(0)
+        except (ValueError, tk.TclError):
+            self.compress_settings.pdfa_dpi.set(300)
+
     def _clamp_quantize_level(self, event=None):
         try:
             value = self.compress_settings.quantize_level.get()
@@ -412,6 +424,7 @@ class GhostscriptGUI:
 
         main_notebook = ttk.Notebook(self.main_frame)
         main_notebook.grid(row=0, column=0, sticky="nsew")
+        self.main_notebook = main_notebook
 
         compress_tab = ScrolledFrame(main_notebook)
         main_notebook.add(compress_tab, text="Compress")
@@ -420,11 +433,12 @@ class GhostscriptGUI:
         utilities_notebook = ttk.Notebook(main_notebook)
         main_notebook.add(utilities_notebook, text="Utilities")
         utilities_notebook.bind("<<NotebookTabChanged>>", self._on_utility_tab_changed)
+        self.utilities_notebook = utilities_notebook
 
         utility_tab_configs = [
             ("merge", "Merge"), ("split", "Split/Extract"), ("rotate", "Rotate"),
-            ("delete", "Delete Pages"), ("password", "Password"), ("stamp", "Stamp/Watermark"), 
-            ("page_number", "Header/Footer"), ("toc", "Table of Contents"), 
+            ("delete", "Delete Pages"), ("password", "Password"), ("stamp", "Stamp/Watermark"),
+            ("page_number", "Header/Footer"), ("toc", "Table of Contents"),
             ("metadata", "Metadata"), ("convert", "PDF to Image"), ("repair", "PDF Repair")
         ]
 
@@ -470,7 +484,7 @@ class GhostscriptGUI:
         self.delete_settings.input_path.trace_add("write", lambda *a: self._update_preview(self.delete_settings.input_path.get(), self.delete_preview_canvas))
 
         self.password_settings.input_path.trace_add("write", lambda *a: self._update_output_path(self.password_settings.input_path, self.password_settings.output_path))
-        
+
         stamp_vars_to_trace = [s.input_path, s.output_path, s.mode, s.image_path, s.image_scale, s.text, s.font, s.font_size, s.font_color, s.pos, s.opacity, s.on_top, s.bates_enabled, s.bates_start]
         for var in stamp_vars_to_trace:
             var.trace_add("write", self._trigger_stamp_preview)
@@ -526,6 +540,13 @@ class GhostscriptGUI:
     def browse_save_file(self, var): var.set(filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF files", "*.pdf")]))
     def browse_dir(self, var): var.set(filedialog.askdirectory(mustexist=True))
     def browse_image(self, var): var.set(filedialog.askopenfilename(filetypes=[("Image files", "*.png *.jpg *.jpeg")]))
+
+    def browse_output(self):
+        var = self.compress_settings.output_path
+        if self.is_folder.get():
+            var.set(filedialog.askdirectory())
+        else:
+            var.set(filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF files", "*.pdf")]))
 
     def _create_drop_zone(self, parent, input_var, is_folder=False):
         cmd = (lambda: self.browse_dir(input_var)) if is_folder else (lambda: self.browse_file(input_var))
@@ -604,8 +625,17 @@ class GhostscriptGUI:
         self.dpi_label = ttk.Label(dpi_label_frame, text=f"({cs.dpi.get()} DPI)", style="Card.TLabel")
         self.dpi_label.pack(side="left", padx=5)
 
-        def update_dpi_label(*args): self.dpi_label.config(text=f"({cs.dpi.get()} DPI)")
+        def update_dpi_label(*args):
+            mode = cs.compress_mode.get()
+            if mode == "Compression":
+                self.dpi_label.config(text=f"({cs.dpi.get()} DPI)")
+            elif mode == "PDF/A":
+                self.dpi_label.config(text=f"({cs.pdfa_dpi.get()} DPI)")
+            else:
+                self.dpi_label.config(text="")
         cs.dpi.trace_add("write", update_dpi_label)
+        cs.pdfa_dpi.trace_add("write", update_dpi_label)
+        cs.compress_mode.trace_add("write", update_dpi_label)
 
         self.dpi_slider = CustomSlider(dpi_frame, from_=50, to=150, variable=cs.dpi, palette=self.palette)
         self.dpi_slider.grid(row=1, column=0, sticky="ew", padx=(0, 10))
@@ -614,6 +644,10 @@ class GhostscriptGUI:
         self.dpi_entry.grid(row=1, column=1, sticky="w")
         self.dpi_entry.bind("<FocusOut>", self._clamp_dpi)
         Tooltip(dpi_frame, TOOLTIP_TEXT.get("compress_dpi_slider"))
+
+        self.pdfa_dpi_slider = CustomSlider(dpi_frame, from_=72, to=600, variable=cs.pdfa_dpi, palette=self.palette)
+        self.pdfa_dpi_entry = ttk.Entry(dpi_frame, textvariable=cs.pdfa_dpi, width=5, validate='key', validatecommand=self.vcmd_int)
+        self.pdfa_dpi_entry.bind("<FocusOut>", self._clamp_pdfa_dpi)
 
         progress_frame = ttk.Frame(options_frame, style="TFrame")
         progress_frame.grid(row=3, column=0, sticky="ew", pady=(20,0))
@@ -668,6 +702,10 @@ class GhostscriptGUI:
         self.true_lossless_check = ttk.Checkbutton(f2, text="True Lossless (preserves JPEGs)", variable=cs.true_lossless)
         self.true_lossless_check.pack(anchor="w", pady=(5,0))
         Tooltip(self.true_lossless_check, TOOLTIP_TEXT.get("compress_true_lossless"))
+
+        self.pdfa_compress_check = ttk.Checkbutton(f2, text="Compress PDF/A Output", variable=cs.pdfa_compression)
+        self.pdfa_compress_check.pack(anchor="w", pady=(5,0))
+        Tooltip(self.pdfa_compress_check, "Applies compression to the PDF/A file, which can reduce size but may affect quality.")
 
         self._update_compress_options()
 
@@ -847,7 +885,7 @@ class GhostscriptGUI:
             else:
                 text_content = "%Bates"
         return text_content.replace('\n', '\\n')
-        
+
     def _build_password_tab(self, parent):
         parent.columnconfigure(0, weight=1)
         s = self.password_settings
@@ -866,7 +904,7 @@ class GhostscriptGUI:
         self.pass_encrypt_user_entry = ttk.Entry(encrypt_frame, textvariable=s.user_password, show="*")
         self.pass_encrypt_user_entry.grid(row=0, column=1, sticky="ew", pady=4)
         Tooltip(self.pass_encrypt_user_entry, TOOLTIP_TEXT.get("password_user_entry"))
-        
+
         ttk.Label(encrypt_frame, text="Owner Password:", style="Card.TLabel").grid(row=1, column=0, sticky="w", padx=(0, 10), pady=4)
         self.pass_encrypt_owner_entry = ttk.Entry(encrypt_frame, textvariable=s.owner_password, show="*")
         self.pass_encrypt_owner_entry.grid(row=1, column=1, sticky="ew", pady=4)
@@ -878,7 +916,7 @@ class GhostscriptGUI:
         cb_modify = ttk.Checkbutton(self.permissions_frame, text="Allow Modification", variable=s.allow_modification); cb_modify.pack(anchor="w"); Tooltip(cb_modify, TOOLTIP_TEXT.get("password_allow_modification"))
         cb_copy = ttk.Checkbutton(self.permissions_frame, text="Allow Copy & Extract", variable=s.allow_copy_and_extract); cb_copy.pack(anchor="w"); Tooltip(cb_copy, TOOLTIP_TEXT.get("password_allow_copy"))
         cb_annotate = ttk.Checkbutton(self.permissions_frame, text="Allow Annotations & Forms", variable=s.allow_annotations_and_forms); cb_annotate.pack(anchor="w"); Tooltip(cb_annotate, TOOLTIP_TEXT.get("password_allow_annotations"))
-        
+
         self.encrypt_button = self._create_process_button(encrypt_frame, "ENCRYPT PDF", self.process_encrypt, row=3, columnspan=2, tooltip_key="password_encrypt_btn")
 
         decrypt_frame = ttk.LabelFrame(parent, text="Decrypt PDF", padding=15)
@@ -889,12 +927,12 @@ class GhostscriptGUI:
         self.pass_decrypt_entry = ttk.Entry(decrypt_frame, textvariable=s.decrypt_password, show="*")
         self.pass_decrypt_entry.grid(row=0, column=1, sticky="ew", pady=4)
         Tooltip(self.pass_decrypt_entry, TOOLTIP_TEXT.get("password_decrypt_entry"))
-        
+
         self.decrypt_button = self._create_process_button(decrypt_frame, "DECRYPT PDF", self.process_decrypt, row=1, columnspan=2, tooltip_key="password_decrypt_btn")
 
         show_pass_cb = ttk.Checkbutton(parent, text="Show Passwords", variable=s.show_passwords, command=self.toggle_password_visibility)
         show_pass_cb.grid(row=3, column=0, sticky="w", pady=(5, 10), padx=5)
-        
+
         ttk.Label(parent, textvariable=self.tab_statuses['password'], anchor="center").grid(row=4, column=0, sticky="ew", pady=(10, 0))
 
     def _build_stamp_tab(self, parent):
@@ -1289,27 +1327,46 @@ class GhostscriptGUI:
         mode = self.compress_settings.compress_mode.get()
         is_lossy = mode == "Compression"
         is_lossless = mode == "Lossless"
+        is_pdfa = mode == "PDF/A"
 
-        widget_state = "normal" if is_lossy else "disabled"
+        lossy_state = "normal" if is_lossy else "disabled"
+        pdfa_state = "normal" if is_pdfa else "disabled"
 
         if hasattr(self, 'dpi_slider'):
-            self.dpi_slider.config(state=widget_state)
-            self.dpi_entry.config(state=widget_state)
-        if hasattr(self, 'bicubic_check'): self.bicubic_check.config(state=widget_state)
-        if hasattr(self, 'downsample_threshold_check'): self.downsample_threshold_check.config(state=widget_state)
-        if hasattr(self, 'grayscale_check'): self.grayscale_check.config(state=widget_state)
-        if hasattr(self, 'cmyk_check'): self.cmyk_check.config(state=widget_state)
+            self.dpi_slider.grid(row=1, column=0, sticky="ew", padx=(0, 10))
+            self.dpi_entry.grid(row=1, column=1, sticky="w")
+            self.pdfa_dpi_slider.grid_forget()
+            self.pdfa_dpi_entry.grid_forget()
+
+            self.dpi_slider.config(state=lossy_state)
+            self.dpi_entry.config(state=lossy_state)
+            
+            if is_pdfa:
+                self.dpi_slider.grid_forget()
+                self.dpi_entry.grid_forget()
+                self.pdfa_dpi_slider.grid(row=1, column=0, sticky="ew", padx=(0, 10))
+                self.pdfa_dpi_entry.grid(row=1, column=1, sticky="w")
+                self.pdfa_dpi_slider.config(state=pdfa_state)
+                self.pdfa_dpi_entry.config(state=pdfa_state)
+            
+        if hasattr(self, 'bicubic_check'): self.bicubic_check.config(state=lossy_state)
+        if hasattr(self, 'downsample_threshold_check'): self.downsample_threshold_check.config(state=lossy_state)
+        if hasattr(self, 'grayscale_check'): self.grayscale_check.config(state=lossy_state)
+        if hasattr(self, 'cmyk_check'): self.cmyk_check.config(state=lossy_state)
         if hasattr(self, 'quantize_toggle'):
-            self.quantize_toggle.config(state=widget_state)
+            self.quantize_toggle.config(state=lossy_state)
             if not is_lossy:
                 self.compress_settings.quantize_colors.set(False)
 
-
         if hasattr(self, 'true_lossless_check'):
-            state = "normal" if is_lossless else "disabled"
-            self.true_lossless_check.config(state=state)
+            self.true_lossless_check.config(state="normal" if is_lossless else "disabled")
             if not is_lossless:
                 self.compress_settings.true_lossless.set(False)
+
+        if hasattr(self, 'pdfa_compress_check'):
+            self.pdfa_compress_check.config(state=pdfa_state)
+            if not is_pdfa:
+                self.compress_settings.pdfa_compression.set(False)
 
         if not is_lossy:
             self.compress_settings.use_bicubic.set(False)
@@ -1502,337 +1559,303 @@ class GhostscriptGUI:
             'color': self._hex_to_cpdf_color(s.font_color.get()),
             'bates_start': s.bates_start.get() if s.bates_enabled.get() else None
         }
-        args = (s.input_path.get(), stamp_opts, self.cpdf_path, s.mode.get(), mode_opts)
-        threading.Thread(target=self._stamp_render_thread_target, args=(args, self.stamp_preview_canvas), daemon=True).start()
+        options = {'stamp_opts': stamp_opts, 'mode': s.mode.get(), 'mode_opts': mode_opts}
 
-    def _stamp_render_thread_target(self, args, canvas):
-        try:
-            pdf_path, stamp_opts, _, mode, mode_opts = args
-            options = {'stamp_opts': stamp_opts, 'mode_opts': mode_opts, 'mode': mode}
-            image = backend.generate_preview(self.gs_path, self.cpdf_path, pdf_path, 'stamp', options)
-            self.root.after(0, self._display_preview_image, image, canvas)
-        except Exception as e:
-            logging.error(f"Error in stamp render thread: {e}")
-            self.root.after(0, self._display_preview_image, None, canvas)
+        def render_stamp_preview():
+            image = backend.generate_preview(self.gs_path, self.cpdf_path, s.input_path.get(), 'stamp', options)
+            self.root.after(0, self._display_preview_image, image, self.stamp_preview_canvas)
 
-    def process_compression(self):
-        cs = self.compress_settings
-        in_path, out_path = cs.input_path.get(), cs.output_path.get()
-        if not in_path or not out_path: messagebox.showerror("Error", "Input and Output paths must be set.", parent=self.root); return
-
-        self.compression_ratio_var.set(0.0)
-        self.status.set("Starting compression...")
-        params = {
-            'input_path': in_path, 'output_path': out_path, 'mode': cs.compress_mode.get(),
-            'convert_to_grayscale': cs.convert_to_grayscale.get(),
-            'convert_to_cmyk': cs.convert_to_cmyk.get(),
-            'dpi': cs.dpi.get(), 'gs_path': self.gs_path, 'cpdf_path': self.cpdf_path,
-            'pngquant_path': self.pngquant_path,
-            'jpegoptim_path': self.jpegoptim_path,
-            'ect_path': self.ect_path,
-            'darken_text': cs.darken_text.get(),
-            'strip_metadata': cs.strip_metadata.get(),
-            'remove_interactive': cs.remove_interactive.get(),
-            'remove_open_action': cs.remove_open_action.get(),
-            'use_bicubic': cs.use_bicubic.get(),
-            'downsample_threshold_enabled': cs.downsample_threshold_enabled.get(),
-            'quantize_colors': cs.quantize_colors.get(),
-            'quantize_level': cs.quantize_level.get(),
-            'fast_web_view': cs.fast_web_view.get(),
-            'only_if_smaller': cs.only_if_smaller.get(),
-            'fast_mode': cs.fast_mode.get(),
-            'true_lossless': cs.true_lossless.get()
-        }
-        self.start_task(self.compress_button, backend.run_compress_task, (params, self.is_folder.get(), self.progress_queue), status_var=self.compress_progress_status)
-
-    def browse_output(self):
-        if self.is_folder.get(): path = filedialog.askdirectory()
-        else: path = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF files", "*.pdf")])
-        if path: self.compress_settings.output_path.set(path)
+        threading.Thread(target=render_stamp_preview, daemon=True).start()
 
     def update_merge_view(self):
         if not self.merge_tree: return
-        for i in self.merge_tree.get_children():
-            self.merge_tree.delete(i)
-        if self.merge_settings.files:
-            self.merge_tree.insert('', 'end', values=("", "Loading...", ""))
-            threading.Thread(target=self._populate_merge_view_thread, daemon=True).start()
-
-    def _populate_merge_view_thread(self):
-        metadata_list = [backend.get_pdf_metadata(f) for f in self.merge_settings.files]
-        self.root.after(0, self._insert_merge_data, metadata_list)
-
-    def _insert_merge_data(self, metadata_list):
-        if not self.merge_tree: return
-        for i in self.merge_tree.get_children():
-            self.merge_tree.delete(i)
-        for data in metadata_list:
-            self.merge_tree.insert('', 'end', values=(data['name'], data['pages'], data['size']))
+        self.merge_tree.delete(*self.merge_tree.get_children())
+        for file_path in self.merge_settings.files:
+            metadata = backend.get_pdf_metadata(file_path)
+            self.merge_tree.insert('', 'end', values=(metadata['name'], metadata['pages'], metadata['size']))
 
     def remove_merge_file(self):
         selected_items = self.merge_tree.selection()
         if not selected_items: return
-
-        filenames_to_remove = {self.merge_tree.item(item)['values'][0] for item in selected_items}
-
-        new_files_list = [f for f in self.merge_settings.files if Path(f).name not in filenames_to_remove]
-        self.merge_settings.files = new_files_list
-
-        for item in selected_items:
-            self.merge_tree.delete(item)
-
-        if not self.merge_settings.files:
-            self.merge_settings.output_path.set("")
+        indices_to_remove = [self.merge_tree.index(item) for item in selected_items]
+        for index in sorted(indices_to_remove, reverse=True):
+            del self.merge_settings.files[index]
+        self.update_merge_view()
 
     def move_merge_up(self):
-        selected = self.merge_tree.selection()
-        if not selected: return
-        for item in selected:
-            idx = self.merge_tree.index(item)
-            if idx > 0:
-                self.merge_tree.move(item, '', idx - 1)
-                files = self.merge_settings.files
-                files[idx], files[idx-1] = files[idx-1], files[idx]
+        selected_items = self.merge_tree.selection()
+        if not selected_items: return
+        for item in selected_items:
+            index = self.merge_tree.index(item)
+            if index > 0:
+                self.merge_settings.files.insert(index - 1, self.merge_settings.files.pop(index))
+        self.update_merge_view()
 
     def move_merge_down(self):
-        selected = self.merge_tree.selection()
-        if not selected: return
-        for item in reversed(selected):
-            idx = self.merge_tree.index(item)
-            if idx < len(self.merge_settings.files) - 1:
-                self.merge_tree.move(item, '', idx + 1)
-                files = self.merge_settings.files
-                files[idx], files[idx+1] = files[idx+1], files[idx]
+        selected_items = self.merge_tree.selection()
+        if not selected_items: return
+        for item in reversed(selected_items):
+            index = self.merge_tree.index(item)
+            if index < len(self.merge_settings.files) - 1:
+                self.merge_settings.files.insert(index + 1, self.merge_settings.files.pop(index))
+        self.update_merge_view()
 
     def pick_stamp_color(self):
-        color = colorchooser.askcolor(title="Select Text Color", initialcolor=self.stamp_settings.font_color.get())
-        if color[1]: self.stamp_settings.font_color.set(color[1])
+        color_code = colorchooser.askcolor(title="Choose color")
+        if color_code and color_code[1]:
+            self.stamp_settings.font_color.set(color_code[1])
 
     def pick_page_number_color(self):
-        color = colorchooser.askcolor(title="Select Text Color", initialcolor=self.page_number_settings.font_color.get())
-        if color[1]: self.page_number_settings.font_color.set(color[1])
+        color_code = colorchooser.askcolor(title="Choose color")
+        if color_code and color_code[1]:
+            self.page_number_settings.font_color.set(color_code[1])
+
+    def load_metadata(self, *args):
+        s = self.meta_settings
+        pdf_path = s.input_path.get()
+        if pdf_path and Path(pdf_path).exists() and self.cpdf_path:
+            try:
+                info = backend.run_metadata_task(META_LOAD, pdf_path, self.cpdf_path)
+                s.title.set(info.get('title', ''))
+                s.author.set(info.get('author', ''))
+                s.subject.set(info.get('subject', ''))
+                s.keywords.set(info.get('keywords', ''))
+                self.tab_statuses['metadata'].set(f"Loaded metadata from {Path(pdf_path).name}")
+            except Exception as e:
+                self.tab_statuses['metadata'].set(f"Error loading metadata: {e}")
+        else:
+            s.title.set(""); s.author.set(""); s.subject.set(""); s.keywords.set("")
+
+    def save_metadata(self):
+        s = self.meta_settings
+        pdf_path = s.input_path.get()
+        if not pdf_path or not Path(pdf_path).exists():
+            messagebox.showerror("Error", "Please select a valid PDF file first.", parent=self.root)
+            return
+
+        if messagebox.askyesno("Confirm Overwrite", "This will modify the metadata of the original file. Are you sure you want to continue?", parent=self.root):
+            try:
+                metadata_dict = {'title': s.title.get(), 'author': s.author.get(), 'subject': s.subject.get(), 'keywords': s.keywords.get()}
+                backend.run_metadata_task(META_SAVE, pdf_path, self.cpdf_path, metadata_dict)
+                self.tab_statuses['metadata'].set("Metadata saved successfully.")
+            except Exception as e:
+                self.tab_statuses['metadata'].set(f"Error saving metadata: {e}")
+                messagebox.showerror("Error", f"Could not save metadata: {e}", parent=self.root)
+
+    def process_compression(self):
+        s = self.compress_settings
+        if not s.input_path.get():
+            messagebox.showerror("Input Error", "Please select an input file or folder.", parent=self.root)
+            return
+
+        params = {
+            'gs_path': self.gs_path,
+            'cpdf_path': self.cpdf_path,
+            'pngquant_path': self.pngquant_path,
+            'jpegoptim_path': self.jpegoptim_path,
+            'ect_path': self.ect_path,
+            'input_path': s.input_path.get(),
+            'output_path': s.output_path.get(),
+            'mode': s.compress_mode.get(),
+            'dpi': s.dpi.get(),
+            'pdfa_dpi': s.pdfa_dpi.get(),
+            'darken_text': s.darken_text.get(),
+            'strip_metadata': s.strip_metadata.get(),
+            'remove_interactive': s.remove_interactive.get(),
+            'remove_open_action': s.remove_open_action.get(),
+            'fast_web_view': s.fast_web_view.get(),
+            'use_bicubic': s.use_bicubic.get(),
+            'downsample_threshold_enabled': s.downsample_threshold_enabled.get(),
+            'quantize_colors': s.quantize_colors.get(),
+            'quantize_level': s.quantize_level.get(),
+            'convert_to_grayscale': s.convert_to_grayscale.get(),
+            'convert_to_cmyk': s.convert_to_cmyk.get(),
+            'only_if_smaller': s.only_if_smaller.get(),
+            'fast_mode': s.fast_mode.get(),
+            'true_lossless': s.true_lossless.get(),
+            'pdfa_compression': s.pdfa_compression.get(),
+        }
+        self.start_task(self.compress_button, backend.run_compress_task, args=(params, self.is_folder.get(), self.progress_queue), status_var=self.compress_progress_status)
 
     def process_merge(self):
         s = self.merge_settings
         if not s.files or not s.output_path.get():
-            messagebox.showerror("Error", "Please add files and set an output path.", parent=self.root)
+            messagebox.showerror("Input Error", "Please add files to merge and specify an output path.", parent=self.root)
             return
-        args = (s.files, s.output_path.get(), self.progress_queue)
-        self.start_task(self.merge_button, backend.run_merge_task, args, status_var=self.tab_statuses['merge'])
+        self.start_task(self.merge_button, backend.run_merge_task, args=(s.files, s.output_path.get(), self.progress_queue), status_var=self.tab_statuses['merge'])
 
     def process_split(self):
         s = self.split_settings
         if not s.input_path.get() or not s.output_dir.get():
-            messagebox.showerror("Error", "Please set input and output paths.", parent=self.root)
+            messagebox.showerror("Input Error", "Please select an input file and an output directory.", parent=self.root)
             return
-        args = (s.input_path.get(), s.output_dir.get(), s.mode.get(), s.value.get(), self.progress_queue)
-        self.start_task(self.split_button, backend.run_split_task, args, status_var=self.tab_statuses['split'])
+        self.start_task(self.split_button, backend.run_split_task, args=(s.input_path.get(), s.output_dir.get(), s.mode.get(), s.value.get(), self.progress_queue), status_var=self.tab_statuses['split'])
 
     def process_rotate(self):
         s = self.rotate_settings
         if not s.input_path.get() or not s.output_path.get():
-            messagebox.showerror("Error", "Please set input and output paths.", parent=self.root)
+            messagebox.showerror("Input Error", "Please select an input file and an output path.", parent=self.root)
             return
         angle = ROTATION_MAP.get(s.angle.get(), 0)
-        args = (s.input_path.get(), s.output_path.get(), angle, self.progress_queue)
-        self.start_task(self.rotate_button, backend.run_rotate_task, args, status_var=self.tab_statuses['rotate'])
+        self.start_task(self.rotate_button, backend.run_rotate_task, args=(s.input_path.get(), s.output_path.get(), angle, self.progress_queue), status_var=self.tab_statuses['rotate'])
 
     def process_delete_pages(self):
         s = self.delete_settings
-        page_range = s.page_range.get()
-        if not s.input_path.get() or not s.output_path.get() or not page_range:
-            messagebox.showerror("Error", "Please set input, output, and a page range.", parent=self.root)
+        if not s.input_path.get() or not s.output_path.get():
+            messagebox.showerror("Input Error", "Please select an input file and an output path.", parent=self.root)
             return
-        args = (s.input_path.get(), s.output_path.get(), page_range, self.progress_queue)
-        self.start_task(self.delete_button, backend.run_delete_pages_task, args, status_var=self.tab_statuses['delete'])
+        self.start_task(self.delete_button, backend.run_delete_pages_task, args=(s.input_path.get(), s.output_path.get(), s.page_range.get(), self.progress_queue), status_var=self.tab_statuses['delete'])
+
+    def _process_password(self, mode, button):
+        s = self.password_settings
+        if not s.input_path.get() or not s.output_path.get():
+            messagebox.showerror("Input Error", "Please select an input file and an output path.", parent=self.root)
+            return
+
+        params = { 'input_path': s.input_path.get(), 'output_path': s.output_path.get(), 'mode': mode }
+        if mode == 'add':
+            params.update({
+                'user_password': s.user_password.get(),
+                'owner_password': s.owner_password.get(),
+                'allow_printing': s.allow_printing.get(),
+                'allow_modification': s.allow_modification.get(),
+                'allow_copy_and_extract': s.allow_copy_and_extract.get(),
+                'allow_annotations_and_forms': s.allow_annotations_and_forms.get()
+            })
+        elif mode == 'remove':
+            params['user_password'] = s.decrypt_password.get()
+
+        self.start_task(button, backend.run_password_task, args=(params, self.progress_queue), status_var=self.tab_statuses['password'])
 
     def process_encrypt(self):
-        s = self.password_settings
-        in_path, out_path = s.input_path.get(), s.output_path.get()
-        if not in_path or not out_path:
-            messagebox.showerror("Error", "Input and Output paths must be set.", parent=self.root)
-            return
-        params = {
-            'input_path': in_path, 'output_path': out_path, 'mode': 'add',
-            'user_password': s.user_password.get(),
-            'owner_password': s.owner_password.get(),
-            'allow_printing': s.allow_printing.get(),
-            'allow_modification': s.allow_modification.get(),
-            'allow_copy_and_extract': s.allow_copy_and_extract.get(),
-            'allow_annotations_and_forms': s.allow_annotations_and_forms.get()
-        }
-        self.start_task(self.encrypt_button, backend.run_password_task, (params, self.progress_queue), status_var=self.tab_statuses['password'])
+        self._process_password('add', self.encrypt_button)
 
     def process_decrypt(self):
-        s = self.password_settings
-        in_path, out_path = s.input_path.get(), s.output_path.get()
-        if not in_path or not out_path:
-            messagebox.showerror("Error", "Input and Output paths must be set.", parent=self.root)
-            return
-        params = {
-            'input_path': in_path, 'output_path': out_path, 'mode': 'remove',
-            'user_password': s.decrypt_password.get()
-        }
-        self.start_task(self.decrypt_button, backend.run_password_task, (params, self.progress_queue), status_var=self.tab_statuses['password'])
+        self._process_password('remove', self.decrypt_button)
 
     def process_stamp(self):
         s = self.stamp_settings
         if not s.input_path.get() or not s.output_path.get():
-            messagebox.showerror("Error", "Please set input and output paths.", parent=self.root)
+            messagebox.showerror("Input Error", "Please select an input file and an output path.", parent=self.root)
             return
-        if s.mode.get() == STAMP_IMAGE and not s.image_path.get():
-            messagebox.showerror("Error", "Please select an image file for stamping.", parent=self.root)
-            return
-
-        text_content = self._get_stamp_text_content()
 
         stamp_opts = { 'pos': s.pos.get(), 'opacity': s.opacity.get(), 'on_top': s.on_top.get() }
-        mode_opts = { 'image_path': s.image_path.get(),
-                      'image_scale': s.image_scale.get() / 100.0,
-                      'text': text_content,
-                      'font': s.font.get(), 'size': s.font_size.get(), 'color': self._hex_to_cpdf_color(s.font_color.get()),
-                      'bates_start': s.bates_start.get() if s.bates_enabled.get() else None }
-        args = (s.input_path.get(), s.output_path.get(), stamp_opts, self.cpdf_path, self.progress_queue, s.mode.get(), mode_opts)
-        self.start_task(self.stamp_button, backend.run_stamp_task, args, status_var=self.tab_statuses['stamp'])
+        mode = s.mode.get()
+        text_content = self._get_stamp_text_content()
+        mode_opts = {
+            'image_path': s.image_path.get(),
+            'image_scale': s.image_scale.get() / 100.0,
+            'text': text_content,
+            'font': s.font.get(),
+            'size': s.font_size.get(),
+            'color': self._hex_to_cpdf_color(s.font_color.get()),
+            'bates_start': s.bates_start.get() if s.bates_enabled.get() else None
+        }
+        self.start_task(self.stamp_button, backend.run_stamp_task, args=(s.input_path.get(), s.output_path.get(), stamp_opts, self.cpdf_path, self.progress_queue, mode, mode_opts), status_var=self.tab_statuses['stamp'])
 
     def process_page_number(self):
         s = self.page_number_settings
         if not s.input_path.get() or not s.output_path.get():
-            messagebox.showerror("Error", "Please set input and output paths.", parent=self.root)
+            messagebox.showerror("Input Error", "Please select an input file and an output path.", parent=self.root)
             return
-
-        mode = s.mode.get()
-        text_to_use = ""
-        if mode == "Page Number":
-            text_to_use = "%Page"
-        elif mode == "Page X of Y":
-            text_to_use = "%Page of %EndPage"
-        elif mode == "Custom":
-            text_to_use = s.custom_text.get()
-
+        text_map = { "Page Number": "%Page", "Page X of Y": "%Page of %EndPage", "Custom": s.custom_text.get() }
         options = {
-            'text': text_to_use,
+            'text': text_map.get(s.mode.get(), ''),
             'pos': s.pos.get(),
             'font': s.font.get(),
             'font_size': s.font_size.get(),
             'color': self._hex_to_cpdf_color(s.font_color.get()),
             'page_range': s.page_range.get()
         }
-        args = (s.input_path.get(), s.output_path.get(), self.cpdf_path, self.progress_queue, options)
-        self.start_task(self.page_number_button, backend.run_page_number_task, args, status_var=self.tab_statuses['page_number'])
-
-    def process_convert(self):
-        s = self.convert_settings
-        if not s.input_path.get() or not s.output_dir.get():
-            messagebox.showerror("Error", "Please set input and output paths.", parent=self.root)
-            return
-        options = {'format': s.format.get(), 'dpi': s.dpi.get()}
-        args = (self.gs_path, s.input_path.get(), s.output_dir.get(), options, self.progress_queue)
-        self.start_task(self.convert_button, backend.run_pdf_to_image_task, args, status_var=self.tab_statuses['convert'])
-
-    def process_repair(self):
-        s = self.repair_settings
-        if not s.input_path.get() or not s.output_path.get():
-            messagebox.showerror("Error", "Please set input and output paths.", parent=self.root)
-            return
-        args = (s.input_path.get(), s.output_path.get(), self.progress_queue)
-        self.start_task(self.repair_button, backend.run_repair_task, args, status_var=self.tab_statuses['repair'])
+        self.start_task(self.page_number_button, backend.run_page_number_task, args=(s.input_path.get(), s.output_path.get(), self.cpdf_path, self.progress_queue, options), status_var=self.tab_statuses['page_number'])
 
     def process_toc(self):
         s = self.toc_settings
         if not s.input_path.get() or not s.output_path.get():
-            messagebox.showerror("Error", "Please set input and output paths.", parent=self.root)
+            messagebox.showerror("Input Error", "Please select an input file and an output path.", parent=self.root)
             return
-        options = {
-            'title': s.title.get(), 'font': s.font.get(),
-            'font_size': s.font_size.get(), 'dot_leaders': s.dot_leaders.get(),
-            'no_bookmark': s.no_bookmark.get()
-        }
-        args = (self.cpdf_path, s.input_path.get(), s.output_path.get(), options, self.progress_queue)
-        self.start_task(self.toc_button, backend.run_toc_task, args, status_var=self.tab_statuses['toc'])
+        options = { 'title': s.title.get(), 'font': s.font.get(), 'font_size': s.font_size.get(), 'dot_leaders': s.dot_leaders.get(), 'no_bookmark': s.no_bookmark.get() }
+        self.start_task(self.toc_button, backend.run_toc_task, args=(self.cpdf_path, s.input_path.get(), s.output_path.get(), options, self.progress_queue), status_var=self.tab_statuses['toc'])
 
-    def load_metadata(self, *args):
-        s = self.meta_settings
-        pdf_path = s.input_path.get()
-        if not pdf_path:
+    def process_convert(self):
+        s = self.convert_settings
+        if not s.input_path.get() or not s.output_dir.get():
+            messagebox.showerror("Input Error", "Please select an input file and an output directory.", parent=self.root)
             return
-        try:
-            info = backend.run_metadata_task(META_LOAD, pdf_path, self.cpdf_path)
-            s.title.set(info.get('title', ''))
-            s.author.set(info.get('author', ''))
-            s.subject.set(info.get('subject', ''))
-            s.keywords.set(info.get('keywords', ''))
-            self.status.set("Metadata loaded successfully.")
-        except Exception as e:
-            self.status.set(f"Failed to load metadata.")
-            logging.error(f"Failed to load metadata: {e}")
-            s.title.set('')
-            s.author.set('')
-            s.subject.set('')
-            s.keywords.set('')
+        options = { 'format': s.format.get(), 'dpi': s.dpi.get() }
+        self.start_task(self.convert_button, backend.run_pdf_to_image_task, args=(self.gs_path, s.input_path.get(), s.output_dir.get(), options, self.progress_queue), status_var=self.tab_statuses['convert'])
 
-    def save_metadata(self):
-        s = self.meta_settings
-        pdf_path = s.input_path.get()
-        if not pdf_path:
-            messagebox.showwarning("Input Missing", "Please select a PDF file.", parent=self.root)
+    def process_repair(self):
+        s = self.repair_settings
+        if not s.input_path.get() or not s.output_path.get():
+            messagebox.showerror("Input Error", "Please select an input file and an output path.", parent=self.root)
             return
-        metadata = {
-            'title': s.title.get(),
-            'author': s.author.get(),
-            'subject': s.subject.get(),
-            'keywords': s.keywords.get()
-        }
-        try:
-            if messagebox.askyesno("Confirm Overwrite", "This will permanently overwrite the metadata in the original file. Are you sure?", icon='warning', parent=self.root):
-                self.tab_statuses['metadata'].set("Saving metadata...")
-                self.root.update_idletasks()
-                backend.run_metadata_task(META_SAVE, pdf_path, self.cpdf_path, metadata)
-                self.status.set("Metadata saved successfully.")
-                self.tab_statuses['metadata'].set("Save complete.")
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to save metadata: {e}", parent=self.root)
-            self.tab_statuses['metadata'].set("Error during save.")
-
-    def toggle_theme(self):
-        self.palette = styles.apply_theme(self.root, 'dark' if self.general_settings.dark_mode_enabled.get() else 'light')
-        self._update_widget_colors()
-
-    def _update_widget_colors(self):
-        if hasattr(self, 'gauge'): self.gauge.update_colors(self.palette)
-        if hasattr(self, 'dpi_slider'): self.dpi_slider.update_colors(self.palette)
-        for dz in self.drop_zones.values(): dz.update_colors(self.palette)
-
-        preview_canvases = [getattr(self, name, None) for name in ['rotate_preview_canvas', 'delete_preview_canvas', 'stamp_preview_canvas']]
-        for canvas in preview_canvases:
-            if canvas:
-                canvas.config(bg=self.palette.get("BG"), highlightbackground=self.palette.get("BORDER"))
-        for toggle in self.toggles: toggle.update_colors(self.palette)
-        for frame in self.tab_frames.values():
-            if hasattr(frame, 'update_colors'): frame.update_colors(self.palette)
-
-        if self.coffee_img_label:
-            is_dark = self.general_settings.dark_mode_enabled.get()
-            new_icon = self.coffee_icon_dark if is_dark else self.coffee_icon_light
-            self.coffee_img_label.config(image=new_icon)
-            self.coffee_img_label.image = new_icon
+        self.start_task(self.repair_button, backend.run_repair_task, args=(s.input_path.get(), s.output_path.get(), self.progress_queue), status_var=self.tab_statuses['repair'])
 
     def setup_drag_and_drop(self):
         if IS_WINDOWS:
-            for key, dz in self.drop_zones.items():
-                if key == 'compress': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.compress_settings.input_path))
-                elif key == 'split': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.split_settings.input_path))
-                elif key == 'rotate': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.rotate_settings.input_path))
-                elif key == 'delete': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.delete_settings.input_path))
-                elif key == 'password': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.password_settings.input_path))
-                elif key == 'stamp': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.stamp_settings.input_path))
-                elif key == 'page_number': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.page_number_settings.input_path))
-                elif key == 'toc': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.toc_settings.input_path))
-                elif key == 'convert': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.convert_settings.input_path))
-                elif key == 'repair': windnd.hook_dropfiles(dz, lambda files: self._on_drop(files, self.repair_settings.input_path))
+            windnd.hook_dropfiles(self.root, func=self._handle_drop)
 
-    def _on_drop(self, files, target_var):
+    def _handle_drop(self, files):
         try:
-            decoded_files = [f.decode('utf-8') for f in files]
-            if decoded_files: target_var.set(decoded_files[0]); self.root.attributes('-topmost', 1); self.root.attributes('-topmost', 0)
-        except Exception as e: logging.error(f"Drag and drop failed: {e}"); self.status.set(f"Error during drop: {e}")
+            paths = [f.decode('utf-8') for f in files]
+            if not paths: return
+
+            main_tab_text = self.main_notebook.tab(self.main_notebook.select(), "text")
+
+            if main_tab_text == "Compress":
+                self.compress_settings.input_path.set(paths[0])
+            elif main_tab_text == "Utilities":
+                util_tab_text = self.utilities_notebook.tab(self.utilities_notebook.select(), "text")
+                if util_tab_text == "Merge":
+                    pdf_files = [p for p in paths if p.lower().endswith('.pdf')]
+                    self.merge_settings.files.extend(pdf_files)
+                    self.update_merge_view()
+                else:
+                    var_map = {
+                        "Split/Extract": self.split_settings.input_path,
+                        "Rotate": self.rotate_settings.input_path,
+                        "Delete Pages": self.delete_settings.input_path,
+                        "Password": self.password_settings.input_path,
+                        "Stamp/Watermark": self.stamp_settings.input_path,
+                        "Header/Footer": self.page_number_settings.input_path,
+                        "Table of Contents": self.toc_settings.input_path,
+                        "Metadata": self.meta_settings.input_path,
+                        "PDF to Image": self.convert_settings.input_path,
+                        "PDF Repair": self.repair_settings.input_path,
+                    }
+                    if util_tab_text in var_map:
+                        var_map[util_tab_text].set(paths[0])
+        except Exception as e:
+            logging.error(f"Drag and drop failed: {e}")
+
+    def toggle_theme(self):
+        mode = 'dark' if self.general_settings.dark_mode_enabled.get() else 'light'
+        self.palette = styles.apply_theme(self.root, mode)
+        self._update_widget_colors()
+
+    def _update_widget_colors(self):
+        self.root.configure(bg=self.palette.get("BG"))
+        for frame in self.tab_frames.values():
+            if isinstance(frame, ScrolledFrame):
+                frame.update_colors(self.palette)
+        for toggle in self.toggles:
+            toggle.update_colors(self.palette)
+        if hasattr(self, 'gauge'): self.gauge.update_colors(self.palette)
+        if hasattr(self, 'dpi_slider'): self.dpi_slider.update_colors(self.palette)
+        if hasattr(self, 'pdfa_dpi_slider'): self.pdfa_dpi_slider.update_colors(self.palette)
+        for drop_zone in self.drop_zones.values():
+            drop_zone.update_colors(self.palette)
+        canvases = [
+            getattr(self, 'rotate_preview_canvas', None),
+            getattr(self, 'delete_preview_canvas', None),
+            getattr(self, 'stamp_preview_canvas', None)
+        ]
+        for canvas in canvases:
+            if canvas:
+                canvas.configure(bg=self.palette.get("WIDGET_BG"), highlightbackground=self.palette.get("BORDER"))
+
+        if self.coffee_img_label:
+            icon = self.coffee_icon_dark if self.general_settings.dark_mode_enabled.get() else self.coffee_icon_light
+            self.coffee_img_label.config(image=icon)
+            self.coffee_img_label.image = icon

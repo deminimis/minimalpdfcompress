@@ -12,6 +12,8 @@ import os
 import oxipng
 import zlib
 
+from constants import ProcessingError
+
 def resource_path(relative_path):
     try:
         base_path = Path(sys._MEIPASS)
@@ -38,13 +40,15 @@ class PdfOptimizer:
         self.downsample_threshold_enabled = kwargs.get('downsample_threshold_enabled', False)
         self.quantize_colors = kwargs.get('quantize_colors', False)
         self.quantize_level = kwargs.get('quantize_level', 4)
+        self.pdfa_compression = kwargs.get('pdfa_compression', False)
+        self.pdfa_dpi = kwargs.get('pdfa_dpi', 300)
 
     def _run_command(self, cmd, check=True):
         use_shell = isinstance(cmd, str)
         logging.info(f"Running command: {cmd}")
         try:
             kwargs = {
-                'check': check, 'stdout': subprocess.DEVNULL, 'stderr': subprocess.PIPE,
+                'check': check, 'stdout': subprocess.PIPE, 'stderr': subprocess.PIPE,
                 'text': True, 'errors': 'ignore', 'shell': use_shell
             }
             if sys.platform == "win32":
@@ -55,9 +59,12 @@ class PdfOptimizer:
                 logging.warning(f"Command produced stderr: {result.stderr.strip()}")
             return result
         except subprocess.CalledProcessError as e:
-            logging.error(f"Command failed: {e.stderr}"); return None
+            full_error = f"Command failed.\nSTDOUT: {e.stdout.strip()}\nSTDERR: {e.stderr.strip()}"
+            logging.error(full_error)
+            return None
         except FileNotFoundError:
-            logging.error(f"Command not found: {cmd if use_shell else cmd[0]}"); return None
+            logging.error(f"Command not found: {cmd if use_shell else cmd[0]}")
+            return None
 
     def _replace_image_stream(self, obj):
         try:
@@ -125,7 +132,8 @@ class PdfOptimizer:
                     pass
 
             original_size = len(obj.read_raw_bytes())
-            if original_size == 0: return 0
+            if original_size == 0:
+                return 0
 
             try:
                 pdf_image = pikepdf.PdfImage(obj)
@@ -136,17 +144,19 @@ class PdfOptimizer:
 
             temp_img_path = temp_dir / f"img_{obj.objgen}.png"
             pil_image.save(temp_img_path, "png")
-            
+
             optimized_path = None
             if mode == 'lossy' and self.pngquant_path:
                 quality_str = "80-95"
-                if dpi <= 100: quality_str = "40-60"
-                elif dpi <= 200: quality_str = "65-80"
+                if dpi <= 100:
+                    quality_str = "40-60"
+                elif dpi <= 200:
+                    quality_str = "65-80"
                 quant_path = temp_dir / f"img_{obj.objgen}.quant.png"
                 cmd = [self.pngquant_path, "--force", "--skip-if-larger", f"--quality={quality_str}", "--output", str(quant_path), "256", str(temp_img_path)]
                 if self._run_command(cmd) and quant_path.exists() and quant_path.stat().st_size > 0:
                     optimized_path = quant_path
-            
+
             final_optimized_path = optimized_path if optimized_path else temp_img_path
 
             try:
@@ -173,37 +183,53 @@ class PdfOptimizer:
             total_new_size = float('inf')
 
             if has_transparency:
-                if final_pil_image.mode != 'RGBA': final_pil_image = final_pil_image.convert('RGBA')
-                rgb_image = Image.new("RGB", final_pil_image.size); rgb_image.paste(final_pil_image)
+                if final_pil_image.mode != 'RGBA':
+                    final_pil_image = final_pil_image.convert('RGBA')
+                rgb_image = Image.new("RGB", final_pil_image.size)
+                rgb_image.paste(final_pil_image)
                 alpha_image = final_pil_image.split()[3]
                 compressed_rgb = zlib.compress(rgb_image.tobytes())
                 compressed_alpha = zlib.compress(alpha_image.tobytes())
                 total_new_size = len(compressed_rgb) + len(compressed_alpha)
 
                 if total_new_size < original_size:
-                    for key in list(obj.keys()): del obj[key]
+                    for key in list(obj.keys()):
+                        del obj[key]
                     obj.write(compressed_rgb)
-                    obj.Type = pikepdf.Name.XObject; obj.Subtype = pikepdf.Name.Image; obj.Filter = pikepdf.Name.FlateDecode
-                    obj.Width = final_pil_image.width; obj.Height = final_pil_image.height
-                    obj.ColorSpace = pikepdf.Name.DeviceRGB; obj.BitsPerComponent = 8
+                    obj.Type = pikepdf.Name.XObject
+                    obj.Subtype = pikepdf.Name.Image
+                    obj.Filter = pikepdf.Name.FlateDecode
+                    obj.Width = final_pil_image.width
+                    obj.Height = final_pil_image.height
+                    obj.ColorSpace = pikepdf.Name.DeviceRGB
+                    obj.BitsPerComponent = 8
 
                     smask_stream = pdf.new_stream(compressed_alpha)
-                    smask_stream.Type = pikepdf.Name.XObject; smask_stream.Subtype = pikepdf.Name.Image
+                    smask_stream.Type = pikepdf.Name.XObject
+                    smask_stream.Subtype = pikepdf.Name.Image
                     smask_stream.Filter = pikepdf.Name.FlateDecode
-                    smask_stream.Width = final_pil_image.width; smask_stream.Height = final_pil_image.height
-                    smask_stream.ColorSpace = pikepdf.Name.DeviceGray; smask_stream.BitsPerComponent = 8
+                    smask_stream.Width = final_pil_image.width
+                    smask_stream.Height = final_pil_image.height
+                    smask_stream.ColorSpace = pikepdf.Name.DeviceGray
+                    smask_stream.BitsPerComponent = 8
                     obj.SMask = smask_stream
             else:
-                if final_pil_image.mode != 'RGB': final_pil_image = final_pil_image.convert('RGB')
+                if final_pil_image.mode != 'RGB':
+                    final_pil_image = final_pil_image.convert('RGB')
                 compressed_rgb = zlib.compress(final_pil_image.tobytes())
                 total_new_size = len(compressed_rgb)
 
                 if total_new_size < original_size:
-                    for key in list(obj.keys()): del obj[key]
+                    for key in list(obj.keys()):
+                        del obj[key]
                     obj.write(compressed_rgb)
-                    obj.Type = pikepdf.Name.XObject; obj.Subtype = pikepdf.Name.Image; obj.Filter = pikepdf.Name.FlateDecode
-                    obj.Width = final_pil_image.width; obj.Height = final_pil_image.height
-                    obj.ColorSpace = pikepdf.Name.DeviceRGB; obj.BitsPerComponent = 8
+                    obj.Type = pikepdf.Name.XObject
+                    obj.Subtype = pikepdf.Name.Image
+                    obj.Filter = pikepdf.Name.FlateDecode
+                    obj.Width = final_pil_image.width
+                    obj.Height = final_pil_image.height
+                    obj.ColorSpace = pikepdf.Name.DeviceRGB
+                    obj.BitsPerComponent = 8
 
             if total_new_size < original_size:
                 saved = original_size - total_new_size
@@ -256,7 +282,8 @@ class PdfOptimizer:
             shutil.copy(input_file, temp_pdf_path)
 
             with pikepdf.open(temp_pdf_path, allow_overwriting_input=True) as pdf:
-                if self.q: self.q.put(('status', f"Optimizing images (true lossless)..."))
+                if self.q:
+                    self.q.put(('status', f"Optimizing images (true lossless)..."))
                 for obj in pdf.objects:
                     if isinstance(obj, pikepdf.Stream) and obj.get("/Subtype") == "/Image":
                         filt = obj.get("/Filter")
@@ -268,10 +295,12 @@ class PdfOptimizer:
                         elif filt != "/JPXDecode":
                             self._optimize_image_stream(pdf, obj, temp_dir, mode='lossless')
 
-                if self.q: self.q.put(('status', f"Recompressing streams..."))
+                if self.q:
+                    self.q.put(('status', f"Recompressing streams..."))
                 pdf.save(object_stream_mode=pikepdf.ObjectStreamMode.generate, recompress_flate=True)
 
-            if self.q: self.q.put(('status', f"Finalizing with cpdf..."))
+            if self.q:
+                self.q.put(('status', f"Finalizing with cpdf..."))
             self._post_process_pdf(temp_pdf_path, strip_metadata)
             shutil.move(str(temp_pdf_path), output_file)
 
@@ -282,14 +311,17 @@ class PdfOptimizer:
             shutil.copy(input_file, temp_pdf_path)
 
             with pikepdf.open(temp_pdf_path, allow_overwriting_input=True) as pdf:
-                if self.q: self.q.put(('status', f"Optimizing images losslessly..."))
+                if self.q:
+                    self.q.put(('status', f"Optimizing images losslessly..."))
                 for obj in pdf.objects:
                     self._optimize_image_stream(pdf, obj, temp_dir, mode='lossless')
 
-                if self.q: self.q.put(('status', f"Recompressing streams..."))
+                if self.q:
+                    self.q.put(('status', f"Recompressing streams..."))
                 pdf.save(object_stream_mode=pikepdf.ObjectStreamMode.generate, recompress_flate=True)
 
-            if self.q: self.q.put(('status', f"Finalizing with cpdf..."))
+            if self.q:
+                self.q.put(('status', f"Finalizing with cpdf..."))
             self._post_process_pdf(temp_pdf_path, strip_metadata)
             shutil.move(str(temp_pdf_path), output_file)
 
@@ -300,94 +332,107 @@ class PdfOptimizer:
             shutil.copy(input_file, temp_pdf_path)
 
             with pikepdf.open(temp_pdf_path, allow_overwriting_input=True) as pdf:
-                if self.q: self.q.put(('status', f"Finding images to replace..."))
+                if self.q:
+                    self.q.put(('status', f"Finding images to replace..."))
                 image_objects = [obj for obj in pdf.objects if isinstance(obj, pikepdf.Stream) and obj.get("/Subtype") == "/Image"]
 
-                if self.q: self.q.put(('status', f"Replacing {len(image_objects)} images with blanks..."))
+                if self.q:
+                    self.q.put(('status', f"Replacing {len(image_objects)} images with blanks..."))
                 for obj in image_objects:
                     self._replace_image_stream(obj)
 
-                if self.q: self.q.put(('status', f"Recompressing streams..."))
+                if self.q:
+                    self.q.put(('status', f"Recompressing streams..."))
                 pdf.save(object_stream_mode=pikepdf.ObjectStreamMode.generate, recompress_flate=True)
 
-            if self.q: self.q.put(('status', f"Finalizing with cpdf..."))
+            if self.q:
+                self.q.put(('status', f"Finalizing with cpdf..."))
             self._post_process_pdf(temp_pdf_path, strip_metadata)
             shutil.move(str(temp_pdf_path), output_file)
 
-    def _optimize_lossy_stable_mode(self, input_file, output_file, dpi, strip_metadata, remove_interactive, use_bicubic):
-        if self.q: self.q.put(('status', "Stable Mode: Compressing images..."))
+    def _optimize_lossy_gs_preset_fallback(self, input_file, output_file, dpi, strip_metadata, remove_interactive, use_bicubic):
+        if self.q:
+            self.q.put(('status', "Fallback: Using GS preset mode..."))
+
+        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_out:
+            gs_output_path = Path(temp_out.name)
+
         try:
-            with tempfile.TemporaryDirectory() as temp_dir_str:
-                temp_dir = Path(temp_dir_str)
-                temp_pdf_path = temp_dir / "processed.pdf"
+            if dpi <= 72:
+                preset = '/screen'
+            elif dpi <= 150:
+                preset = '/ebook'
+            elif dpi <= 300:
+                preset = '/printer'
+            else:
+                preset = '/prepress'
 
-                with pikepdf.open(input_file) as pdf:
-                    image_streams = [obj for obj in pdf.objects if isinstance(obj, pikepdf.Stream) and obj.get("/Subtype") == "/Image"]
-                    for stream in image_streams:
-                        try:
-                            pdf_image = pikepdf.PdfImage(stream)
-                            pil_image = pdf_image.as_pil_image()
-                            width_px, height_px = pil_image.size
-                            width_pt = stream.get("/Width", width_px)
-                            current_dpi = (width_px / width_pt) * 72 if width_pt > 0 else 72
-                            
-                            if self.downsample_threshold_enabled and current_dpi <= dpi:
-                                continue
+            cmd = [
+                self.gs_path,
+                '-sDEVICE=pdfwrite',
+                '-dCompatibilityLevel=1.4',
+                '-dNOPAUSE', '-dBATCH', '-dQUIET', '-dSAFER',
+                f'-dPDFSETTINGS={preset}',
+                '-dColorImageDownsampleThreshold=1.0',
+                '-dGrayImageDownsampleThreshold=1.0',
+                f'-dColorImageResolution={dpi}',
+                f'-dGrayImageResolution={dpi}',
+                f'-dDownsampleType=/{"Bicubic" if use_bicubic else "Average"}',
+                '-dSubsetFonts=true',
+                '-dCompressFonts=true'
+            ]
 
-                            if current_dpi > dpi:
-                                new_width = int(width_px * dpi / current_dpi)
-                                new_height = int(height_px * dpi / current_dpi)
-                                resample_filter = Image.Resampling.BICUBIC if use_bicubic else Image.Resampling.LANCZOS
-                                pil_image = pil_image.resize((new_width, new_height), resample_filter)
-                            
-                            if self.convert_to_grayscale and pil_image.mode != 'L':
-                                pil_image = pil_image.convert('L')
-                            elif pil_image.mode in ['P', 'PA', 'I', 'F', 'CMYK', 'RGBA']:
-                                pil_image = pil_image.convert('RGB')
-                            
-                            output_buffer = BytesIO()
-                            jpeg_quality = 70 if self.fast_mode else (70 if dpi <= 100 else 85)
-                            pil_image.save(output_buffer, format='JPEG', quality=jpeg_quality, optimize=True)
-                            new_bytes = output_buffer.getvalue()
+            if self.linearize:
+                cmd.append("-dFastWebView=true")
 
-                            if self.jpegoptim_path:
-                                temp_jpg_path = temp_dir / "stable_temp.jpg"
-                                temp_jpg_path.write_bytes(new_bytes)
-                                self._run_command([self.jpegoptim_path, "--strip-all", "-q", str(temp_jpg_path)])
-                                if temp_jpg_path.exists(): new_bytes = temp_jpg_path.read_bytes()
-                            
-                            if len(new_bytes) < len(stream.read_raw_bytes()):
-                                for key in list(stream.keys()): del stream[key]
-                                stream.write(new_bytes)
-                                stream.Type = pikepdf.Name.XObject
-                                stream.Subtype = pikepdf.Name.Image
-                                stream.Filter = pikepdf.Name.DCTDecode
-                                stream.Width, stream.Height = pil_image.size
-                                stream.ColorSpace = pikepdf.Name.DeviceGray if pil_image.mode == 'L' else pikepdf.Name.DeviceRGB
-                                stream.BitsPerComponent = 8
-                        except Exception as e:
-                            logging.error(f"Stable mode failed to process image {stream.objgen}: {e}")
-                            continue
+            if remove_interactive:
+                cmd.extend(["-dShowAnnots=false", "-dShowAcroForm=false"])
 
-                    if remove_interactive:
-                        if '/AcroForm' in pdf.root: del pdf.root['/AcroForm']
-                        for page in pdf.pages:
-                            if '/Annots' in page: del page['/Annots']
+            if self.convert_to_grayscale:
+                cmd.append('-sColorConversionStrategy=Gray')
+            else:
+                cmd.append('-sColorConversionStrategy=LeaveColorUnchanged')
 
-                    pdf.save(temp_pdf_path, object_stream_mode=pikepdf.ObjectStreamMode.generate, recompress_flate=True)
-                
-                self._post_process_pdf(temp_pdf_path, strip_metadata)
-                shutil.move(str(temp_pdf_path), output_file)
+            cmd.extend([f'-sOutputFile={gs_output_path}', str(input_file)])
+
+            if not self._run_command(cmd) or not gs_output_path.exists() or gs_output_path.stat().st_size == 0:
+                logging.error(f"Ghostscript preset-based fallback failed. Command was: {' '.join(cmd)}")
+                raise Exception("Ghostscript preset-based fallback failed.")
+
+            try:
+                if self.q:
+                    self.q.put(('status', "Fallback: Finalizing with Pikepdf..."))
+                with pikepdf.open(gs_output_path, allow_overwriting_input=True) as pdf:
+                    if strip_metadata:
+                        with pdf.open_metadata(set_pikepdf_as_editor=False) as meta:
+                            for key in list(meta.keys()):
+                                del meta[key]
+                    pdf.save(
+                        gs_output_path,
+                        object_stream_mode=pikepdf.ObjectStreamMode.generate,
+                        recompress_flate=True
+                    )
+            except Exception as e:
+                logging.warning(f"Pikepdf finalization in fallback failed: {e}")
+
+            shutil.move(str(gs_output_path), output_file)
+
         except Exception as e:
-            logging.error(f"Stable mode optimization failed entirely: {e}", exc_info=True)
+            logging.error(f"GS preset fallback mode failed entirely: {e}", exc_info=True)
+            if input_file != output_file:
+                shutil.copy2(input_file, output_file)
             raise
+        finally:
+            if gs_output_path.exists():
+                os.remove(gs_output_path)
 
     def optimize_lossy(self, input_file, output_file, dpi, strip_metadata=False, remove_interactive=False, use_bicubic=False):
         try:
-            if self.q: self.q.put(('status', "Attempting high-compression mode..."))
+            if self.q:
+                self.q.put(('status', "Attempting high-compression mode..."))
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_out:
                 gs_output_path = Path(temp_out.name)
-            
+
             try:
                 cmd = [
                     self.gs_path, '-dNOSAFER', f'-sOutputFile={gs_output_path}',
@@ -423,8 +468,9 @@ class PdfOptimizer:
                             for obj in pdf.objects:
                                 if isinstance(obj, pikepdf.Stream) and obj.get("/Subtype") == "/Image":
                                     filt = obj.get("/Filter")
-                                    if isinstance(filt, pikepdf.Array) and len(filt) > 0: filt = filt[0]
-                                    
+                                    if isinstance(filt, pikepdf.Array) and len(filt) > 0:
+                                        filt = filt[0]
+
                                     if filt == pikepdf.Name.DCTDecode:
                                         self._lossless_optimize_jpeg_stream(obj, final_opt_dir)
                                     elif filt == pikepdf.Name.FlateDecode:
@@ -432,35 +478,88 @@ class PdfOptimizer:
                             pdf.save(recompress_flate=True)
                     except Exception as e:
                         logging.warning(f"Post-Ghostscript optimization failed: {e}")
-                
+
                 self._post_process_pdf(gs_output_path, strip_metadata)
                 shutil.move(str(gs_output_path), output_file)
 
             finally:
                 if gs_output_path.exists():
                     os.remove(gs_output_path)
-        
+
         except Exception as e:
-            logging.warning(f"High-compression mode failed: {e}. Switching to stable mode.")
-            if self.q: self.q.put(('status', "High-compression failed, switching to stable mode..."))
-            self._optimize_lossy_stable_mode(input_file, output_file, dpi, strip_metadata, remove_interactive, use_bicubic)
+            logging.warning(f"High-compression mode failed: {e}. Switching to preset fallback mode.")
+            if self.q:
+                self.q.put(('status', "High-compression failed, switching to preset mode..."))
+            self._optimize_lossy_gs_preset_fallback(input_file, output_file, dpi, strip_metadata, remove_interactive, use_bicubic)
 
     def optimize_pdfa(self, input_file, output_file):
-        if self.q: self.q.put(('status', "Converting to PDF/A..."))
-        pdfa_def = resource_path('lib/PDFA_def.ps')
-        if not pdfa_def.exists():
-            raise FileNotFoundError("PDFA_def.ps not found in lib folder.")
-        cmd = [
-            self.gs_path,
-            "-dPDFA=2",
-            "-dBATCH",
-            "-dNOPAUSE",
-            "-sDEVICE=pdfwrite",
-            "-dPDFACompatibilityPolicy=1",
-            "-sColorConversionStrategy=sRGB",
-            f"-sOutputFile={output_file}",
-            str(pdfa_def),
-            str(input_file)
-        ]
-        if not self._run_command(cmd):
-            raise ProcessingError("Ghostscript PDF/A conversion failed.")
+        if self.q:
+            self.q.put(('status', "Converting to PDF/A..."))
+
+        gs_path_obj = Path(self.gs_path)
+        if sys.platform == "win32":
+            srgb_profile = gs_path_obj.parent.parent / "lib" / "srgb.icc"
+        else:
+            srgb_profile = gs_path_obj.parent.parent / "share" / "ghostscript" / "iccprofiles" / "srgb.icc"
+
+        if not srgb_profile.exists():
+             srgb_profile = resource_path('lib/srgb.icc')
+
+        if not srgb_profile.exists():
+            raise FileNotFoundError("The required 'srgb.icc' color profile was not found.")
+
+        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_out:
+            temp_pdf_path = Path(temp_out.name)
+
+        try:
+            cmd = [
+                self.gs_path,
+                '-dPDFA=1',
+                '-dBATCH',
+                '-dNOPAUSE',
+                '-dQUIET',
+                '-dNOSAFER',
+                '-sDEVICE=pdfwrite',
+                '-dPDFACompatibilityPolicy=1',
+                '-sColorConversionStrategy=RGB',
+                f'-sOutputICCProfile={str(srgb_profile)}',
+            ]
+            
+            if self.pdfa_compression:
+                cmd.extend([
+                    f'-dColorImageResolution={self.pdfa_dpi}',
+                    f'-dGrayImageResolution={self.pdfa_dpi}',
+                    f'-dMonoImageResolution={self.pdfa_dpi}',
+                    '-dPDFSETTINGS=/prepress',
+                ])
+                if self.downsample_threshold_enabled:
+                    cmd.extend(['-dColorImageDownsampleThreshold=1.0', '-dGrayImageDownsampleThreshold=1.0', '-dMonoImageDownsampleThreshold=1.0'])
+                jpeg_quality = "70" if self.fast_mode else ("70" if self.pdfa_dpi <= 100 else "85")
+                cmd.extend(['-dColorImageFilter=/DCTEncode', f'-dJPEGQ={jpeg_quality}'])
+                cmd.extend(['-dColorImageDownsampleType=/Bicubic', '-dGrayImageDownsampleType=/Bicubic'])
+
+
+            cmd.extend([
+                f'-sOutputFile={temp_pdf_path}',
+                str(input_file)
+            ])
+
+            result = self._run_command(cmd)
+            if not result or not temp_pdf_path.exists() or temp_pdf_path.stat().st_size == 0:
+                error_details = result.stderr.strip() if result and result.stderr else "Unknown error"
+                logging.error(f"Ghostscript PDF/A command failed: {' '.join(cmd)}")
+                logging.error(f"Ghostscript STDERR: {error_details}")
+                raise ProcessingError(f"Ghostscript PDF/A conversion failed: {error_details}")
+
+            with pikepdf.open(temp_pdf_path, allow_overwriting_input=True) as pdf:
+                with pdf.open_metadata(set_pikepdf_as_editor=False) as meta:
+                    meta['pdf:Producer'] = 'MinimalPDF Optimizer'
+                    meta['xmp:CreatorTool'] = 'MinimalPDF Optimizer'
+                pdf.save(temp_pdf_path, object_stream_mode=pikepdf.ObjectStreamMode.generate, recompress_flate=True)
+
+            self._post_process_pdf(temp_pdf_path, strip_metadata=False)
+            shutil.move(str(temp_pdf_path), output_file)
+
+        finally:
+            if temp_pdf_path.exists():
+                os.remove(temp_pdf_path)

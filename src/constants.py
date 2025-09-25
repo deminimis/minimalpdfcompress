@@ -1,5 +1,14 @@
 # constants.py
-APP_VERSION = "1.9"
+APP_VERSION = "1.9.3"
+
+class ToolNotFound(Exception): pass
+class GhostscriptNotFound(ToolNotFound): pass
+class CpdfNotFound(ToolNotFound): pass
+class PngquantNotFound(ToolNotFound): pass
+class JpegoptimNotFound(ToolNotFound): pass
+class EctNotFound(ToolNotFound): pass
+class OptipngNotFound(ToolNotFound): pass
+class ProcessingError(Exception): pass
 
 SPLIT_SINGLE = "Split to Single Pages"
 SPLIT_EVERY_N = "Split Every N Pages"
