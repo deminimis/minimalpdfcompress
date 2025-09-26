@@ -168,3 +168,4 @@ This code relies on:
 PDF Testing with:
 
 - [Sample-Files](https://sample-files.com/documents/pdf/)
+- Contributions from [cisko99za](https://github.com/cisko99za); [necros2k7](https://github.com/necros2k7)
