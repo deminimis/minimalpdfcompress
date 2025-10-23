@@ -24,6 +24,7 @@ TOOLTIP_TEXT = {
     "compress_fast_mode": "Prioritizes speed over compression ratio. Skips some of the most time-consuming optimization steps.",
     "compress_downsample_threshold": "Prevents upsampling. Only reduces the resolution of images that are larger than the target DPI. This avoids making small images blurry and usually improves compression. It is highly recommended to keep this enabled.",
     "compress_quantize": "Reduces the number of colors in images. A level of 4 reduces each color channel (Red, Green, Blue) to 4 shades, resulting in a 64-color palette (4x4x4). This can significantly reduce file size for complex images like photos or gradients, but may cause color banding. Only available in 'Compression' mode.",
+    "compress_safe_mode": "Enables safer, but potentially less effective, compression. This mode analyzes images and avoids using lossy JPEG compression on simple graphics (like logos or diagrams), which can prevent artifacts or missing lines. Use this if your compressed PDF has visual errors.",
 
     "merge_tree": "List of files to be merged. Drag and drop files here or use the 'Add Files' button.",
     "merge_add_btn": "Add one or more PDF files to the merge list.",
@@ -109,4 +110,3 @@ TOOLTIP_TEXT = {
     "settings_buy_coffee": "If you find this app useful, please consider supporting its development!",
     "settings_check_updates": "Open the application's download page to check for new versions.",
 }
-

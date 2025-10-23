@@ -75,6 +75,8 @@ def run_command(command, check=True):
                 pass
             elif "not permitted in PDF/A-2, overprint mode not set" in stderr_text:
                 pass
+            elif "invalid xref" in stderr_text.lower() or "repaired" in stderr_text.lower():
+                logging.info(f"Ignoring recoverable warning: {stderr_text}")
             elif "warning" not in stderr_text.lower():
                 logging.warning(f"Command stderr: {stderr_text}")
         return result
@@ -103,12 +105,20 @@ def parse_page_ranges(page_string, max_pages):
         else: indices.add(int(part) - 1)
     return sorted(list(indices), reverse=True)
 
-def get_total_size(path, is_folder):
-    if is_folder:
-        return sum(f.stat().st_size for f in Path(path).glob("*.pdf") if f.is_file())
-    else:
-        p = Path(path)
-        return p.stat().st_size if p.is_file() else 0
+def get_total_output_size(output_folder_path, processed_filenames):
+    total_size = 0
+    folder = Path(output_folder_path)
+    if not folder.is_dir():
+        return 0
+    for filename in processed_filenames:
+        output_file = folder / filename
+        if output_file.is_file():
+            try:
+                total_size += output_file.stat().st_size
+            except FileNotFoundError:
+                logging.warning(f"Expected output file not found for size calculation: {output_file}")
+    return total_size
+
 
 def generate_preview(gs_path, cpdf_path, pdf_path, operation, options):
     if not pdf_path or not Path(pdf_path).exists():
@@ -200,6 +210,58 @@ def generate_preview(gs_path, cpdf_path, pdf_path, operation, options):
             except Exception as e:
                 logging.error(f"Failed to apply stamp for preview: {e}", exc_info=True)
 
+        elif operation == 'page_number':
+            try:
+                cmd = [cpdf_path, "-utf8"]
+                
+                preview_text = options.get('text', '').replace('%Page', '1').replace('%EndPage', '1') # Simulate first page of 1
+                cmd.extend(["-add-text", preview_text])
+                cmd.extend(["-font", options.get('font', 'Helvetica')])
+                cmd.extend(["-font-size", str(options.get('font_size', '12'))])
+                cmd.extend(["-color", options.get('color', '0 0 0')])
+
+                pos = options.get('pos', POS_BOTTOM_CENTER)
+                margin = "15"
+                pos_map = {
+                    POS_TOP_LEFT: ["-topleft", margin], POS_TOP_CENTER: ["-top", margin], POS_TOP_RIGHT: ["-topright", margin],
+                    POS_BOTTOM_LEFT: ["-bottomleft", margin], POS_BOTTOM_CENTER: ["-bottom", margin], POS_BOTTOM_RIGHT: ["-bottomright", margin],
+                }
+                pos_cmd = pos_map.get(pos, ["-bottom", margin])
+                cmd.extend(pos_cmd)
+
+                cmd.append(str(first_page_pdf))
+                
+                page_range = options.get('page_range', '').strip()
+                should_apply = True
+                if page_range:
+                     try:
+                         # Simple check: Does the range '1' appear?
+                         if '1' not in page_range.split(','):
+                            ranges = [r.strip() for r in page_range.split(',')]
+                            range_applies = False
+                            for r in ranges:
+                                if '-' in r:
+                                    start, end = r.split('-', 1)
+                                    start_val = 1 if start == '' else int(start)
+                                    if start_val == 1:
+                                        range_applies = True
+                                        break
+                            if not range_applies:
+                                should_apply = False
+                     except:
+                          logging.warning("Could not parse page range for preview, applying anyway.")
+                
+                if should_apply:
+                    cmd.extend(["-o", str(modified_pdf)])
+                    run_command(cmd)
+                else:
+                    logging.info("Page range doesn't include page 1, skipping preview modification.")
+
+
+            except Exception as e:
+                logging.error(f"Failed to apply page number/header/footer for preview: {e}", exc_info=True)
+
+
         if not modified_pdf.exists():
             shutil.copy(first_page_pdf, modified_pdf)
 
@@ -218,18 +280,20 @@ def generate_preview(gs_path, cpdf_path, pdf_path, operation, options):
             image_data = f.read()
         return Image.open(BytesIO(image_data))
 
-def run_compress_task(params, is_folder, q):
+
+def run_compress_task(params, mode, q):
     try:
         optimizer = PdfOptimizer(
             gs_path=params['gs_path'], cpdf_path=params['cpdf_path'],
             pngquant_path=params['pngquant_path'],
             jpegoptim_path=params['jpegoptim_path'],
             ect_path=params['ect_path'],
-            q=q if not is_folder else None,
+            q=q,
             darken_text=params['darken_text'],
             remove_open_action=params.get('remove_open_action'),
             fast_web_view=params.get('fast_web_view'),
             fast_mode=params.get('fast_mode'),
+            safe_mode=params.get('safe_mode'),
             convert_to_grayscale=params.get('convert_to_grayscale', False),
             convert_to_cmyk=params.get('convert_to_cmyk', False),
             downsample_threshold_enabled=params.get('downsample_threshold_enabled', False),
@@ -239,29 +303,35 @@ def run_compress_task(params, is_folder, q):
             pdfa_dpi=params.get('pdfa_dpi', 300)
         )
 
-        input_path = Path(params['input_path'])
         output_path = Path(params['output_path'])
-        total_in_size = get_total_size(params['input_path'], is_folder)
+        total_in_size = 0
         files_skipped = 0
+        processed_filenames = []
 
         def process_a_file(input_file, output_file):
             nonlocal files_skipped
-            mode = params.get('mode', 'Lossy')
+            compression_mode = params.get('mode', 'Lossy')
             only_if_smaller = params.get('only_if_smaller', False)
-            original_size = input_file.stat().st_size
+            original_size = 0
+            try:
+                original_size = input_file.stat().st_size
+            except FileNotFoundError:
+                 logging.error(f"Input file not found: {input_file}")
+                 raise ProcessingError(f"Input file not found: {input_file.name}")
+
 
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_out:
                 temp_output_path = Path(temp_out.name)
 
             try:
-                if mode == 'Lossless':
+                if compression_mode == 'Lossless':
                     if params.get('true_lossless', False):
                         optimizer.optimize_true_lossless(input_file, temp_output_path, strip_metadata=params['strip_metadata'])
                     else:
                         optimizer.optimize_lossless(input_file, temp_output_path, strip_metadata=params['strip_metadata'])
-                elif mode == 'PDF/A':
+                elif compression_mode == 'PDF/A':
                     optimizer.optimize_pdfa(input_file, temp_output_path)
-                elif mode == 'Remove Images':
+                elif compression_mode == 'Remove Images':
                     optimizer.optimize_text_only(input_file, temp_output_path, strip_metadata=params['strip_metadata'])
                 else:
                     optimizer.optimize_lossy(
@@ -274,56 +344,96 @@ def run_compress_task(params, is_folder, q):
                 if not temp_output_path.exists() or temp_output_path.stat().st_size == 0:
                     logging.warning(f"Processing failed for {input_file.name}, temp file is empty. Copying original.")
                     shutil.copy2(input_file, output_file)
-                    return
-
-                if mode == 'PDF/A':
-                    shutil.move(str(temp_output_path), output_file)
-                    return
+                    processed_filenames.append(output_file.name)
+                    return original_size
 
                 new_size = temp_output_path.stat().st_size
+
+                if compression_mode == 'PDF/A':
+                    shutil.move(str(temp_output_path), output_file)
+                    processed_filenames.append(output_file.name)
+                    return new_size
+
                 if new_size < original_size:
                     shutil.move(str(temp_output_path), output_file)
+                    processed_filenames.append(output_file.name)
+                    return new_size
                 else:
                     if only_if_smaller:
                         files_skipped += 1
                         logging.info(f"Skipping save for {input_file.name}, new size {new_size} >= original size {original_size}")
+                        return 0 # Indicate no output size contribution
                     else:
                         shutil.copy2(input_file, output_file)
+                        processed_filenames.append(output_file.name)
                         logging.info(f"Saving original for {input_file.name}, new size {new_size} >= original size {original_size}")
+                        return original_size
 
+            except Exception as proc_err:
+                 logging.error(f"Error processing {input_file.name}: {proc_err}", exc_info=True)
+                 try:
+                     if not output_file.exists():
+                          shutil.copy2(input_file, output_file)
+                          processed_filenames.append(output_file.name)
+                          logging.info(f"Copied original {input_file.name} due to processing error.")
+                          return original_size # Count original size if copied
+                 except Exception as copy_err:
+                      logging.error(f"Could not copy original {input_file.name} after error: {copy_err}")
+                 raise proc_err
             finally:
                 if temp_output_path.exists():
                     os.remove(temp_output_path)
+            return 0 # Return 0 size contribution if error wasn't handled by copying original
 
-        if is_folder:
-            output_path.mkdir(parents=True, exist_ok=True)
-            pdf_files = sorted(list(input_path.glob("*.pdf")))
-            total_files = len(pdf_files)
-            if total_files == 0: raise ProcessingError(f"No PDF files found in '{input_path}'")
-            for i, pdf_file in enumerate(pdf_files):
-                q.put(('status', f"Processing {pdf_file.name} ({i+1}/{total_files})..."))
-                process_a_file(pdf_file, output_path / pdf_file.name)
+        pdf_files_paths = [Path(f) for f in params['input_files']]
+        total_in_size = sum(f.stat().st_size for f in pdf_files_paths if f.is_file())
+        output_path.mkdir(parents=True, exist_ok=True)
+        total_files = len(pdf_files_paths)
+        if total_files == 0: raise ProcessingError(f"No PDF files found in list.")
+
+        errors_occurred = 0
+        total_out_size = 0
+        for i, pdf_file in enumerate(pdf_files_paths):
+            output_file_path = output_path / pdf_file.name
+            q.put(('status', f"Processing {pdf_file.name} ({i+1}/{total_files})..."))
+            try:
+                size = process_a_file(pdf_file, output_file_path)
+                total_out_size += size
+            except Exception:
+                errors_occurred += 1
+                q.put(('status', f"Error processing {pdf_file.name}!"))
+            finally:
                 q.put(('overall', ((i + 1) / total_files) * 100))
-        else:
-            q.put(('status', f"Processing {input_path.name}..."))
-            process_a_file(input_path, output_path)
 
-        total_out_size = get_total_size(output_path, is_folder)
         final_message = "Processing complete."
+        if errors_occurred > 0:
+            final_message = f"Processing finished with {errors_occurred} error(s)."
 
-        if total_in_size > 0 and total_out_size > 0:
+
+        if total_in_size > 0:
             saved_bytes = total_in_size - total_out_size
+            percent_saved = (saved_bytes / total_in_size) * 100
+            
+            if abs(saved_bytes) > 1024*1024: saved_str = f"{saved_bytes / (1024*1024):.2f} MB"
+            elif abs(saved_bytes) > 1024: saved_str = f"{saved_bytes / 1024:.2f} KB"
+            else: saved_str = f"{saved_bytes} bytes"
+
             if saved_bytes > 0:
-                percent_saved = (saved_bytes / total_in_size) * 100
-                if abs(saved_bytes) > 1024*1024: saved_str = f"{saved_bytes / (1024*1024):.2f} MB"
-                elif abs(saved_bytes) > 1024: saved_str = f"{saved_bytes / 1024:.2f} KB"
-                else: saved_str = f"{saved_bytes} bytes"
                 final_message = f"Complete. Saved {saved_str} ({percent_saved:.1f}%)."
+            elif saved_bytes < 0:
+                final_message = f"Complete. Size increased by {saved_str.lstrip('-')} ({-percent_saved:.1f}%)."
             else:
-                final_message = "Complete. File size did not decrease."
+                 final_message = "Complete. No change in size."
+
+            if errors_occurred > 0:
+                 final_message += f" ({errors_occurred} error(s))"
+
+
+        elif errors_occurred == 0:
+            final_message = "Processing complete. Size comparison not available."
 
         if files_skipped > 0:
-            final_message += f" ({files_skipped} file(s) not saved)."
+            final_message += f" ({files_skipped} file(s) not saved as output was larger)."
 
         q.put(('complete', final_message))
 
@@ -331,6 +441,7 @@ def run_compress_task(params, is_folder, q):
         logging.error(f"Task failed: {e}"); q.put(('complete', f"Error: {e}"))
     except Exception as e:
         logging.error(f"An unexpected error occurred: {e}", exc_info=True); q.put(('complete', f"An unexpected error occurred: {e}"))
+
 
 def run_merge_task(file_list, output_path, q):
     try:
@@ -383,7 +494,12 @@ def run_delete_pages_task(pdf_in, pdf_out, page_range, q):
             indices = parse_page_ranges(page_range, len(pdf.pages))
             if not indices: raise ProcessingError("No valid pages specified for deletion.")
             q.put(('status', f"Deleting {len(indices)} page(s)..."))
-            for i in indices: del pdf.pages[i]
+            for i in sorted(indices, reverse=True):
+                 if 0 <= i < len(pdf.pages):
+                     del pdf.pages[i]
+                 else:
+                     logging.warning(f"Page index {i+1} out of range, skipping deletion.")
+
             pdf.save(pdf_out); q.put(('progress', 100)); q.put(('overall', 100))
         q.put(('complete', "Page deletion completed."))
     except Exception as e: logging.error(f"Delete pages task failed: {e}"); q.put(('complete', f"Error: {e}"))
@@ -414,10 +530,13 @@ def run_stamp_task(pdf_in, pdf_out, stamp_opts, cpdf_path, q, mode, mode_opts):
             pos_cmd = pos_map.get(pos, ["-center"])
 
             if mode == STAMP_IMAGE:
+                image_file = Path(mode_opts['image_path'])
+                if not image_file.exists(): raise ProcessingError(f"Stamp image not found: {image_file}")
+
                 stamp_to_apply_path = temp_dir / "image_stamp.pdf"
                 scale = mode_opts.get('image_scale', 1.0)
 
-                with Image.open(mode_opts['image_path']) as img:
+                with Image.open(image_file) as img:
                     if scale != 1.0:
                         try:
                             w = int(img.width * scale)
@@ -431,6 +550,7 @@ def run_stamp_task(pdf_in, pdf_out, stamp_opts, cpdf_path, q, mode, mode_opts):
                     if stamp_opts['opacity'] < 1.0:
                         if img.mode != 'RGBA': img = img.convert('RGBA')
                         alpha = img.split()[3]; alpha = alpha.point(lambda p: p * stamp_opts['opacity']); img.putalpha(alpha)
+
                     img.save(stamp_to_apply_path, "PDF", resolution=100.0)
 
                 cmd = [cpdf_path, pdf_in, "-stamp-on" if stamp_opts['on_top'] else "-stamp-under", str(stamp_to_apply_path)]
@@ -440,10 +560,18 @@ def run_stamp_task(pdf_in, pdf_out, stamp_opts, cpdf_path, q, mode, mode_opts):
 
             else:
                 final_text = mode_opts['text'].strip()
+                if not final_text and not mode_opts.get('bates_start'): raise ProcessingError("Stamp text cannot be empty.")
+
                 cmd = [cpdf_path, pdf_in]
                 text_parts = ["-add-text", final_text, "-font", mode_opts['font'], "-font-size", str(mode_opts['size']), "-color", mode_opts['color'], "-opacity", str(stamp_opts['opacity'])]
                 if mode_opts.get('bates_start'):
-                    text_parts.extend(["-bates", mode_opts['bates_start']])
+                    try:
+                        bates_num = int(mode_opts['bates_start'])
+                        if bates_num < 0: raise ValueError
+                        text_parts.extend(["-bates", str(bates_num)])
+                    except ValueError:
+                         raise ProcessingError("Invalid Bates start number. Must be a non-negative integer.")
+
                 cmd.extend(text_parts)
                 if not stamp_opts['on_top']: cmd.append("-underneath")
                 cmd.extend(pos_cmd)
@@ -518,6 +646,8 @@ def run_metadata_task(task_type, pdf_path, cpdf_path, metadata_dict=None):
                 cmd.extend(["-o", temp_path])
                 run_command(cmd)
                 shutil.move(temp_path, pdf_path)
+            else:
+                 logging.info("No metadata changes specified, file not modified.")
         finally:
             if os.path.exists(temp_path):
                 os.remove(temp_path)
@@ -526,7 +656,11 @@ def run_pdf_to_image_task(gs_path, pdf_in, out_dir, options, q):
     try:
         q.put(('status', f"Converting PDF to {options.get('format')}..."))
         fmt, dpi = options.get('format', 'png'), options.get('dpi', '300')
-        out_path = Path(out_dir) / f"{Path(pdf_in).stem}_%d.{fmt}"
+
+        output_dir_path = Path(out_dir)
+        output_dir_path.mkdir(parents=True, exist_ok=True)
+
+        out_path = output_dir_path / f"{Path(pdf_in).stem}_%d.{fmt}"
         device_map = {'png': 'png16m', 'jpeg': 'jpeg', 'tiff': 'tiffg4'}
         cmd = [gs_path, f"-sDEVICE={device_map.get(fmt, 'png16m')}", f"-r{dpi}", "-dNOPAUSE", "-dBATCH", f"-sOutputFile={str(out_path)}", pdf_in]
         run_command(cmd)
@@ -536,7 +670,7 @@ def run_pdf_to_image_task(gs_path, pdf_in, out_dir, options, q):
 def run_repair_task(pdf_in, pdf_out, q):
     try:
         q.put(('status', "Attempting to repair PDF..."))
-        with pikepdf.open(pdf_in, allow_overwriting_input=False) as pdf:
+        with pikepdf.open(pdf_in, allow_overwriting_input=False, recover=True) as pdf:
             pdf.save(pdf_out)
         q.put(('progress', 100))
         q.put(('overall', 100))
@@ -606,7 +740,7 @@ def run_password_task(params, q):
                     user=user_password,
                     owner=owner_password,
                     allow=permissions,
-                    R=6
+                    R=6 # Use AES-256
                 ))
             q.put(('complete', "Encryption complete."))
 
@@ -615,20 +749,23 @@ def run_password_task(params, q):
             password_provided = params.get('user_password')
 
             try:
+                # Try opening without password (might only have owner password)
                 with pikepdf.open(input_path, allow_overwriting_input=True) as pdf:
                     if pdf.is_encrypted:
-                        pdf.save(output_path)
-                        q.put(('complete', "Decryption complete (owner password removed)."))
+                        pdf.save(output_path) # Save removes encryption
+                        q.put(('complete', "Decryption complete (owner password removed or none required)."))
                     else:
                         shutil.copy2(input_path, output_path)
                         q.put(('complete', "Info: This PDF is not encrypted."))
 
             except pikepdf.PasswordError:
+                # If password error, it requires a user password
                 if not password_provided:
                     raise ProcessingError("This PDF requires a user password to open. Please provide it.")
                 try:
+                    # Retry opening with the provided password
                     with pikepdf.open(input_path, password=password_provided, allow_overwriting_input=True) as pdf:
-                        pdf.save(output_path)
+                        pdf.save(output_path) # Save removes encryption
                     q.put(('complete', "Decryption complete."))
                 except pikepdf.PasswordError:
                     raise ProcessingError("Wrong password provided.")

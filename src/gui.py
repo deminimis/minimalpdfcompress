@@ -33,7 +33,7 @@ if IS_WINDOWS:
         logging.warning("windnd library not found. Drag and drop will be disabled.")
         IS_WINDOWS = False
 
-COFFEE_ICON_B64 = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAE6ElEQVRogdWZX2hcRRTGf67LstQYQgghlBBCjHkIWm0oQfNQi4oU8UGLiNQipcQHixQtIr74ICKCoYhIn6QPElsJUYtIUYs+VFGordSoaatpTaRqtCk2prba/On68J2be/fm7mZ2906jH1zu3NmZb87MnHPmnFnwh3qgxyM/ABmP3M8B5zzye0UDMInfBQKPA9wLzAJXPPEvwtcEbvfIXQRfgzQCLUCdJ/5FpD2BXntPA1ngvpT5vWO3vTcDBWCEq6RKaaAZGLNyHXAeTaJ/xSSqEOuBBaDNvp9HE5gCmlZKqEpwExJ40L7rgF+sbnepTv8lZIAjSOD7ra7fvueAzhWSqyKsQ8L+jlxpFjiNJjHgY8BrU+b7FYURdyN7+Bip0l3IyF9LeTwvaAL+RisPsAbtQAFFqP8LfABcRiqUs3IBD3bg65A5DswA8yiom7b62bQHyqbA0QR0If//JfAj8CfwRWycS8hGQHbxVwpjV4Um5B6HCf188NxjbXYRxkGrkGf6KNJ/DtnIILCFq2QbLcAeQn1eAEaBN4BngYcjgmwnVM8ea7/FvruBITSBBfvtAnKz3ibSSbjah9EOtJRpn4+Ut6MYKZfQrg3YAZww7hN4Cjv22gDPVNF3mFC1SiGDwo0C8EIl5K5eKHB/uQr6gIz3K+CggxzBDrVXwO+MM4SGegypRatDvzzlJ9yFdnUswn8AqdYGlCAlqd4irnEQAuQWAd4EtiLPAnKZR4GTwDhyk9PIRc5bmywyzkZgNXADMuQewkWYBt5GtnWF4kmfBR4H3nWUNREXUFwPinUeRS4w6kkqeeaQB3sdeBAtSGvk9xHk3Q4Y/xwKFJfAdQembJDrEn6rRzbShjxTI3A94SE5awvwB/AbMAGcQgdbFB1oQT4F7ojUP4GCwH3AI47yLsEoWomGagkc0ItWfzhW32D1o0mdXD3KKWvbVa10Duiw98+x+rKXY64T+NrevWVb1Ya19h6J1ffZ+2Qt5HeibdxfC8kyOGxjxHf5E6vfXAt5HrnSi/i5bVuNbGw8Vv80YYhR9jxwwaCRba2VKAE7jXuXfdcBr1jdRVJS3fWEJ3GaiVA08X8RxURT9n0e5depIdDTh1Lk3EbyQbcXt3ClIgTGfIZ0zoQmdAWzgAQeQHlDcwrcS9ABPImMuQC8Q22qlAHeN65JtBOpC54BNgGfURzzBOVXqW4S0fg/+lxGrrqvdFd3tCPBA/LTwEtGvgZtfQFtfSWudRVhgjQJ3ApsRBMKOAvAW9SQYrYSppDH0H9e8ZXuBn4inNymhDZRZNCdaRD7jxtHFDnkpoP84wjF6akzAp+/h/JXL83AexTv0gAKkfuA26w8QHHSsp/yuW8D4e7vrGYC31vnRsf2G4FDLNXp+HPI2rpgg/UZKteo1OoeRzFJP/Cyw2Af2tOODp6bCT3KWeBbdNE74cAVyPWYlRPD6OXQTeguh/AbRsfRB3xuY49Rw3mzjlBvF9DN2jbK3wdVi06k68EfJAVkA8uexMullHl0A/FUjOwHdA86YuUJlNDPUPoCN0+Y2LejXb4FBWpR7m+Q0e/D4Z9+15w4i4zqAaTjnSS7zFngH5TvBrcSOeT78yTb3LwJfRCd7kcdZQLcJxBHM7oW6QZuRCvaglxjvQkcTeovoauTc2inJpCn+w5lezNVysG/s35Qp+p2ynIAAAAASUVORK5CYII="
+COFFEE_ICON_B64 = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAE6ElEQVRogdWZX2hcRRTGf67LstQYQgghlBBCjHkIWm0oQfNQi4oU8UGLiNQipcQHixQtIr74ICKCoYhIn6QPElsJUYtIUYs+VFGordSoaatpTaRqtCk2prba/On68J2be/fm7mZ2906jH1zu3NmZb87MnHPmnFnwh3qgxyM/ABmP3M8B5zzye0UDMInfBQKPA9wLzAJXPPEvwtcEbvfIXQRfgzQCLUCdJ/5FpD2BXntPA1ngvpT5vWO3vTcDBWCEq6RKaaAZGLNyHXAeTaJ/xSSqEOuBBaDNvp9HE5gCmlZKqEpwExJ40L7rgF+sbnepTv8lZIAjSOD7ra7fvueAzhWSqyKsQ8L+jlxpFjiNJjHgY8BrU+b7FYURdyN7+Bip0l3IyF9LeTwvaAL+RisPsAbtQAFFqP8LfABcRiqUs3IBD3bg65A5DswA8yiom7b62bQHyqbA0QR0If//JfAj8CfwRWycS8hGQHbxVwpjV4Um5B6HCf188NxjbXYRxkGrkGf6KNJ/DtnIILCFq2QbLcAeQn1eAEaBN4BngYcjgmwnVM8ea7/FvruBITSBBfvtAnKz3ibSSbjah9EOtJRpn4+Ut6MYKZfQrg3YAZww7hN4Cjv22gDPVNF3mFC1SiGDwo0C8EIl5K5eKHB/uQr6gIz3K+CggxzBDrVXwO+MM4SGegypRatDvzzlJ9yFdnUswn8AqdYGlCAlqd4irnEQAuQWAd4EtiLPAnKZR4GTwDhyk9PIRc5bmywyzkZgNXADMuQewkWYBt5GtnWF4kmfBR4H3nWUNREXUFwPinUeRS4w6kkqeeaQB3sdeBAtSGvk9xHk3Q4Y/xwKFJfAdQembJDrEn6rRzbShjxTI3A94SE5awvwB/AbMAGcQgdbFB1oQT4F7ojUP4GCwH3AI47yLsEoWomGagkc0ItWfzhW32D1o0mdXD3KKWvbVa10Duiw98+x+rKXY64T+NrevWVb1Ya19h6J1ffZ+2Qt5HeibdxfC8kyOGxjxHf5E6vfXAt5HrnSi/i5bVuNbGw8Vv80YYhR9jxwwaCRba2VKAE7jXuXfdcBr1jdRVJS3fWEJ3GaiVA08X8RxURT9n0e5depIdDTh1Lk3EbyQbcXt3ClIgTGfIZ0zoQmdAWzgAQeQHlDcwrcS9ABPImMuQC8Q22qlAHeN65JtBOpC54BNgGfURzzBOVXqW4S0fg/+lxGrrqvdFd3tCPBA/LTwEtGvgZtfQFtfSWudRVhgjQJ3ApsRBMKOAvAW9SQYrYSppDH0H9e8ZXuBn4inNymhZRZNCdaRD7jxtHFDnkpoP84wjF6akzAp+/h/JXL83AexTv0gAKkfuA26w8QHHSsp/yuW8D4e7vrGYC31vnRsf2G4FDLNXp+HPI2rpgg/UZKteo1OoeRzFJP/Cyw2Af2tOODp6bCT3KWeBbdNE74cAVyPWYlRPD6OXQTeguh/AbRsfRB3xuY49Rw3mzjlBvF9DN2jbK3wdVi06k68EfJAVkA8uexMullHl0A/FUjOwHdA86YuUJlNDPUPoCN0+Y2LejXb4FBWpR7m+Q0e/D4Z9+15w4i4zqAaTjnSS7zFngH5TvBrcSOeT78yTb3LwJfRCd7kcdZQLcJxBHM7oW6QZuRCvaglxjvQkcTeovoauTc2inJpCn+w5lezNVysG/s35Qp+p2ynIAAAAASUVORK5CYII="
 
 @dataclass
 class GeneralSettings:
@@ -47,17 +47,18 @@ class OutputSettings:
     default_folder: tk.StringVar = field(default_factory=tk.StringVar)
     prefix: tk.StringVar = field(default_factory=tk.StringVar)
     suffix: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="_compressed"))
-    add_date: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    add_time: tk.BooleanVar = field(default_factory=tk.BooleanVar)
+    add_date: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
+    add_time: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
 
 @dataclass
 class CompressSettings:
-    input_path: tk.StringVar = field(default_factory=tk.StringVar)
+    files: list = field(default_factory=list)
     output_path: tk.StringVar = field(default_factory=tk.StringVar)
     compress_mode: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="Compression"))
     dpi: tk.IntVar = field(default_factory=lambda: tk.IntVar(value=72))
     pdfa_dpi: tk.IntVar = field(default_factory=lambda: tk.IntVar(value=300))
     use_bicubic: tk.BooleanVar = field(default_factory=tk.BooleanVar)
+    safe_mode: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
     downsample_threshold_enabled: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=True))
     quantize_colors: tk.BooleanVar = field(default_factory=tk.BooleanVar)
     quantize_level: tk.IntVar = field(default_factory=lambda: tk.IntVar(value=4))
@@ -177,7 +178,6 @@ class GhostscriptGUI:
         self.root.title(f"MinimalPDF Compress v{APP_VERSION}")
         self.root.minsize(860, 640)
         self.settings_file = Path("settings.json")
-        self.is_folder = tk.BooleanVar(value=False)
         self.status = tk.StringVar(value="Ready")
         self.compress_progress_status = tk.StringVar()
         self.progress_var = tk.DoubleVar()
@@ -214,6 +214,7 @@ class GhostscriptGUI:
         self.coffee_icon_light = None
         self.coffee_icon_dark = None
         self.merge_tree = None
+        self.compress_tree = None
         self._preview_job = None
 
         self.vcmd_int = (self.root.register(self._validate_integer), '%P')
@@ -324,7 +325,7 @@ class GhostscriptGUI:
         if isinstance(obj, (tk.Variable)): return obj.get()
         if isinstance(obj, list): return [self._get_tk_vars_as_dict(i) for i in obj]
         if hasattr(obj, '__dict__'):
-            return {key: self._get_tk_vars_as_dict(value) for key, value in obj.__dict__ .items() if not key.startswith('_')}
+            return {key: self._get_tk_vars_as_dict(value) for key, value in obj.__dict__.items() if not key.startswith('_')}
         return obj
 
     def save_settings(self):
@@ -376,7 +377,9 @@ class GhostscriptGUI:
             self._set_tk_vars_from_dict(self.repair_settings, s.get('repair', {}))
             self._set_tk_vars_from_dict(self.toc_settings, s.get('toc', {}))
             self._set_tk_vars_from_dict(self.password_settings, s.get('password', {}))
+
             self.update_merge_view()
+            self.update_compress_view()
         except Exception as e: logging.warning(f"Failed to load settings: {e}")
 
     def configure_logging(self):
@@ -413,6 +416,9 @@ class GhostscriptGUI:
             elif selected_tab_text == "Stamp/Watermark":
                 if self.stamp_settings.input_path.get():
                     self._trigger_stamp_preview()
+            elif selected_tab_text == "Header/Footer":
+                if self.page_number_settings.input_path.get():
+                    self._trigger_page_number_preview()
         except tk.TclError:
             pass
         except Exception as e:
@@ -470,9 +476,7 @@ class GhostscriptGUI:
         ttk.Label(status_bar, textvariable=self.status, anchor="w", style="Card.TLabel").pack(fill="x")
 
     def setup_traces(self):
-        s = self.stamp_settings
-        self.compress_settings.input_path.trace_add("write", self.update_is_folder)
-        self.compress_settings.input_path.trace_add("write", lambda *a: self._update_output_path(self.compress_settings.input_path, self.compress_settings.output_path, is_folder=self.is_folder.get()))
+        s_stamp = self.stamp_settings
         self.compress_settings.compress_mode.trace_add("write", self._update_compress_options)
         self.split_settings.input_path.trace_add("write", lambda *a: self._update_output_path(self.split_settings.input_path, self.split_settings.output_dir, is_dir=True))
 
@@ -485,12 +489,16 @@ class GhostscriptGUI:
 
         self.password_settings.input_path.trace_add("write", lambda *a: self._update_output_path(self.password_settings.input_path, self.password_settings.output_path))
 
-        stamp_vars_to_trace = [s.input_path, s.output_path, s.mode, s.image_path, s.image_scale, s.text, s.font, s.font_size, s.font_color, s.pos, s.opacity, s.on_top, s.bates_enabled, s.bates_start]
+        stamp_vars_to_trace = [s_stamp.input_path, s_stamp.output_path, s_stamp.mode, s_stamp.image_path, s_stamp.image_scale, s_stamp.text, s_stamp.font, s_stamp.font_size, s_stamp.font_color, s_stamp.pos, s_stamp.opacity, s_stamp.on_top, s_stamp.bates_enabled, s_stamp.bates_start]
         for var in stamp_vars_to_trace:
             var.trace_add("write", self._trigger_stamp_preview)
-        s.input_path.trace_add("write", lambda *a: self._update_output_path(s.input_path, s.output_path))
+        s_stamp.input_path.trace_add("write", lambda *a: self._update_output_path(s_stamp.input_path, s_stamp.output_path))
 
-        self.page_number_settings.input_path.trace_add("write", lambda *a: self._update_output_path(self.page_number_settings.input_path, self.page_number_settings.output_path))
+        s_hf = self.page_number_settings
+        hf_vars_to_trace = [s_hf.input_path, s_hf.mode, s_hf.custom_text, s_hf.page_range, s_hf.pos, s_hf.font, s_hf.font_size, s_hf.font_color]
+        for var in hf_vars_to_trace:
+            var.trace_add("write", self._trigger_page_number_preview)
+        s_hf.input_path.trace_add("write", lambda *a: self._update_output_path(s_hf.input_path, s_hf.output_path))
 
         self.toc_settings.input_path.trace_add("write", lambda *a: self._update_output_path(self.toc_settings.input_path, self.toc_settings.output_path))
 
@@ -510,8 +518,8 @@ class GhostscriptGUI:
             var.trace_add("write", self._re_evaluate_all_paths)
 
     def _re_evaluate_all_paths(self, *args):
+        self._update_compress_output_path()
         path_vars = [
-            (self.compress_settings.input_path, self.compress_settings.output_path, {'is_folder': self.is_folder.get()}),
             (self.split_settings.input_path, self.split_settings.output_dir, {'is_dir': True}),
             (self.rotate_settings.input_path, self.rotate_settings.output_path, {}),
             (self.delete_settings.input_path, self.delete_settings.output_path, {}),
@@ -541,12 +549,30 @@ class GhostscriptGUI:
     def browse_dir(self, var): var.set(filedialog.askdirectory(mustexist=True))
     def browse_image(self, var): var.set(filedialog.askopenfilename(filetypes=[("Image files", "*.png *.jpg *.jpeg")]))
 
+    def browse_files_compress(self, files=None):
+        if not files:
+            files = filedialog.askopenfilenames(filetypes=[("PDF files", "*.pdf")])
+        if files:
+            self.compress_settings.files.extend(list(files))
+            self.update_compress_view()
+            self._update_compress_output_path()
+
+    def browse_folder_compress(self, folder=None):
+        if not folder:
+            folder = filedialog.askdirectory(mustexist=True)
+        if folder:
+            folder_path = Path(folder)
+            pdf_files = sorted(list(folder_path.glob("*.pdf")))
+            if pdf_files:
+                self.compress_settings.files.extend([str(f) for f in pdf_files])
+                self.update_compress_view()
+                self._update_compress_output_path()
+            else:
+                messagebox.showinfo("No Files", "No PDF files were found in that folder.", parent=self.root)
+
     def browse_output(self):
         var = self.compress_settings.output_path
-        if self.is_folder.get():
-            var.set(filedialog.askdirectory())
-        else:
-            var.set(filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF files", "*.pdf")]))
+        var.set(filedialog.askdirectory())
 
     def _create_drop_zone(self, parent, input_var, is_folder=False):
         cmd = (lambda: self.browse_dir(input_var)) if is_folder else (lambda: self.browse_file(input_var))
@@ -578,13 +604,51 @@ class GhostscriptGUI:
         io_frame = ttk.Frame(parent, style="Card.TFrame", padding=20)
         io_frame.grid(row=0, column=0, sticky="nsew", pady=(0, 10))
         io_frame.columnconfigure(0, weight=1)
-        self.drop_zones['compress'] = DropZone(io_frame, height=150, browse_file_cmd=lambda: self.browse_file(cs.input_path), browse_folder_cmd=lambda: self.browse_dir(cs.input_path), palette=self.palette)
+        io_frame.rowconfigure(1, weight=1)
+
+        self.drop_zones['compress'] = DropZone(io_frame, height=150, browse_file_cmd=self.browse_files_compress, browse_folder_cmd=self.browse_folder_compress, palette=self.palette)
         self.drop_zones['compress'].grid(row=0, column=0, sticky="nsew", pady=(0,15))
-        Tooltip(self.drop_zones['compress'], TOOLTIP_TEXT.get("drop_zone"))
-        FileSelector(io_frame, cs.input_path, cs.output_path, lambda: self.browse_output())
+        Tooltip(self.drop_zones['compress'], TOOLTIP_TEXT.get("drop_zone_compress"))
+
+        self.compress_file_list_frame = ttk.Frame(io_frame, style="Card.TFrame", padding=10)
+        self.compress_file_list_frame.grid(row=1, column=0, sticky="nsew", pady=(0,10))
+        self.compress_file_list_frame.columnconfigure(0, weight=1)
+        self.compress_file_list_frame.rowconfigure(0, weight=1)
+
+        tree_frame = ttk.Frame(self.compress_file_list_frame)
+        tree_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
+        tree_frame.rowconfigure(0, weight=1)
+        tree_frame.columnconfigure(0, weight=1)
+
+        self.compress_tree = ttk.Treeview(tree_frame, columns=('name', 'pages', 'size'), show='headings', height=5)
+        self.compress_tree.grid(row=0, column=0, sticky='nsew')
+        Tooltip(self.compress_tree, TOOLTIP_TEXT.get("compress_tree"))
+        vsb = ttk.Scrollbar(tree_frame, orient="vertical", command=self.compress_tree.yview)
+        vsb.grid(row=0, column=1, sticky='ns')
+        self.compress_tree.configure(yscrollcommand=vsb.set)
+
+        self.compress_tree.heading('name', text='File Name')
+        self.compress_tree.heading('pages', text='Pages')
+        self.compress_tree.heading('size', text='Size')
+        self.compress_tree.column('name', stretch=True, minwidth=250)
+        self.compress_tree.column('pages', width=60, anchor='center', stretch=False)
+        self.compress_tree.column('size', width=100, anchor='e', stretch=False)
+
+        btn_frame = ttk.Frame(self.compress_file_list_frame, style="Card.TFrame")
+        btn_frame.grid(row=0, column=1, sticky="ns")
+        btn1 = ttk.Button(btn_frame, text="Add Files", style="Outline.TButton", command=lambda: self.browse_files_compress()); btn1.pack(fill="x", pady=2); Tooltip(btn1, TOOLTIP_TEXT.get("compress_add_btn"))
+        btn2 = ttk.Button(btn_frame, text="Remove", style="Outline.TButton", command=self.remove_compress_file); btn2.pack(fill="x", pady=2); Tooltip(btn2, TOOLTIP_TEXT.get("compress_remove_btn"))
+        btn3 = ttk.Button(btn_frame, text="Clear All", style="Outline.TButton", command=self.clear_compress_list); btn3.pack(fill="x", pady=2)
+
+        output_frame = ttk.Frame(io_frame, style="Card.TFrame")
+        output_frame.grid(row=2, column=0, sticky="nsew", pady=(10, 5))
+        output_frame.columnconfigure(1, weight=1)
+        ttk.Label(output_frame, text="Output Folder", style="Card.TLabel").grid(row=0, column=0, sticky="e", padx=(0, 10))
+        out_entry = ttk.Entry(output_frame, textvariable=cs.output_path); out_entry.grid(row=0, column=1, sticky="we"); Tooltip(out_entry, "Destination folder for the processed file(s).")
+        browse_btn = ttk.Button(output_frame, text="...", command=self.browse_output, width=4); browse_btn.grid(row=0, column=2, sticky="e", padx=(5,0)); Tooltip(browse_btn, "Browse for output folder.")
 
         control_panel = ttk.Frame(parent, style="Card.TFrame", padding=20)
-        control_panel.grid(row=1, column=0, sticky="nsew", pady=10)
+        control_panel.grid(row=2, column=0, sticky="nsew", pady=10)
         control_panel.columnconfigure(0, weight=1, minsize=200)
         control_panel.columnconfigure(1, weight=2, minsize=300)
         control_panel.rowconfigure(0, weight=1)
@@ -669,6 +733,10 @@ class GhostscriptGUI:
         cb2 = ttk.Checkbutton(f1, text="Strip All Metadata", variable=cs.strip_metadata); cb2.pack(anchor="w"); Tooltip(cb2, TOOLTIP_TEXT.get("output_strip_metadata"))
         self.bicubic_check = ttk.Checkbutton(f1, text="Use Bicubic Sampling (Higher Quality)", variable=cs.use_bicubic)
         self.bicubic_check.pack(anchor="w"); Tooltip(self.bicubic_check, TOOLTIP_TEXT.get("output_bicubic"))
+        
+        self.safe_mode_check = ttk.Checkbutton(f1, text="Safe Mode (prevents graphic artifacts)", variable=cs.safe_mode)
+        self.safe_mode_check.pack(anchor="w"); Tooltip(self.safe_mode_check, TOOLTIP_TEXT.get("compress_safe_mode"))
+        
         self.downsample_threshold_check = ttk.Checkbutton(f1, text="Only Downsample Larger Images (Recommended)", variable=cs.downsample_threshold_enabled)
         self.downsample_threshold_check.pack(anchor="w"); Tooltip(self.downsample_threshold_check, TOOLTIP_TEXT.get("compress_downsample_threshold"))
         cb4 = ttk.Checkbutton(f1, text="Linearize for Fast Web View", variable=cs.fast_web_view); cb4.pack(anchor="w"); Tooltip(cb4, TOOLTIP_TEXT.get("output_fast_web"))
@@ -708,6 +776,7 @@ class GhostscriptGUI:
         Tooltip(self.pdfa_compress_check, "Applies compression to the PDF/A file, which can reduce size but may affect quality.")
 
         self._update_compress_options()
+        self.update_compress_view()
 
     def _build_merge_tab(self, parent):
         parent.columnconfigure(0, weight=1)
@@ -737,6 +806,7 @@ class GhostscriptGUI:
         btn_frame.grid(row=1, column=1, sticky="ns")
         btn1 = ttk.Button(btn_frame, text="Add Files", style="Outline.TButton", command=lambda: self.browse_files(s.files)); btn1.pack(fill="x", pady=2); Tooltip(btn1, TOOLTIP_TEXT.get("merge_add_btn"))
         btn2 = ttk.Button(btn_frame, text="Remove", style="Outline.TButton", command=self.remove_merge_file); btn2.pack(fill="x", pady=2); Tooltip(btn2, TOOLTIP_TEXT.get("merge_remove_btn"))
+        btn5 = ttk.Button(btn_frame, text="Clear All", style="Outline.TButton", command=self.clear_merge_list); btn5.pack(fill="x", pady=2)
         btn3 = ttk.Button(btn_frame, text="Move Up", style="Outline.TButton", command=self.move_merge_up); btn3.pack(fill="x", pady=(10, 2)); Tooltip(btn3, TOOLTIP_TEXT.get("merge_move_up_btn"))
         btn4 = ttk.Button(btn_frame, text="Move Down", style="Outline.TButton", command=self.move_merge_down); btn4.pack(fill="x", pady=2); Tooltip(btn4, TOOLTIP_TEXT.get("merge_move_down_btn"))
 
@@ -1042,14 +1112,20 @@ class GhostscriptGUI:
         parent.columnconfigure(0, weight=1)
         s = self.page_number_settings
 
-        io_frame = ttk.Frame(parent, style="Card.TFrame", padding=20)
-        io_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        io_frame.columnconfigure(0, weight=1)
-        self.drop_zones['page_number'] = self._create_drop_zone(io_frame, s.input_path)
-        FileSelector(io_frame, s.input_path, s.output_path, lambda: self.browse_save_file(s.output_path))
+        main_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
+        main_card.grid(row=0, column=0, sticky="nsew")
+        main_card.columnconfigure(0, weight=1)
+        main_card.columnconfigure(1, weight=1)
 
-        options_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
-        options_card.grid(row=1, column=0, sticky="ew", pady=10)
+        left_panel = ttk.Frame(main_card, style="Card.TFrame")
+        left_panel.grid(row=0, column=0, sticky="nsew", padx=(0, 20))
+        left_panel.columnconfigure(0, weight=1)
+
+        self.drop_zones['page_number'] = self._create_drop_zone(left_panel, s.input_path)
+        FileSelector(left_panel, s.input_path, s.output_path, lambda: self.browse_save_file(s.output_path)).grid(row=1, column=0, sticky="ew")
+
+        options_card = ttk.Frame(left_panel, style="Card.TFrame")
+        options_card.grid(row=2, column=0, sticky="ew", pady=(20,0))
         options_card.columnconfigure(1, weight=1)
 
         ttk.Label(options_card, text="Header/Footer Options", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 15))
@@ -1096,6 +1172,12 @@ class GhostscriptGUI:
         Tooltip(page_range_entry, TOOLTIP_TEXT.get("hf_page_range"))
 
         toggle_custom_entry_state()
+        
+        preview_frame = ttk.Frame(main_card, style="Card.TFrame")
+        preview_frame.grid(row=0, column=1, sticky="nsew", rowspan=3)
+        preview_frame.rowconfigure(0, weight=1); preview_frame.columnconfigure(0, weight=1)
+        self.page_number_preview_canvas = tk.Canvas(preview_frame, highlightthickness=1)
+        self.page_number_preview_canvas.grid(row=0, column=0, sticky="nsew")
 
         ttk.Label(parent, textvariable=self.tab_statuses['page_number'], anchor="center").grid(row=2, column=0, sticky="ew", pady=(10, 0))
         self.page_number_button = self._create_process_button(parent, "ADD HEADER/FOOTER", self.process_page_number, row=3, tooltip_key="hf_process_btn")
@@ -1350,6 +1432,12 @@ class GhostscriptGUI:
                 self.pdfa_dpi_entry.config(state=pdfa_state)
             
         if hasattr(self, 'bicubic_check'): self.bicubic_check.config(state=lossy_state)
+        
+        if hasattr(self, 'safe_mode_check'):
+            self.safe_mode_check.config(state=lossy_state)
+            if not is_lossy:
+                self.compress_settings.safe_mode.set(False)
+                
         if hasattr(self, 'downsample_threshold_check'): self.downsample_threshold_check.config(state=lossy_state)
         if hasattr(self, 'grayscale_check'): self.grayscale_check.config(state=lossy_state)
         if hasattr(self, 'cmyk_check'): self.cmyk_check.config(state=lossy_state)
@@ -1379,9 +1467,32 @@ class GhostscriptGUI:
         if hasattr(self, 'pass_encrypt_owner_entry'): self.pass_encrypt_owner_entry.config(show=show)
         if hasattr(self, 'pass_decrypt_entry'): self.pass_decrypt_entry.config(show=show)
 
-    def update_is_folder(self, *args):
-        path = self.compress_settings.input_path.get()
-        self.is_folder.set(Path(path).is_dir() if path else False)
+    def _update_compress_output_path(self, *args):
+        if not self.compress_settings.files:
+            return
+        
+        first_file = Path(self.compress_settings.files[0])
+        os_settings = self.output_settings
+        
+        if os_settings.use_default_folder.get() and os_settings.default_folder.get():
+            output_dir = Path(os_settings.default_folder.get())
+        else:
+            output_dir = first_file.parent
+            
+        suffix = os_settings.suffix.get() or "_compressed"
+        
+        try:
+            all_same_parent = all(Path(f).parent == first_file.parent for f in self.compress_settings.files)
+        except Exception:
+            all_same_parent = False
+
+        if all_same_parent and first_file.parent.name:
+             output_folder_name = f"{first_file.parent.name}{suffix}"
+        else:
+            output_folder_name = f"compressed_batch{suffix}"
+            
+        output_p = output_dir / output_folder_name
+        self.compress_settings.output_path.set(str(output_p))
 
     def _update_output_path(self, in_var, out_var, is_folder=False, is_dir=False):
         in_path_str = in_var.get()
@@ -1389,10 +1500,10 @@ class GhostscriptGUI:
 
         try:
             p = Path(in_path_str)
-            os = self.output_settings
+            os_settings = self.output_settings
 
-            if os.use_default_folder.get() and os.default_folder.get():
-                output_dir = Path(os.default_folder.get())
+            if os_settings.use_default_folder.get() and os_settings.default_folder.get():
+                output_dir = Path(os_settings.default_folder.get())
             else:
                 output_dir = p.parent
 
@@ -1401,35 +1512,34 @@ class GhostscriptGUI:
                 out_var.set(str(output_p))
                 return
 
-            if is_folder or p.is_dir():
-                suffix = os.suffix.get() or "_compressed"
-                output_p = output_dir / f"{p.name}{suffix}"
-                out_var.set(str(output_p))
-                return
-
             if p.is_file():
                 filename = ""
-                if os.prefix.get():
-                    filename += os.prefix.get()
+                if os_settings.prefix.get():
+                    filename += os_settings.prefix.get()
 
                 filename += p.stem
 
-                if os.suffix.get():
-                    filename += os.suffix.get()
+                if os_settings.suffix.get():
+                    filename += os_settings.suffix.get()
 
-                if os.add_date.get():
+                if os_settings.add_date.get():
                     filename += f"_{datetime.now().strftime('%Y-%m-%d')}"
 
-                if os.add_time.get():
+                if os_settings.add_time.get():
                     filename += f"_{datetime.now().strftime('%H-%M-%S')}"
 
                 filename += p.suffix
 
                 output_p = output_dir / filename
                 out_var.set(str(output_p))
+            elif p.is_dir():
+                suffix = os_settings.suffix.get() or "_processed"
+                output_p = output_dir / f"{p.name}{suffix}.pdf"
+                out_var.set(str(output_p))
+
 
         except Exception as e:
-            logging.warning(f"Could not auto-set output path: {e}")
+            logging.warning(f"Could not auto-set output path for {in_path_str}: {e}")
 
     def check_tools(self):
         try: self.gs_path = backend.find_ghostscript()
@@ -1468,10 +1578,12 @@ class GhostscriptGUI:
             self.active_status_var.set(message)
             self.active_status_var = None
 
-        match = re.search(r'\((\d+\.\d+)%\)', message)
+        match = re.search(r'\(([-]?\d+\.\d+)%\)', message)
         if match:
             percent_saved = float(match.group(1))
             self.compression_ratio_var.set(percent_saved)
+        elif "increased" in message or "did not decrease" in message or "No change" in message:
+            self.compression_ratio_var.set(0.0)
 
         if "Error" in message:
             messagebox.showerror("Error", message, parent=self.root)
@@ -1483,19 +1595,25 @@ class GhostscriptGUI:
             self.active_process_button.config(state="normal")
             self.active_process_button = None
 
-    def _update_preview(self, pdf_path, canvas, page_num=0, rotate_angle=0):
+    def _update_preview(self, pdf_path, canvas, page_num=0, rotate_angle=0, page_number_options=None):
         if not pdf_path:
             canvas.delete("all")
             return
 
-        args = (pdf_path, page_num, rotate_angle)
+        operation = 'rotate'
+        options = {'angle': rotate_angle}
+
+        if page_number_options:
+            operation = 'page_number'
+            options = page_number_options
+
+        args = (pdf_path, page_num, operation, options)
         threading.Thread(target=self._render_thread_target, args=(args, canvas), daemon=True).start()
 
     def _render_thread_target(self, args, canvas):
         try:
-            pdf_path, _, rotate_angle = args
-            options = {'angle': rotate_angle}
-            image = backend.generate_preview(self.gs_path, self.cpdf_path, pdf_path, 'rotate', options)
+            pdf_path, _, operation, options = args
+            image = backend.generate_preview(self.gs_path, self.cpdf_path, pdf_path, operation, options)
             self.root.after(0, self._display_preview_image, image, canvas)
         except Exception as e:
             logging.error(f"Error in render thread: {e}")
@@ -1567,12 +1685,53 @@ class GhostscriptGUI:
 
         threading.Thread(target=render_stamp_preview, daemon=True).start()
 
+    def _trigger_page_number_preview(self, *args):
+        self._debounce_trigger(self._execute_page_number_preview)
+    
+    def _execute_page_number_preview(self):
+        s = self.page_number_settings
+        if not s.input_path.get():
+            self.page_number_preview_canvas.delete("all")
+            return
+            
+        text_map = { "Page Number": "%Page", "Page X of Y": "%Page of %EndPage", "Custom": s.custom_text.get() }
+        options = {
+            'text': text_map.get(s.mode.get(), ''),
+            'pos': s.pos.get(),
+            'font': s.font.get(),
+            'font_size': s.font_size.get(),
+            'color': self._hex_to_cpdf_color(s.font_color.get()),
+            'page_range': s.page_range.get()
+        }
+
+        def render_hf_preview():
+            image = backend.generate_preview(self.gs_path, self.cpdf_path, s.input_path.get(), 'page_number', options)
+            self.root.after(0, self._display_preview_image, image, self.page_number_preview_canvas)
+
+        threading.Thread(target=render_hf_preview, daemon=True).start()
+
     def update_merge_view(self):
         if not self.merge_tree: return
         self.merge_tree.delete(*self.merge_tree.get_children())
         for file_path in self.merge_settings.files:
             metadata = backend.get_pdf_metadata(file_path)
             self.merge_tree.insert('', 'end', values=(metadata['name'], metadata['pages'], metadata['size']))
+
+    def clear_merge_list(self):
+        self.merge_settings.files.clear()
+        self.update_merge_view()
+
+    def update_compress_view(self):
+        if not self.compress_tree: return
+        self.compress_tree.delete(*self.compress_tree.get_children())
+        for file_path in self.compress_settings.files:
+            metadata = backend.get_pdf_metadata(file_path)
+            self.compress_tree.insert('', 'end', values=(metadata['name'], metadata['pages'], metadata['size']))
+
+    def clear_compress_list(self):
+        self.compress_settings.files.clear()
+        self.update_compress_view()
+        self._update_compress_output_path()
 
     def remove_merge_file(self):
         selected_items = self.merge_tree.selection()
@@ -1581,6 +1740,15 @@ class GhostscriptGUI:
         for index in sorted(indices_to_remove, reverse=True):
             del self.merge_settings.files[index]
         self.update_merge_view()
+
+    def remove_compress_file(self):
+        selected_items = self.compress_tree.selection()
+        if not selected_items: return
+        indices_to_remove = [self.compress_tree.index(item) for item in selected_items]
+        for index in sorted(indices_to_remove, reverse=True):
+            del self.compress_settings.files[index]
+        self.update_compress_view()
+        self._update_compress_output_path()
 
     def move_merge_up(self):
         selected_items = self.merge_tree.selection()
@@ -1644,9 +1812,13 @@ class GhostscriptGUI:
 
     def process_compression(self):
         s = self.compress_settings
-        if not s.input_path.get():
-            messagebox.showerror("Input Error", "Please select an input file or folder.", parent=self.root)
-            return
+        
+        if not self.compress_settings.files:
+             messagebox.showerror("Input Error", "Please add one or more PDF files to the list.", parent=self.root)
+             return
+        if not s.output_path.get():
+             messagebox.showerror("Input Error", "Please specify an output folder.", parent=self.root)
+             return
 
         params = {
             'gs_path': self.gs_path,
@@ -1654,7 +1826,6 @@ class GhostscriptGUI:
             'pngquant_path': self.pngquant_path,
             'jpegoptim_path': self.jpegoptim_path,
             'ect_path': self.ect_path,
-            'input_path': s.input_path.get(),
             'output_path': s.output_path.get(),
             'mode': s.compress_mode.get(),
             'dpi': s.dpi.get(),
@@ -1665,6 +1836,7 @@ class GhostscriptGUI:
             'remove_open_action': s.remove_open_action.get(),
             'fast_web_view': s.fast_web_view.get(),
             'use_bicubic': s.use_bicubic.get(),
+            'safe_mode': s.safe_mode.get(),
             'downsample_threshold_enabled': s.downsample_threshold_enabled.get(),
             'quantize_colors': s.quantize_colors.get(),
             'quantize_level': s.quantize_level.get(),
@@ -1674,8 +1846,10 @@ class GhostscriptGUI:
             'fast_mode': s.fast_mode.get(),
             'true_lossless': s.true_lossless.get(),
             'pdfa_compression': s.pdfa_compression.get(),
+            'input_files': self.compress_settings.files
         }
-        self.start_task(self.compress_button, backend.run_compress_task, args=(params, self.is_folder.get(), self.progress_queue), status_var=self.compress_progress_status)
+
+        self.start_task(self.compress_button, backend.run_compress_task, args=(params, "batch", self.progress_queue), status_var=self.compress_progress_status)
 
     def process_merge(self):
         s = self.merge_settings
@@ -1804,7 +1978,15 @@ class GhostscriptGUI:
             main_tab_text = self.main_notebook.tab(self.main_notebook.select(), "text")
 
             if main_tab_text == "Compress":
-                self.compress_settings.input_path.set(paths[0])
+                pdf_files = [p for p in paths if p.lower().endswith('.pdf')]
+                folders = [p for p in paths if Path(p).is_dir()]
+
+                if folders:
+                    for folder in folders:
+                         self.browse_folder_compress(folder)
+                elif pdf_files:
+                     self.browse_files_compress(pdf_files)
+
             elif main_tab_text == "Utilities":
                 util_tab_text = self.utilities_notebook.tab(self.utilities_notebook.select(), "text")
                 if util_tab_text == "Merge":
@@ -1824,8 +2006,10 @@ class GhostscriptGUI:
                         "PDF to Image": self.convert_settings.input_path,
                         "PDF Repair": self.repair_settings.input_path,
                     }
+                    first_pdf = next((p for p in paths if p.lower().endswith('.pdf')), None)
+                    input_path_to_set = first_pdf if first_pdf else paths[0]
                     if util_tab_text in var_map:
-                        var_map[util_tab_text].set(paths[0])
+                        var_map[util_tab_text].set(input_path_to_set)
         except Exception as e:
             logging.error(f"Drag and drop failed: {e}")
 
@@ -1849,7 +2033,8 @@ class GhostscriptGUI:
         canvases = [
             getattr(self, 'rotate_preview_canvas', None),
             getattr(self, 'delete_preview_canvas', None),
-            getattr(self, 'stamp_preview_canvas', None)
+            getattr(self, 'stamp_preview_canvas', None),
+            getattr(self, 'page_number_preview_canvas', None)
         ]
         for canvas in canvases:
             if canvas:
