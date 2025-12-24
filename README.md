@@ -139,6 +139,10 @@ The application is modularized to separate concerns between the UI, backend logi
 
 **A:** All PDF processing happens locally on your computer. The application does not send your files or any data over the internet. The only network activity occurs if you explicitly click the "Check for Updates" or "Buy me a coffee" links in the settings tab.
 
+**Q: Is Windows 7 Supported?**
+
+**A:** Yes, please see the note on [version 1.9.6](https://github.com/deminimis/minimalpdfcompress/releases/tag/v1.9.6). 
+
 ## Contributing
 
 Contributions are welcome! Feel free to post problems in the Issues tab or suggestions in the Discussion tab.
