@@ -95,18 +95,50 @@ class ScrolledFrame(ttk.Frame):
             pass
 
 class Tooltip:
-    def __init__(self, widget, text):
-        self.widget, self.text, self.tooltip_window = widget, text, None
-        self.widget.bind("<Enter>", self.show_tooltip)
+    def __init__(self, widget, text, delay=400):
+        self.widget = widget
+        self.text = text
+        self.delay = delay
+        self.tooltip_window = None
+        self.schedule_id = None
+        
+        self.widget.bind("<Enter>", self.schedule_tooltip)
         self.widget.bind("<Leave>", self.hide_tooltip)
+        self.widget.bind("<ButtonPress>", self.hide_tooltip)
+
+    def schedule_tooltip(self, event=None):
+        self.unschedule_tooltip()
+        self.schedule_id = self.widget.after(self.delay, self.show_tooltip)
+
+    def unschedule_tooltip(self):
+        if self.schedule_id:
+            self.widget.after_cancel(self.schedule_id)
+            self.schedule_id = None
+
     def show_tooltip(self, event=None):
-        if not self.widget.winfo_exists() or not self.text: return
+        self.unschedule_tooltip()
+        if not self.widget.winfo_exists() or not self.text: 
+            return
+        if self.tooltip_window: 
+            return # Prevent duplicate tooltips from spawning
+            
         x = self.widget.winfo_rootx() + 25
         y = self.widget.winfo_rooty() + 25
-        self.tooltip_window = tk.Toplevel(self.widget); self.tooltip_window.wm_overrideredirect(True); self.tooltip_window.wm_geometry(f"+{x}+{y}")
-        tk.Label(self.tooltip_window, text=self.text, justify='left', background="#383c40", foreground="#e8eaed", relief='solid', borderwidth=1, wraplength=250, padx=8, pady=5).pack(ipadx=1)
+        
+        self.tooltip_window = tk.Toplevel(self.widget)
+        self.tooltip_window.wm_overrideredirect(True)
+        self.tooltip_window.wm_geometry(f"+{x}+{y}")
+        self.tooltip_window.attributes('-topmost', True) # Keep tooltip above other windows
+        
+        tk.Label(self.tooltip_window, text=self.text, justify='left', 
+                 background="#383c40", foreground="#e8eaed", relief='solid', 
+                 borderwidth=1, wraplength=250, padx=8, pady=5).pack(ipadx=1)
+
     def hide_tooltip(self, event=None):
-        if self.tooltip_window: self.tooltip_window.destroy(); self.tooltip_window = None
+        self.unschedule_tooltip()
+        if self.tooltip_window: 
+            self.tooltip_window.destroy()
+            self.tooltip_window = None
 
 class FileSelector(ttk.Frame):
     def __init__(self, parent, input_var, output_var, browse_output_cmd):
@@ -121,79 +153,16 @@ class FileSelector(ttk.Frame):
         out_entry = ttk.Entry(self, textvariable=output_var); out_entry.grid(row=output_row, column=1, sticky="we", pady=(5 if input_var else 0, 0)); Tooltip(out_entry, "Destination for the processed file(s).")
         browse_btn = ttk.Button(self, text="...", command=browse_output_cmd, width=4); browse_btn.grid(row=output_row, column=2, sticky="e", padx=(5,0), pady=(5 if input_var else 0, 0)); Tooltip(browse_btn, "Browse for output location.")
 
-class ModernToggle(ttk.Frame):
+class ModernToggle(ttk.Checkbutton):
     def __init__(self, parent, text, variable, palette, command=None, **kwargs):
-        super().__init__(parent, style="Card.TFrame", **kwargs)
-        self.variable = variable
-        self.command = command
         self.palette = palette
-        self._image_cache = None
-        self.state = 'normal'
-        self.variable.trace_add("write", self._update_toggle)
-        self.label = ttk.Label(self, text=text, style="Card.TLabel")
-        self.label.pack(side="left", padx=(0, 10))
-        self.canvas = tk.Canvas(self, width=50, height=26, highlightthickness=0)
-        self.canvas.pack(side="left")
-        self.canvas.bind("<Button-1>", self._toggle)
-        self.update_colors(palette)
-
-    def configure(self, cnf=None, **kw):
-        if 'state' in kw:
-            new_state = kw.pop('state')
-            if new_state in ('normal', 'disabled'):
-                self.state = new_state
-                self._update_toggle()
-        if cnf or kw:
-            super().configure(cnf, **kw)
-    config = configure
+        super().__init__(parent, text=text, variable=variable, command=command, **kwargs)
 
     def update_colors(self, palette):
         self.palette = palette
-        self.configure(style="Card.TFrame")
-        self.label.configure(style="Card.TLabel")
-        self.canvas.configure(bg=self.palette.get("WIDGET_BG"))
-        self._update_toggle()
-
-    def _update_toggle(self, *args):
-        scale = 4
-        width, height = 50 * scale, 26 * scale
-        radius = height / 2
-        img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(img)
-        colors = self.palette
-
-        if self.state == 'disabled':
-            bg_color = colors.get("DISABLED_BG")
-            handle_color = colors.get("DISABLED")
-        else:
-            bg_color = colors.get("ACCENT") if self.variable.get() else colors.get("BORDER")
-            handle_color = "#ffffff"
-
-        draw.rounded_rectangle((0, 0, width, height), radius=radius, fill=bg_color)
-
-        padding = 2 * scale
-        handle_diameter = height - 2 * padding
-        if self.variable.get():
-            x0 = width - padding - handle_diameter
-        else:
-            x0 = padding
-        y0 = padding
-        x1 = x0 + handle_diameter
-        y1 = y0 + handle_diameter
-        draw.ellipse((x0, y0, x1, y1), fill=handle_color)
-
-        resample_method = Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.ANTIALIAS
-        resized_img = img.resize((50, 26), resample_method)
-
-        self.canvas.delete("all")
-        self._image_cache = ImageTk.PhotoImage(resized_img)
-        self.canvas.create_image(0, 0, anchor="nw", image=self._image_cache)
-
-    def _toggle(self, event=None):
-        if self.state == 'disabled':
-            return
-        self.variable.set(not self.variable.get())
-        if self.command: self.command()
+        # With standard ttk widgets, the global style changes handle the colors, 
+        # but we keep this method so gui.py doesn't throw an error when switching themes.
+        pass
 
 class CompressionGauge(ttk.Frame):
     def __init__(self, parent, variable=None, palette=None, **kwargs):
@@ -348,26 +317,31 @@ class CustomSlider(ttk.Frame):
         if self.variable.get() != int(new_value):
             self.variable.set(int(new_value))
 
-class DropZone(tk.Canvas):
+class DropZone(ttk.Frame):
     def __init__(self, parent, browse_file_cmd, browse_folder_cmd, palette, **kwargs):
         self.palette = palette if palette else {}
-        super().__init__(parent, highlightthickness=0, bg=self.palette.get("WIDGET_BG"), **kwargs)
-        self.browse_file_cmd = browse_file_cmd; self.browse_folder_cmd = browse_folder_cmd
-        self.is_hovering = False
-        self.bind("<Configure>", self.draw)
+        # We drop the explicit height/width kwargs and use padding/grid to size it naturally
+        kwargs.pop('height', None)
+        kwargs.pop('width', None)
+        super().__init__(parent, style="Card.TFrame", padding=20, **kwargs)
+        
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+        self.rowconfigure(0, weight=1)
+        
+        self.lbl = ttk.Label(self, text="Drag & Drop PDF File or Folder Here", 
+                             font=("Segoe UI", 12, "italic"), foreground=self.palette.get("DISABLED"))
+        self.lbl.grid(row=0, column=0, columnspan=2, pady=(0, 15))
+
+        self.file_btn = ttk.Button(self, text="Select File(s)", command=browse_file_cmd, style="Large.Outline.TButton")
+        self.file_btn.grid(row=1, column=0, sticky="e", padx=(0, 5))
+        
+        self.folder_btn = ttk.Button(self, text="Select Folder", command=browse_folder_cmd, style="Large.Outline.TButton")
+        self.folder_btn.grid(row=1, column=1, sticky="w", padx=(5, 0))
+
     def update_colors(self, palette):
-        self.palette = palette; self.configure(bg=self.palette.get("WIDGET_BG")); self.draw()
-    def draw(self, event=None):
-        self.delete("all"); width, height = self.winfo_width(), self.winfo_height()
-        if width < 10 or height < 10: return
-        border = self.palette.get("ACCENT") if self.is_hovering else self.palette.get("BORDER")
-        self.create_rectangle(2, 2, width-2, height-2, outline=border, width=2, dash=(6, 4))
-        self.create_text(width/2, height/2-20, text="Drag & Drop PDF File or Folder Here", font=("Segoe UI", 12, "italic"), fill=self.palette.get("DISABLED"))
-        if not hasattr(self, 'file_btn'):
-            self.file_btn = ttk.Button(self, text="Select File(s)", command=self.browse_file_cmd, style="Large.Outline.TButton")
-            self.folder_btn = ttk.Button(self, text="Select Folder", command=self.browse_folder_cmd, style="Large.Outline.TButton")
-        self.create_window(width/2 - 75, height/2 + 25, window=self.file_btn)
-        self.create_window(width/2 + 75, height/2 + 25, window=self.folder_btn)
+        self.palette = palette
+        self.lbl.configure(foreground=self.palette.get("DISABLED"))
 
 class PositionSelector(ttk.Frame):
     def __init__(self, parent, variable, positions, **kwargs):

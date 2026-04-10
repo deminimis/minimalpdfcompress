@@ -1,4 +1,3 @@
-# backend.py
 import os
 import sys
 import subprocess
@@ -16,108 +15,75 @@ from constants import (SPLIT_SINGLE, SPLIT_EVERY_N, SPLIT_CUSTOM, STAMP_IMAGE,
                        POS_TOP_LEFT, POS_TOP_CENTER, POS_TOP_RIGHT,
                        POS_MIDDLE_LEFT, POS_CENTER, POS_MIDDLE_RIGHT,
                        POS_BOTTOM_LEFT, POS_BOTTOM_CENTER, POS_BOTTOM_RIGHT,
-                       META_LOAD, META_SAVE, ToolNotFound, GhostscriptNotFound,
-                       CpdfNotFound, PngquantNotFound, JpegoptimNotFound,
-                       EctNotFound, OptipngNotFound, ProcessingError)
+                       META_LOAD, META_SAVE, ProcessingError)
 
-def resource_path(relative_path):
+from utils import (resource_path, find_ghostscript, find_cpdf, find_pngquant,
+                   find_jpegoptim, find_ect, find_oxipng, format_size,
+                   get_pdf_metadata, run_command)
+
+from contextlib import contextmanager
+
+@contextmanager
+def task_context(q, success_msg="Task complete.", error_prefix="Task failed"):
+    """Wraps background tasks to handle standard queue updates and exception logging."""
     try:
-        base_path = Path(sys._MEIPASS)
-    except AttributeError:
-        base_path = Path(__file__).parent
-    return base_path / relative_path
-
-def find_executable(name, not_found_exception):
-    exe_name = f"{name}.exe" if sys.platform == "win32" else name
-    local_bin_path = resource_path('bin') / exe_name
-    if local_bin_path.exists():
-        return str(local_bin_path)
-    if shutil.which(exe_name):
-        return exe_name
-    raise not_found_exception(f"Bundled {exe_name} not found and not in system PATH.")
-
-def find_ghostscript(): return find_executable("gswin64c" if sys.platform == "win32" else "gs", GhostscriptNotFound)
-def find_cpdf(): return find_executable("cpdf", CpdfNotFound)
-def find_pngquant(): return find_executable("pngquant", PngquantNotFound)
-def find_jpegoptim(): return find_executable("jpegoptim", JpegoptimNotFound)
-def find_ect(): return find_executable("ect", EctNotFound)
-
-def get_pdf_metadata(file_path):
-    try:
-        p = Path(file_path)
-        size_bytes = p.stat().st_size
-        if size_bytes > 1024 * 1024:
-            size_str = f"{size_bytes / (1024*1024):.1f} MB"
-        elif size_bytes > 1024:
-            size_str = f"{size_bytes / 1024:.1f} KB"
-        else:
-            size_str = f"{size_bytes} B"
-
-        with pikepdf.open(p) as pdf:
-            page_count = len(pdf.pages)
-
-        return {'name': p.name, 'pages': page_count, 'size': size_str}
-    except FileNotFoundError:
-        return {'name': Path(file_path).name, 'pages': 'N/A', 'size': 'N/A'}
+        yield
+        if success_msg:
+            q.put(('progress', 100))
+            q.put(('overall', 100))
+            q.put(('complete', success_msg))
     except Exception as e:
-        logging.warning(f"Could not get metadata for {file_path}: {e}")
-        return {'name': Path(file_path).name, 'pages': 'N/A', 'size': 'N/A'}
+        logging.error(f"{error_prefix}: {e}", exc_info=True)
+        q.put(('complete', f"Error: {e}"))
 
-def run_command(command, check=True):
-    logging.info(f"Executing command: {command}")
-    try:
-        kwargs = { 'stdin': subprocess.DEVNULL, 'check': check, 'capture_output': True, 'text': True, 'encoding': 'utf-8', 'errors': 'ignore' }
-        if sys.platform == "win32": kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
-        result = subprocess.run(command, **kwargs)
-        if result.stderr:
-            stderr_text = result.stderr.strip()
-            if "wmic.exe" in stderr_text and "Failed to retrieve time" in stderr_text:
-                pass
-            elif "not permitted in PDF/A-2, overprint mode not set" in stderr_text:
-                pass
-            elif "invalid xref" in stderr_text.lower() or "repaired" in stderr_text.lower():
-                logging.info(f"Ignoring recoverable warning: {stderr_text}")
-            elif "warning" not in stderr_text.lower():
-                logging.warning(f"Command stderr: {stderr_text}")
-        return result
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Command failed: {e.stderr}")
-        raise ProcessingError(f"Tool failed: {e.stderr.strip()}")
-    except FileNotFoundError as e:
-        logging.error(f"Command not found: {e}")
-        raise ProcessingError(f"Command not found: {e}.")
-    except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        raise ProcessingError(str(e))
+def _prepare_image_stamp(image_path, scale, opacity, output_path):
+    """Helper to resize and apply opacity to image stamps."""
+    with Image.open(image_path) as img:
+        if scale != 1.0:
+            try:
+                w, h = int(img.width * scale), int(img.height * scale)
+                if w > 0 and h > 0:
+                    resample = Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.ANTIALIAS
+                    img = img.resize((w, h), resample)
+            except Exception as e:
+                logging.warning(f"Invalid image scale. Error: {e}")
+        if opacity < 1.0:
+            if img.mode != 'RGBA': img = img.convert('RGBA')
+            alpha = img.split()[3].point(lambda p: p * opacity)
+            img.putalpha(alpha)
+        img.save(output_path, "PDF", resolution=100.0)
+
+def get_cpdf_pos_cmd(pos, margin="20", default=None):
+    """Centralized position mapping for cpdf text and stamp operations."""
+    pos_map = {
+        POS_TOP_LEFT: ["-topleft", margin], POS_TOP_CENTER: ["-top", margin], POS_TOP_RIGHT: ["-topright", margin],
+        POS_MIDDLE_LEFT: ["-left", margin], POS_CENTER: ["-center"], POS_MIDDLE_RIGHT: ["-right", margin],
+        POS_BOTTOM_LEFT: ["-bottomleft", margin], POS_BOTTOM_CENTER: ["-bottom", margin], POS_BOTTOM_RIGHT: ["-bottomright", margin],
+    }
+    return pos_map.get(pos, default or ["-center"])
+
+def _update_progress(q, status_msg, current, total):
+    """Helper to standardize progress queue updates."""
+    prog = (current / total) * 100
+    q.put(('status', status_msg))
+    q.put(('progress', prog))
+    q.put(('overall', prog))
 
 def parse_page_ranges(page_string, max_pages):
     indices = set()
     if not page_string.strip(): return []
-    page_string = re.sub(r'\bendend\b', str(max_pages), page_string, flags=re.IGNORECASE)
-    for part in page_string.split(','):
-        part = part.strip()
-        if not part: continue
-        if '-' in part:
-            start, end = part.split('-', 1)
-            start = 1 if start.strip() == '' else int(start)
-            end = max_pages if end.strip() == '' else int(end)
-            indices.update(range(start - 1, end))
-        else: indices.add(int(part) - 1)
+    for p in re.sub(r'\bend\b', str(max_pages), page_string, flags=re.IGNORECASE).split(','):
+        if not (p := p.strip()): continue
+        if '-' in p:
+            s, e = [x.strip() for x in p.split('-', 1)]
+            indices.update(range((int(s) if s else 1) - 1, int(e) if e else max_pages))
+        else: indices.add(int(p) - 1)
     return sorted(list(indices), reverse=True)
 
 def get_total_output_size(output_folder_path, processed_filenames):
-    total_size = 0
     folder = Path(output_folder_path)
-    if not folder.is_dir():
-        return 0
-    for filename in processed_filenames:
-        output_file = folder / filename
-        if output_file.is_file():
-            try:
-                total_size += output_file.stat().st_size
-            except FileNotFoundError:
-                logging.warning(f"Expected output file not found for size calculation: {output_file}")
-    return total_size
+    if not folder.is_dir(): return 0
+    return sum((folder / f).stat().st_size for f in processed_filenames if (folder / f).is_file())
 
 
 def generate_preview(gs_path, cpdf_path, pdf_path, operation, options):
@@ -132,22 +98,21 @@ def generate_preview(gs_path, cpdf_path, pdf_path, operation, options):
         preview_image_path = temp_dir_path / "preview.png"
 
         try:
-            with pikepdf.open(pdf_path, allow_overwriting_input=False) as pdf:
-                if not pdf.pages:
-                    logging.warning("PDF has no pages to preview.")
-                    return None
-                with pikepdf.Pdf.new() as dst:
-                    dst.pages.append(pdf.pages[0])
-                    dst.save(first_page_pdf)
+            with pikepdf.open(str(pdf_path)) as pdf:
+                with pikepdf.Pdf.new() as new_pdf:
+                    new_pdf.pages.append(pdf.pages[0])
+                    new_pdf.save(str(first_page_pdf))
+            if not first_page_pdf.exists() or first_page_pdf.stat().st_size == 0:
+                logging.warning("PDF has no pages or extraction failed.")
+                return None
         except Exception as e:
-            logging.error(f"Failed to extract first page for preview: {e}")
+            logging.error(f"Failed to extract first page for preview using pikepdf: {e}")
             return None
 
         if operation == 'rotate':
             try:
-                with pikepdf.open(first_page_pdf) as pdf:
-                    pdf.pages[0].rotate(options.get('angle', 0), relative=True)
-                    pdf.save(modified_pdf)
+                angle = options.get('angle', 0)
+                run_command([cpdf_path, str(first_page_pdf), "-rotate", str(angle), "-o", str(modified_pdf)])
             except Exception as e:
                 logging.error(f"Failed to apply rotation for preview: {e}")
 
@@ -157,14 +122,7 @@ def generate_preview(gs_path, cpdf_path, pdf_path, operation, options):
                 mode_opts = options['mode_opts']
                 mode = options['mode']
 
-                pos = stamp_opts['pos']
-                margin = "20"
-                pos_map = {
-                    POS_TOP_LEFT: ["-topleft", margin], POS_TOP_CENTER: ["-top", margin], POS_TOP_RIGHT: ["-topright", margin],
-                    POS_MIDDLE_LEFT: ["-left", margin], POS_CENTER: ["-center"], POS_MIDDLE_RIGHT: ["-right", margin],
-                    POS_BOTTOM_LEFT: ["-bottomleft", margin], POS_BOTTOM_CENTER: ["-bottom", margin], POS_BOTTOM_RIGHT: ["-bottomright", margin],
-                }
-                pos_cmd = pos_map.get(pos, ["-center"])
+                pos_cmd = get_cpdf_pos_cmd(stamp_opts['pos'], "20", ["-center"])    
 
                 if mode == STAMP_IMAGE:
                     image_path = mode_opts.get('image_path')
@@ -173,21 +131,7 @@ def generate_preview(gs_path, cpdf_path, pdf_path, operation, options):
 
                         scale = mode_opts.get('image_scale', 1.0)
 
-                        with Image.open(image_path) as img:
-                            if scale != 1.0:
-                                try:
-                                    w = int(img.width * scale)
-                                    h = int(img.height * scale)
-                                    if w > 0 and h > 0:
-                                        resample = Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.ANTIALIAS
-                                        img = img.resize((w, h), resample)
-                                except Exception as e:
-                                    logging.warning(f"Invalid image scale, using original. Error: {e}")
-
-                            if stamp_opts['opacity'] < 1.0:
-                                if img.mode != 'RGBA': img = img.convert('RGBA')
-                                alpha = img.split()[3]; alpha = alpha.point(lambda p: p * stamp_opts['opacity']); img.putalpha(alpha)
-                            img.save(stamp_to_apply_path, "PDF", resolution=100.0)
+                        _prepare_image_stamp(image_path, scale, stamp_opts['opacity'], stamp_to_apply_path)
 
                         cmd = [cpdf_path, str(first_page_pdf), "-stamp-on" if stamp_opts['on_top'] else "-stamp-under", str(stamp_to_apply_path)]
                         cmd.extend(pos_cmd)
@@ -220,13 +164,7 @@ def generate_preview(gs_path, cpdf_path, pdf_path, operation, options):
                 cmd.extend(["-font-size", str(options.get('font_size', '12'))])
                 cmd.extend(["-color", options.get('color', '0 0 0')])
 
-                pos = options.get('pos', POS_BOTTOM_CENTER)
-                margin = "15"
-                pos_map = {
-                    POS_TOP_LEFT: ["-topleft", margin], POS_TOP_CENTER: ["-top", margin], POS_TOP_RIGHT: ["-topright", margin],
-                    POS_BOTTOM_LEFT: ["-bottomleft", margin], POS_BOTTOM_CENTER: ["-bottom", margin], POS_BOTTOM_RIGHT: ["-bottomright", margin],
-                }
-                pos_cmd = pos_map.get(pos, ["-bottom", margin])
+                pos_cmd = get_cpdf_pos_cmd(options.get('pos', POS_BOTTOM_CENTER), "15", ["-bottom", "15"])
                 cmd.extend(pos_cmd)
 
                 cmd.append(str(first_page_pdf))
@@ -234,22 +172,13 @@ def generate_preview(gs_path, cpdf_path, pdf_path, operation, options):
                 page_range = options.get('page_range', '').strip()
                 should_apply = True
                 if page_range:
-                     try:
-                         # Simple check: Does the range '1' appear?
-                         if '1' not in page_range.split(','):
-                            ranges = [r.strip() for r in page_range.split(',')]
-                            range_applies = False
-                            for r in ranges:
-                                if '-' in r:
-                                    start, end = r.split('-', 1)
-                                    start_val = 1 if start == '' else int(start)
-                                    if start_val == 1:
-                                        range_applies = True
-                                        break
-                            if not range_applies:
-                                should_apply = False
-                     except:
-                          logging.warning("Could not parse page range for preview, applying anyway.")
+                    try:
+                        # Re-use existing parse_page_ranges logic (pass dummy max_pages=9999). 
+                        # If index 0 (page 1) isn't in the parsed range, we skip applying the preview.
+                        if 0 not in parse_page_ranges(page_range, 9999):
+                            should_apply = False
+                    except Exception:
+                        logging.warning("Could not parse page range for preview, applying anyway.")
                 
                 if should_apply:
                     cmd.extend(["-o", str(modified_pdf)])
@@ -282,18 +211,23 @@ def generate_preview(gs_path, cpdf_path, pdf_path, operation, options):
 
 
 def run_compress_task(params, mode, q):
-    try:
+    with task_context(q, success_msg=None, error_prefix="Compress task failed"):
         optimizer = PdfOptimizer(
-            gs_path=params['gs_path'], cpdf_path=params['cpdf_path'],
+            gs_path=params['gs_path'],
+            cpdf_path=params['cpdf_path'],
             pngquant_path=params['pngquant_path'],
             jpegoptim_path=params['jpegoptim_path'],
             ect_path=params['ect_path'],
+            oxipng_path=params.get('oxipng_path'),
             q=q,
             darken_text=params['darken_text'],
             remove_open_action=params.get('remove_open_action'),
             fast_web_view=params.get('fast_web_view'),
             fast_mode=params.get('fast_mode'),
             safe_mode=params.get('safe_mode'),
+            lossless_encoding=params.get('lossless_encoding', False),
+            preserve_ocr=params.get('preserve_ocr', True),
+            detect_duplicate_images=params.get('detect_duplicate_images', True),
             convert_to_grayscale=params.get('convert_to_grayscale', False),
             convert_to_cmyk=params.get('convert_to_cmyk', False),
             downsample_threshold_enabled=params.get('downsample_threshold_enabled', False),
@@ -357,6 +291,14 @@ def run_compress_task(params, mode, q):
                 if new_size < original_size:
                     shutil.move(str(temp_output_path), output_file)
                     processed_filenames.append(output_file.name)
+
+                    if params.get('delete_original') and input_file.resolve() != output_file.resolve():
+                        try:
+                            os.remove(input_file)
+                            logging.info(f"Deleted original file: {input_file.name}")
+                        except Exception as del_err:
+                            logging.error(f"Failed to delete original file {input_file.name}: {del_err}")
+
                     return new_size
                 else:
                     if only_if_smaller:
@@ -401,7 +343,7 @@ def run_compress_task(params, mode, q):
                 total_out_size += size
             except Exception:
                 errors_occurred += 1
-                q.put(('status', f"Error processing {pdf_file.name}!"))
+                q.put(('status', f"Error processing {pdf_file.name} ({i+1}/{total_files})..."))
             finally:
                 q.put(('overall', ((i + 1) / total_files) * 100))
 
@@ -414,9 +356,7 @@ def run_compress_task(params, mode, q):
             saved_bytes = total_in_size - total_out_size
             percent_saved = (saved_bytes / total_in_size) * 100
             
-            if abs(saved_bytes) > 1024*1024: saved_str = f"{saved_bytes / (1024*1024):.2f} MB"
-            elif abs(saved_bytes) > 1024: saved_str = f"{saved_bytes / 1024:.2f} KB"
-            else: saved_str = f"{saved_bytes} bytes"
+            saved_str = format_size(saved_bytes, decimals=2)
 
             if saved_bytes > 0:
                 final_message = f"Complete. Saved {saved_str} ({percent_saved:.1f}%)."
@@ -437,14 +377,9 @@ def run_compress_task(params, mode, q):
 
         q.put(('complete', final_message))
 
-    except (ToolNotFound, ProcessingError, FileNotFoundError, ValueError, RuntimeError) as e:
-        logging.error(f"Task failed: {e}"); q.put(('complete', f"Error: {e}"))
-    except Exception as e:
-        logging.error(f"An unexpected error occurred: {e}", exc_info=True); q.put(('complete', f"An unexpected error occurred: {e}"))
-
 
 def run_merge_task(file_list, output_path, q):
-    try:
+    with task_context(q, "Merge complete.", "Merge task failed"):
         with pikepdf.Pdf.new() as pdf:
             total_files = len(file_list)
             if total_files == 0: raise ProcessingError("No files selected to merge.")
@@ -453,105 +388,74 @@ def run_merge_task(file_list, output_path, q):
                 with pikepdf.open(file_path) as src:
                     pdf.pages.extend(src.pages)
                 q.put(('progress', ((i + 1) / total_files) * 100))
-            q.put(('status', "Saving merged file...")); pdf.save(output_path); q.put(('overall', 100))
-        q.put(('complete', "Merge complete."))
-    except Exception as e: logging.error(f"Merge task failed: {e}"); q.put(('complete', f"Error: {e}"))
+            q.put(('status', "Saving merged file..."))
+            pdf.save(output_path)
 
 def run_split_task(input_path, output_dir, mode, value, q):
-    try:
-        q.put(('status', "Opening PDF...")); p_in = Path(input_path)
-        output_dir_path = Path(output_dir)
+    with task_context(q, "Splitting complete.", "Split task failed"):
+        q.put(('status', "Opening PDF..."))
+        p_in, output_dir_path = Path(input_path), Path(output_dir)
         output_dir_path.mkdir(parents=True, exist_ok=True)
         with pikepdf.open(p_in) as pdf:
             total = len(pdf.pages)
             if mode == SPLIT_SINGLE:
                 for i, page in enumerate(pdf.pages):
-                    prog = ((i + 1) / total) * 100
-                    q.put(('status', f"Saving page {i+1}/{total}")); q.put(('progress', prog)); q.put(('overall', prog))
-                    with pikepdf.Pdf.new() as dst: dst.pages.append(page); dst.save(output_dir_path / f"{p_in.stem}_page_{i+1}.pdf")
+                    _update_progress(q, f"Saving page {i+1}/{total}", i + 1, total)
+                    with pikepdf.Pdf.new() as dst: 
+                        dst.pages.append(page)
+                        dst.save(output_dir_path / f"{p_in.stem}_page_{i+1}.pdf")
             elif mode == SPLIT_EVERY_N:
-                n = int(value);
+                n = int(value)
                 if n <= 0: raise ValueError("Number of pages must be positive.")
                 for i in range(0, total, n):
-                    prog = (min(i + n, total) / total) * 100
-                    q.put(('status', f"Saving pages {i+1}-{min(i+n, total)}")); q.put(('progress', prog)); q.put(('overall', prog))
-                    with pikepdf.Pdf.new() as dst: dst.pages.extend(pdf.pages[i:i+n]); dst.save(output_dir_path / f"{p_in.stem}_pages_{i+1}-{i+n}.pdf")
+                    _update_progress(q, f"Saving pages {i+1}-{min(i+n, total)}", min(i + n, total), total)
+                    with pikepdf.Pdf.new() as dst: 
+                        dst.pages.extend(pdf.pages[i:i+n])
+                        dst.save(output_dir_path / f"{p_in.stem}_pages_{i+1}-{i+n}.pdf")
             elif mode == SPLIT_CUSTOM:
-                indices = parse_page_ranges(value, total); q.put(('status', f"Extracting {len(indices)} pages..."))
+                indices = parse_page_ranges(value, total)
+                q.put(('status', f"Extracting {len(indices)} pages..."))
                 with pikepdf.Pdf.new() as dst:
-                    for i, page_index in enumerate(sorted([i for i in indices if i < total])):
-                        prog = ((i+1)/len(indices)) * 100
-                        dst.pages.append(pdf.pages[page_index]); q.put(('progress', prog)); q.put(('overall', prog))
+                    for i, page_index in enumerate(sorted([idx for idx in indices if idx < total])):
+                        _update_progress(q, f"Extracting {len(indices)} pages...", i + 1, len(indices))
+                        dst.pages.append(pdf.pages[page_index])
                 dst.save(output_dir_path / f"{p_in.stem}_custom_range.pdf")
             else: raise ProcessingError(f"Unknown split mode: {mode}")
-        q.put(('complete', "Splitting complete."))
-    except Exception as e: logging.error(f"Split task failed: {e}"); q.put(('complete', f"Error: {e}"))
 
 def run_delete_pages_task(pdf_in, pdf_out, page_range, q):
-    try:
+    with task_context(q, "Page deletion completed.", "Delete pages task failed"):
         q.put(('status', "Opening PDF..."))
         with pikepdf.open(pdf_in) as pdf:
             indices = parse_page_ranges(page_range, len(pdf.pages))
             if not indices: raise ProcessingError("No valid pages specified for deletion.")
             q.put(('status', f"Deleting {len(indices)} page(s)..."))
             for i in sorted(indices, reverse=True):
-                 if 0 <= i < len(pdf.pages):
-                     del pdf.pages[i]
-                 else:
-                     logging.warning(f"Page index {i+1} out of range, skipping deletion.")
-
-            pdf.save(pdf_out); q.put(('progress', 100)); q.put(('overall', 100))
-        q.put(('complete', "Page deletion completed."))
-    except Exception as e: logging.error(f"Delete pages task failed: {e}"); q.put(('complete', f"Error: {e}"))
+                 if 0 <= i < len(pdf.pages): del pdf.pages[i]
+                 else: logging.warning(f"Page index {i+1} out of range, skipping deletion.")
+            pdf.save(pdf_out)
 
 def run_rotate_task(pdf_in, pdf_out, angle, q):
-    try:
+    with task_context(q, "Rotation complete.", "Rotate task failed"):
         q.put(('status', "Opening PDF..."))
         with pikepdf.open(pdf_in) as pdf:
             q.put(('status', f"Rotating all pages by {angle} degrees..."))
             for page in pdf.pages: page.rotate(angle, relative=True)
-            pdf.save(pdf_out); q.put(('progress', 100)); q.put(('overall', 100))
-        q.put(('complete', "Rotation complete."))
-    except Exception as e: logging.error(f"Rotate task failed: {e}"); q.put(('complete', f"Error: {e}"))
+            pdf.save(pdf_out)
 
 def run_stamp_task(pdf_in, pdf_out, stamp_opts, cpdf_path, q, mode, mode_opts):
-    with tempfile.TemporaryDirectory() as temp_dir_str:
-        temp_dir = Path(temp_dir_str)
-        try:
+    with task_context(q, "Stamping complete.", "Stamp task failed"):
+        with tempfile.TemporaryDirectory() as temp_dir_str:
+            temp_dir = Path(temp_dir_str)
             q.put(('status', "Applying stamp..."))
-
-            pos = stamp_opts['pos']
-            margin = "20"
-            pos_map = {
-                POS_TOP_LEFT: ["-topleft", margin], POS_TOP_CENTER: ["-top", margin], POS_TOP_RIGHT: ["-topright", margin],
-                POS_MIDDLE_LEFT: ["-left", margin], POS_CENTER: ["-center"], POS_MIDDLE_RIGHT: ["-right", margin],
-                POS_BOTTOM_LEFT: ["-bottomleft", margin], POS_BOTTOM_CENTER: ["-bottom", margin], POS_BOTTOM_RIGHT: ["-bottomright", margin],
-            }
-            pos_cmd = pos_map.get(pos, ["-center"])
+            pos_cmd = get_cpdf_pos_cmd(stamp_opts['pos'], "20", ["-center"])
 
             if mode == STAMP_IMAGE:
                 image_file = Path(mode_opts['image_path'])
                 if not image_file.exists(): raise ProcessingError(f"Stamp image not found: {image_file}")
-
                 stamp_to_apply_path = temp_dir / "image_stamp.pdf"
                 scale = mode_opts.get('image_scale', 1.0)
 
-                with Image.open(image_file) as img:
-                    if scale != 1.0:
-                        try:
-                            w = int(img.width * scale)
-                            h = int(img.height * scale)
-                            if w > 0 and h > 0:
-                                resample = Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.ANTIALIAS
-                                img = img.resize((w, h), resample)
-                        except Exception as e:
-                            logging.warning(f"Invalid image scale, using original. Error: {e}")
-
-                    if stamp_opts['opacity'] < 1.0:
-                        if img.mode != 'RGBA': img = img.convert('RGBA')
-                        alpha = img.split()[3]; alpha = alpha.point(lambda p: p * stamp_opts['opacity']); img.putalpha(alpha)
-
-                    img.save(stamp_to_apply_path, "PDF", resolution=100.0)
+                _prepare_image_stamp(image_file, scale, stamp_opts['opacity'], stamp_to_apply_path)
 
                 cmd = [cpdf_path, pdf_in, "-stamp-on" if stamp_opts['on_top'] else "-stamp-under", str(stamp_to_apply_path)]
                 cmd.extend(pos_cmd)
@@ -564,6 +468,7 @@ def run_stamp_task(pdf_in, pdf_out, stamp_opts, cpdf_path, q, mode, mode_opts):
 
                 cmd = [cpdf_path, pdf_in]
                 text_parts = ["-add-text", final_text, "-font", mode_opts['font'], "-font-size", str(mode_opts['size']), "-color", mode_opts['color'], "-opacity", str(stamp_opts['opacity'])]
+                
                 if mode_opts.get('bates_start'):
                     try:
                         bates_num = int(mode_opts['bates_start'])
@@ -578,46 +483,17 @@ def run_stamp_task(pdf_in, pdf_out, stamp_opts, cpdf_path, q, mode, mode_opts):
                 cmd.extend(["-o", pdf_out])
                 run_command(cmd)
 
-            q.put(('progress', 100)); q.put(('overall', 100)); q.put(('complete', "Stamping complete."))
-        except Exception as e:
-            logging.error(f"Stamp task failed: {e}", exc_info=True)
-            q.put(('complete', f"Error: {e}"))
-
 def run_page_number_task(pdf_in, pdf_out, cpdf_path, q, options):
-    try:
+    with task_context(q, "Header/Footer task complete.", "Page Number task failed"):
         q.put(('status', "Adding page numbers/headers/footers..."))
-
-        cmd = [cpdf_path, "-utf8"]
-
-        cmd.extend(["-add-text", options['text']])
-        cmd.extend(["-font", options['font']])
-        cmd.extend(["-font-size", str(options['font_size'])])
-        cmd.extend(["-color", options['color']])
-
-        pos = options['pos']
-        margin = "15"
-        pos_map = {
-            POS_TOP_LEFT: ["-topleft", margin], POS_TOP_CENTER: ["-top", margin], POS_TOP_RIGHT: ["-topright", margin],
-            POS_BOTTOM_LEFT: ["-bottomleft", margin], POS_BOTTOM_CENTER: ["-bottom", margin], POS_BOTTOM_RIGHT: ["-bottomright", margin],
-        }
-        pos_cmd = pos_map.get(pos, ["-bottom", margin])
-        cmd.extend(pos_cmd)
-
+        cmd = [cpdf_path, "-utf8", "-add-text", options['text'], "-font", options['font'], "-font-size", str(options['font_size']), "-color", options['color']]
+        cmd.extend(get_cpdf_pos_cmd(options['pos'], "15", ["-bottom", "15"]))
         cmd.append(pdf_in)
+        
         page_range = options.get('page_range', '').strip()
-        if page_range:
-            cmd.append(page_range)
-
+        if page_range: cmd.append(page_range)
         cmd.extend(["-o", pdf_out])
-
         run_command(cmd)
-
-        q.put(('progress', 100))
-        q.put(('overall', 100))
-        q.put(('complete', "Header/Footer task complete."))
-    except Exception as e:
-        logging.error(f"Page Number task failed: {e}", exc_info=True)
-        q.put(('complete', f"Error: {e}"))
 
 def run_metadata_task(task_type, pdf_path, cpdf_path, metadata_dict=None):
     if task_type == META_LOAD:
@@ -625,20 +501,18 @@ def run_metadata_task(task_type, pdf_path, cpdf_path, metadata_dict=None):
         if proc.returncode != 0: raise ProcessingError(f"cpdf failed to read info: {proc.stderr.strip()}")
         info = {}
         for line in proc.stdout.splitlines():
-            if ':' in line:
+             if ':' in line:
                 key, val = line.split(':', 1)
                 if key.strip().lower() in ['title', 'author', 'subject', 'keywords']: info[key.strip().lower()] = val.strip()
         return info
     elif task_type == META_SAVE:
-        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_out:
-            temp_path = temp_out.name
+        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_out: temp_path = temp_out.name
         try:
             cmd = [cpdf_path, "-utf8", pdf_path]
             valid_metadata = {k: v for k, v in metadata_dict.items() if v}
             is_first_op = True
             for key, value in valid_metadata.items():
-                if not is_first_op:
-                    cmd.append("AND")
+                if not is_first_op: cmd.append("AND")
                 cmd.extend([f"-set-{key}", value])
                 is_first_op = False
 
@@ -649,132 +523,84 @@ def run_metadata_task(task_type, pdf_path, cpdf_path, metadata_dict=None):
             else:
                  logging.info("No metadata changes specified, file not modified.")
         finally:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
+            if os.path.exists(temp_path): os.remove(temp_path)
 
 def run_pdf_to_image_task(gs_path, pdf_in, out_dir, options, q):
-    try:
+    with task_context(q, "Conversion to images complete.", "PDF to image task failed"):
         q.put(('status', f"Converting PDF to {options.get('format')}..."))
         fmt, dpi = options.get('format', 'png'), options.get('dpi', '300')
-
         output_dir_path = Path(out_dir)
         output_dir_path.mkdir(parents=True, exist_ok=True)
-
         out_path = output_dir_path / f"{Path(pdf_in).stem}_%d.{fmt}"
         device_map = {'png': 'png16m', 'jpeg': 'jpeg', 'tiff': 'tiffg4'}
         cmd = [gs_path, f"-sDEVICE={device_map.get(fmt, 'png16m')}", f"-r{dpi}", "-dNOPAUSE", "-dBATCH", f"-sOutputFile={str(out_path)}", pdf_in]
         run_command(cmd)
-        q.put(('progress', 100)); q.put(('overall', 100)); q.put(('complete', "Conversion to images complete."))
-    except Exception as e: logging.error(f"PDF to image task failed: {e}"); q.put(('complete', f"Error: {e}"))
 
 def run_repair_task(pdf_in, pdf_out, q):
-    try:
+    with task_context(q, "Repair attempt finished.", "Repair task failed"):
         q.put(('status', "Attempting to repair PDF..."))
         with pikepdf.open(pdf_in, allow_overwriting_input=False, recover=True) as pdf:
             pdf.save(pdf_out)
-        q.put(('progress', 100))
-        q.put(('overall', 100))
-        q.put(('complete', "Repair attempt finished."))
-    except Exception as e:
-        logging.error(f"Repair task failed: {e}")
-        q.put(('complete', f"Error: {e}"))
 
 def run_toc_task(cpdf_path, pdf_in, pdf_out, options, q):
-    try:
+    with task_context(q, "Table of Contents generation complete.", "Table of Contents task failed"):
         q.put(('status', "Generating Table of Contents..."))
-        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_out:
-            temp_path = temp_out.name
-
+        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_out: temp_path = temp_out.name
         cmd = [cpdf_path, "-table-of-contents"]
-
-        if options.get('title'):
-            cmd.extend(["-toc-title", options.get('title')])
-        if options.get('font'):
-            cmd.extend(["-font", options.get('font')])
-        if options.get('font_size'):
-            cmd.extend(["-font-size", str(options.get('font_size'))])
-        if options.get('dot_leaders'):
-            cmd.append("-toc-dot-leaders")
-        if options.get('no_bookmark'):
-            cmd.append("-toc-no-bookmark")
-
+        if options.get('title'): cmd.extend(["-toc-title", options.get('title')])
+        if options.get('font'): cmd.extend(["-font", options.get('font')])
+        if options.get('font_size'): cmd.extend(["-font-size", str(options.get('font_size'))])
+        if options.get('dot_leaders'): cmd.append("-toc-dot-leaders")
+        if options.get('no_bookmark'): cmd.append("-toc-no-bookmark")
         cmd.extend([pdf_in, "-o", temp_path])
         run_command(cmd)
 
         if not Path(temp_path).exists() or Path(temp_path).stat().st_size == 0:
             raise ProcessingError("cpdf failed to generate the table of contents. The output file is empty.")
-
         shutil.move(temp_path, pdf_out)
-        q.put(('progress', 100))
-        q.put(('overall', 100))
-        q.put(('complete', "Table of Contents generation complete."))
-    except Exception as e:
-        logging.error(f"Table of Contents task failed: {e}", exc_info=True)
-        q.put(('complete', f"Error: {e}"))
 
 def run_password_task(params, q):
-    try:
+    # Setting success_msg to None lets this task dictate its own completion texts
+    with task_context(q, success_msg=None, error_prefix="Password task failed"): 
         input_path = params.get('input_path')
         output_path = params.get('output_path')
         mode = params.get('mode')
 
         if mode == 'add':
             q.put(('status', "Encrypting PDF..."))
-            user_password = params.get('user_password')
-            owner_password = params.get('owner_password')
+            user_password, owner_password = params.get('user_password'), params.get('owner_password')
 
             if not user_password and not owner_password:
                 raise ProcessingError("At least one password (user or owner) must be provided for encryption.")
 
-            permissions = pikepdf.Permissions(
-                print_highres=params.get('allow_printing'),
-                print_lowres=params.get('allow_printing'),
-                modify_other=params.get('allow_modification'),
-                extract=params.get('allow_copy_and_extract'),
-                modify_annotation=params.get('allow_annotations_and_forms'),
-                modify_form=params.get('allow_annotations_and_forms')
-            )
+            permissions = pikepdf.Permissions(print_highres=params.get('allow_printing'), print_lowres=params.get('allow_printing'), modify_other=params.get('allow_modification'), extract=params.get('allow_copy_and_extract'), modify_annotation=params.get('allow_annotations_and_forms'), modify_form=params.get('allow_annotations_and_forms'))
 
             with pikepdf.open(input_path) as pdf:
-                pdf.save(output_path, encryption=pikepdf.Encryption(
-                    user=user_password,
-                    owner=owner_password,
-                    allow=permissions,
-                    R=6 # Use AES-256
-                ))
-            q.put(('complete', "Encryption complete."))
+                pdf.save(output_path, encryption=pikepdf.Encryption(user=user_password, owner=owner_password, allow=permissions, R=6))
+            
+            q.put(('progress', 100)); q.put(('overall', 100)); q.put(('complete', "Encryption complete."))
 
         elif mode == 'remove':
             q.put(('status', "Decrypting PDF..."))
             password_provided = params.get('user_password')
 
             try:
-                # Try opening without password (might only have owner password)
                 with pikepdf.open(input_path, allow_overwriting_input=True) as pdf:
                     if pdf.is_encrypted:
-                        pdf.save(output_path) # Save removes encryption
-                        q.put(('complete', "Decryption complete (owner password removed or none required)."))
+                        pdf.save(output_path)
+                        q.put(('progress', 100)); q.put(('overall', 100)); q.put(('complete', "Decryption complete (owner password removed or none required)."))
                     else:
                         shutil.copy2(input_path, output_path)
-                        q.put(('complete', "Info: This PDF is not encrypted."))
+                        q.put(('progress', 100)); q.put(('overall', 100)); q.put(('complete', "Info: This PDF is not encrypted."))
 
             except pikepdf.PasswordError:
-                # If password error, it requires a user password
                 if not password_provided:
                     raise ProcessingError("This PDF requires a user password to open. Please provide it.")
                 try:
-                    # Retry opening with the provided password
                     with pikepdf.open(input_path, password=password_provided, allow_overwriting_input=True) as pdf:
-                        pdf.save(output_path) # Save removes encryption
-                    q.put(('complete', "Decryption complete."))
+                        pdf.save(output_path)
+                        q.put(('progress', 100)); q.put(('overall', 100)); q.put(('complete', "Decryption complete."))
                 except pikepdf.PasswordError:
                     raise ProcessingError("Wrong password provided.")
         else:
             raise ProcessingError(f"Unknown password mode: {mode}")
-
-    except (ProcessingError, ValueError, RuntimeError) as e:
-        logging.error(f"Password task failed: {e}")
-        q.put(('complete', f"Error: {e}"))
-    except Exception as e:
-        logging.error(f"An unexpected error occurred in password task: {e}", exc_info=True)
-        q.put(('complete', f"An unexpected error occurred: {e}"))

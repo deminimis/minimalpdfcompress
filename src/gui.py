@@ -16,11 +16,18 @@ from datetime import datetime
 import re
 
 import backend
+
+# Dataclass helpers to significantly reduce boilerplate
+def tk_str(v=""): return field(default_factory=lambda: tk.StringVar(value=v))
+def tk_int(v=0): return field(default_factory=lambda: tk.IntVar(value=v))
+def tk_dbl(v=0.0): return field(default_factory=lambda: tk.DoubleVar(value=v))
+def tk_bool(v=False): return field(default_factory=lambda: tk.BooleanVar(value=v))
+def tk_list(): return field(default_factory=list)
 import styles
 from constants import (APP_VERSION, ROTATION_MAP, PDF_FONTS, SPLIT_MODES, SPLIT_SINGLE,
                        SPLIT_EVERY_N, SPLIT_CUSTOM,
                        STAMP_IMAGE, STAMP_TEXT, STAMP_POSITIONS, POS_CENTER, IMAGE_FORMATS, META_LOAD, META_SAVE,
-                       PAGE_NUMBER_POSITIONS)
+                       PAGE_NUMBER_POSITIONS, ToolNotFound)
 from ui_components import (ScrolledFrame, FileSelector, Tooltip, ModernToggle,
                            CompressionGauge, DropZone, PositionSelector, CustomSlider)
 from tooltips import TOOLTIP_TEXT
@@ -33,143 +40,147 @@ if IS_WINDOWS:
         logging.warning("windnd library not found. Drag and drop will be disabled.")
         IS_WINDOWS = False
 
-COFFEE_ICON_B64 = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAE6ElEQVRogdWZX2hcRRTGf67LstQYQgghlBBCjHkIWm0oQfNQi4oU8UGLiNQipcQHixQtIr74ICKCoYhIn6QPElsJUYtIUYs+VFGordSoaatpTaRqtCk2prba/On68J2be/fm7mZ2906jH1zu3NmZb87MnHPmnFnwh3qgxyM/ABmP3M8B5zzye0UDMInfBQKPA9wLzAJXPPEvwtcEbvfIXQRfgzQCLUCdJ/5FpD2BXntPA1ngvpT5vWO3vTcDBWCEq6RKaaAZGLNyHXAeTaJ/xSSqEOuBBaDNvp9HE5gCmlZKqEpwExJ40L7rgF+sbnepTv8lZIAjSOD7ra7fvueAzhWSqyKsQ8L+jlxpFjiNJjHgY8BrU+b7FYURdyN7+Bip0l3IyF9LeTwvaAL+RisPsAbtQAFFqP8LfABcRiqUs3IBD3bg65A5DswA8yiom7b62bQHyqbA0QR0If//JfAj8CfwRWycS8hGQHbxVwpjV4Um5B6HCf188NxjbXYRxkGrkGf6KNJ/DtnIILCFq2QbLcAeQn1eAEaBN4BngYcjgmwnVM8ea7/FvruBITSBBfvtAnKz3ibSSbjah9EOtJRpn4+Ut6MYKZfQrg3YAZww7hN4Cjv22gDPVNF3mFC1SiGDwo0C8EIl5K5eKHB/uQr6gIz3K+CggxzBDrVXwO+MM4SGegypRatDvzzlJ9yFdnUswn8AqdYGlCAlqd4irnEQAuQWAd4EtiLPAnKZR4GTwDhyk9PIRc5bmywyzkZgNXADMuQewkWYBt5GtnWF4kmfBR4H3nWUNREXUFwPinUeRS4w6kkqeeaQB3sdeBAtSGvk9xHk3Q4Y/xwKFJfAdQembJDrEn6rRzbShjxTI3A94SE5awvwB/AbMAGcQgdbFB1oQT4F7ojUP4GCwH3AI47yLsEoWomGagkc0ItWfzhW32D1o0mdXD3KKWvbVa10Duiw98+x+rKXY64T+NrevWVb1Ya19h6J1ffZ+2Qt5HeibdxfC8kyOGxjxHf5E6vfXAt5HrnSi/i5bVuNbGw8Vv80YYhR9jxwwaCRba2VKAE7jXuXfdcBr1jdRVJS3fWEJ3GaiVA08X8RxURT9n0e5depIdDTh1Lk3EbyQbcXt3ClIgTGfIZ0zoQmdAWzgAQeQHlDcwrcS9ABPImMuQC8Q22qlAHeN65JtBOpC54BNgGfURzzBOVXqW4S0fg/+lxGrrqvdFd3tCPBA/LTwEtGvgZtfQFtfSWudRVhgjQJ3ApsRBMKOAvAW9SQYrYSppDH0H9e8ZXuBn4inNymhZRZNCdaRD7jxtHFDnkpoP84wjF6akzAp+/h/JXL83AexTv0gAKkfuA26w8QHHSsp/yuW8D4e7vrGYC31vnRsf2G4FDLNXp+HPI2rpgg/UZKteo1OoeRzFJP/Cyw2Af2tOODp6bCT3KWeBbdNE74cAVyPWYlRPD6OXQTeguh/AbRsfRB3xuY49Rw3mzjlBvF9DN2jbK3wdVi06k68EfJAVkA8uexMullHl0A/FUjOwHdA86YuUJlNDPUPoCN0+Y2LejXb4FBWpR7m+Q0e/D4Z9+15w4i4zqAaTjnSS7zFngH5TvBrcSOeT78yTb3LwJfRCd7kcdZQLcJxBHM7oW6QZuRCvaglxjvQkcTeovoauTc2inJpCn+w5lezNVysG/s35Qp+p2ynIAAAAASUVORK5CYII="
+COFFEE_ICON_B64 = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAE6ElEQVRogdWZX2hcRRTGf67LstQYQgghlBBCjHkIWm0oQfNQi4oU8UGLiNQipcQHixQtIr74ICKCoYhIn6QPElsJUYtIUYs+VFGordSoaatpTaRqtCk2prba/On68J2be/fm7mZ2906jH1zu3NmZb87MnHPmnFnwh3qgxyM/ABmP3M8B5zzye0UDMInfBQKPA9wLzAJXPPEvwtcEbvfIXQRfgzQCLUCdJ/5FpD2BXntPA1ngvpT5vWO3vTcDBWCEq6RKaaAZGLNyHXAeTaJ/xSSqEOuBBaDNvp9HE5gCmlZKqEpwExJ40L7rgF+sbnepTv8lZIAjSOD7ra7fvueAzhWSqyKsQ8L+jlxpFjiNJjHgY8BrU+b7FYURdyN7+Bip0l3IyF9LeTwvaAL+RisPsAbtQAFFqP8LfABcRiqUs3IBD3bg65A5DswA8yiom7b62bQHyqbA0QR0If//JfAj8CfwRWycS8hGQHbxVwpjV4Um5B6HCf188NxjbXYRxkGrkGf6KNJ/DtnIILCFq2QbLcAeQn1eAEaBN4BngYcjgmwnVM8ea7/FvruBITSBBfvtAnKz3ibSSbjah9EOtJRpn4+Ut6MYKZfQrg3YAZww7hN4Cjv22gDPVNF3mFC1SiGDwo0C8EIl5K5eKHB/uQr6gIz3K+CggxzBDrVXwO+MM4SGegypRatDvzzlJ9yFdnUswn8AqdYGlCAlqd4irnEQAuQWAd4EtiLPAnKZR4GTwDhyk9PIRc5bmywyzkZgNXADMuQewkWYBt5GtnWF4kmfBR4H3nWUNREXUFwPinUeRS4w6kkqeeaQB3sdeBAtSGvk9xHk3Q4Y/xwKFJfAdQembJDrEn6rRzbShjxTI3A94SE5awvwB/AbMAGcQgdbFB1oQT4F7ojUP4GCwH3AI47yLsEoWomGagkc0ItWfzhW32D1o0mdXD3KKWvbVa10Duiw98+x+rKXY64T+NrevWVb1Ya19h6J1ffZ+2Qt5HeibdxfC8kyOGxjxHf5E6vfXAt5HrnSi/i5bVuNbGw8Vv80YYhR9jxwwaCRba2VKAE7jXuXfdcBr1jdRVJS3fWEJ3GaiVA08X8RxURT9n0e5depIdDTh1Lk3EbyQbcXt3ClIgTGfIZ0zoQmdAWzgAQeQHlDcwrcS9ABPImMuQC8Q22qlAHeN65JtBOpC54BNgGfURzzBOVXqW4S0fg/+lxGrrqvdFd3tCPBA/LTwEtGvgZtfQFtfSWudRVhgjQJ3ApsRBMKOAvAW9SQYrYSppDH0H9e8ZXuBn4inNymhDZRZNCdaRD7jxtHFDnkpoP84wjF6akzAp+/h/JXL83AexTv0gAKkfuA26w8QHHSsp/yuW8D4e7vrGYC31vnRsf2G4FDLNXp+HPI2rpgg/UZKteo1OoeRzFJP/Cyw2Af2tOODp6bCT3KWeBbdNE74cAVyPWYlRPD6OXQTeguh/AbRsfRB3xuY49Rw3mzjlBvF9DN2jbK3wdVi06k68EfJAVkA8uexMullHl0A/FUjOwHdA86YuUJlNDPUPoCN0+Y2LejXb4FBWpR7m+Q0e/D4Z9+15w4i4zqAaTjnSS7zFngH5TvBrcSOeT78yTb3LwJfRCd7kcdZQLcJxBHM7oW6QZuRCvaglxjvQkcTeovoauTc2inJpCn+w5lezNVysG/s35Qp+p2ynIAAAAASUVORK5CYII="
 
 @dataclass
 class GeneralSettings:
-    dark_mode_enabled: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=True))
-    logging_enabled: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
-    window_geometry: tk.StringVar = field(default_factory=tk.StringVar)
+    dark_mode_enabled: tk.BooleanVar = tk_bool(True)
+    logging_enabled: tk.BooleanVar = tk_bool(False)
+    window_geometry: tk.StringVar = tk_str()
 
 @dataclass
 class OutputSettings:
-    use_default_folder: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
-    default_folder: tk.StringVar = field(default_factory=tk.StringVar)
-    prefix: tk.StringVar = field(default_factory=tk.StringVar)
-    suffix: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="_compressed"))
-    add_date: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
-    add_time: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
+    use_default_folder: tk.BooleanVar = tk_bool(False)
+    default_folder: tk.StringVar = tk_str()
+    prefix: tk.StringVar = tk_str()
+    suffix: tk.StringVar = tk_str("_compressed")
+    add_date: tk.BooleanVar = tk_bool(False)
+    add_time: tk.BooleanVar = tk_bool(False)
 
 @dataclass
 class CompressSettings:
-    files: list = field(default_factory=list)
-    output_path: tk.StringVar = field(default_factory=tk.StringVar)
-    compress_mode: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="Compression"))
-    dpi: tk.IntVar = field(default_factory=lambda: tk.IntVar(value=72))
-    pdfa_dpi: tk.IntVar = field(default_factory=lambda: tk.IntVar(value=300))
-    use_bicubic: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    safe_mode: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
-    downsample_threshold_enabled: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=True))
-    quantize_colors: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    quantize_level: tk.IntVar = field(default_factory=lambda: tk.IntVar(value=4))
-    convert_to_grayscale: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    convert_to_cmyk: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    darken_text: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    strip_metadata: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    remove_interactive: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    remove_open_action: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    fast_web_view: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    only_if_smaller: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    fast_mode: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    true_lossless: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
-    pdfa_compression: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
+    files: list = tk_list()
+    output_path: tk.StringVar = tk_str()
+    compress_mode: tk.StringVar = tk_str("Compression")
+    dpi: tk.IntVar = tk_int(72)
+    pdfa_dpi: tk.IntVar = tk_int(300)
+    use_bicubic: tk.BooleanVar = tk_bool()
+    safe_mode: tk.BooleanVar = tk_bool(False)
+    downsample_threshold_enabled: tk.BooleanVar = tk_bool(True)
+    detect_duplicate_images: tk.BooleanVar = tk_bool(True)
+    quantize_colors: tk.BooleanVar = tk_bool()
+    quantize_level: tk.IntVar = tk_int(4)
+    convert_to_grayscale: tk.BooleanVar = tk_bool()
+    convert_to_cmyk: tk.BooleanVar = tk_bool()
+    darken_text: tk.BooleanVar = tk_bool()
+    strip_metadata: tk.BooleanVar = tk_bool()
+    remove_interactive: tk.BooleanVar = tk_bool()
+    remove_open_action: tk.BooleanVar = tk_bool()
+    fast_web_view: tk.BooleanVar = tk_bool()
+    only_if_smaller: tk.BooleanVar = tk_bool()
+    fast_mode: tk.BooleanVar = tk_bool()
+    true_lossless: tk.BooleanVar = tk_bool(False)
+    pdfa_compression: tk.BooleanVar = tk_bool(False)
+    lossless_encoding: tk.BooleanVar = tk_bool(False)
+    preserve_ocr: tk.BooleanVar = tk_bool(True)
+    delete_original: tk.BooleanVar = tk_bool(False)
 
 @dataclass
 class MergeSettings:
-    files: list = field(default_factory=list)
-    output_path: tk.StringVar = field(default_factory=tk.StringVar)
+    files: list = tk_list()
+    output_path: tk.StringVar = tk_str()
 
 @dataclass
 class SplitSettings:
-    input_path: tk.StringVar = field(default_factory=tk.StringVar)
-    output_dir: tk.StringVar = field(default_factory=tk.StringVar)
-    mode: tk.StringVar = field(default_factory=lambda: tk.StringVar(value=SPLIT_SINGLE))
-    value: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="2"))
+    input_path: tk.StringVar = tk_str()
+    output_dir: tk.StringVar = tk_str()
+    mode: tk.StringVar = tk_str(SPLIT_SINGLE)
+    value: tk.StringVar = tk_str("2")
 
 @dataclass
 class RotateSettings:
-    input_path: tk.StringVar = field(default_factory=tk.StringVar)
-    output_path: tk.StringVar = field(default_factory=tk.StringVar)
-    angle: tk.StringVar = field(default_factory=lambda: tk.StringVar(value=list(ROTATION_MAP.keys())[1]))
+    input_path: tk.StringVar = tk_str()
+    output_path: tk.StringVar = tk_str()
+    angle: tk.StringVar = tk_str(list(ROTATION_MAP.keys())[1])
 
 @dataclass
 class DeleteSettings:
-    input_path: tk.StringVar = field(default_factory=tk.StringVar)
-    output_path: tk.StringVar = field(default_factory=tk.StringVar)
-    page_range: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="1, 3-5"))
+    input_path: tk.StringVar = tk_str()
+    output_path: tk.StringVar = tk_str()
+    page_range: tk.StringVar = tk_str("1, 3-5")
 
 @dataclass
 class StampSettings:
-    input_path: tk.StringVar = field(default_factory=tk.StringVar)
-    output_path: tk.StringVar = field(default_factory=tk.StringVar)
-    mode: tk.StringVar = field(default_factory=lambda: tk.StringVar(value=STAMP_IMAGE))
-    image_path: tk.StringVar = field(default_factory=tk.StringVar)
-    image_scale: tk.DoubleVar = field(default_factory=lambda: tk.DoubleVar(value=100.0))
-    text: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="CONFIDENTIAL"))
-    font: tk.StringVar = field(default_factory=lambda: tk.StringVar(value=PDF_FONTS[0]))
-    font_size: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="48"))
-    font_color: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="#ff0000"))
-    pos: tk.StringVar = field(default_factory=lambda: tk.StringVar(value=POS_CENTER))
-    opacity: tk.DoubleVar = field(default_factory=lambda: tk.DoubleVar(value=0.5))
-    on_top: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=True))
-    bates_enabled: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    bates_start: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="1"))
+    input_path: tk.StringVar = tk_str()
+    output_path: tk.StringVar = tk_str()
+    mode: tk.StringVar = tk_str(STAMP_IMAGE)
+    image_path: tk.StringVar = tk_str()
+    image_scale: tk.DoubleVar = tk_dbl(100.0)
+    text: tk.StringVar = tk_str("CONFIDENTIAL")
+    font: tk.StringVar = tk_str(PDF_FONTS[0])
+    font_size: tk.StringVar = tk_str("48")
+    font_color: tk.StringVar = tk_str("#ff0000")
+    pos: tk.StringVar = tk_str(POS_CENTER)
+    opacity: tk.DoubleVar = tk_dbl(0.5)
+    on_top: tk.BooleanVar = tk_bool(True)
+    bates_enabled: tk.BooleanVar = tk_bool()
+    bates_start: tk.StringVar = tk_str("1")
 
 @dataclass
 class PageNumberSettings:
-    input_path: tk.StringVar = field(default_factory=tk.StringVar)
-    output_path: tk.StringVar = field(default_factory=tk.StringVar)
-    mode: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="Page X of Y"))
-    custom_text: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="%File"))
-    page_range: tk.StringVar = field(default_factory=tk.StringVar)
-    pos: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="Bottom Center"))
-    font: tk.StringVar = field(default_factory=lambda: tk.StringVar(value=PDF_FONTS[0]))
-    font_size: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="12"))
-    font_color: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="#000000"))
+    input_path: tk.StringVar = tk_str()
+    output_path: tk.StringVar = tk_str()
+    mode: tk.StringVar = tk_str("Page X of Y")
+    custom_text: tk.StringVar = tk_str("%File")
+    page_range: tk.StringVar = tk_str()
+    pos: tk.StringVar = tk_str("Bottom Center")
+    font: tk.StringVar = tk_str(PDF_FONTS[0])
+    font_size: tk.StringVar = tk_str("12")
+    font_color: tk.StringVar = tk_str("#000000")
 
 @dataclass
 class MetadataSettings:
-    input_path: tk.StringVar = field(default_factory=tk.StringVar)
-    title: tk.StringVar = field(default_factory=tk.StringVar)
-    author: tk.StringVar = field(default_factory=tk.StringVar)
-    subject: tk.StringVar = field(default_factory=tk.StringVar)
-    keywords: tk.StringVar = field(default_factory=tk.StringVar)
+    input_path: tk.StringVar = tk_str()
+    title: tk.StringVar = tk_str()
+    author: tk.StringVar = tk_str()
+    subject: tk.StringVar = tk_str()
+    keywords: tk.StringVar = tk_str()
 
 @dataclass
 class ConvertSettings:
-    input_path: tk.StringVar = field(default_factory=tk.StringVar)
-    output_dir: tk.StringVar = field(default_factory=tk.StringVar)
-    format: tk.StringVar = field(default_factory=lambda: tk.StringVar(value=IMAGE_FORMATS[0]))
-    dpi: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="300"))
-    dpi_slider: tk.IntVar = field(default_factory=lambda: tk.IntVar(value=300))
+    input_path: tk.StringVar = tk_str()
+    output_dir: tk.StringVar = tk_str()
+    format: tk.StringVar = tk_str(IMAGE_FORMATS[0])
+    dpi: tk.StringVar = tk_str("300")
+    dpi_slider: tk.IntVar = tk_int(300)
 
 @dataclass
 class RepairSettings:
-    input_path: tk.StringVar = field(default_factory=tk.StringVar)
-    output_path: tk.StringVar = field(default_factory=tk.StringVar)
+    input_path: tk.StringVar = tk_str()
+    output_path: tk.StringVar = tk_str()
 
 @dataclass
 class TocSettings:
-    input_path: tk.StringVar = field(default_factory=tk.StringVar)
-    output_path: tk.StringVar = field(default_factory=tk.StringVar)
-    title: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="Table of Contents"))
-    font: tk.StringVar = field(default_factory=lambda: tk.StringVar(value=PDF_FONTS[0]))
-    font_size: tk.StringVar = field(default_factory=lambda: tk.StringVar(value="12"))
-    dot_leaders: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=True))
-    no_bookmark: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
+    input_path: tk.StringVar = tk_str()
+    output_path: tk.StringVar = tk_str()
+    title: tk.StringVar = tk_str("Table of Contents")
+    font: tk.StringVar = tk_str(PDF_FONTS[0])
+    font_size: tk.StringVar = tk_str("12")
+    dot_leaders: tk.BooleanVar = tk_bool(True)
+    no_bookmark: tk.BooleanVar = tk_bool(False)
 
 @dataclass
 class PasswordSettings:
-    input_path: tk.StringVar = field(default_factory=tk.StringVar)
-    output_path: tk.StringVar = field(default_factory=tk.StringVar)
-    user_password: tk.StringVar = field(default_factory=tk.StringVar)
-    owner_password: tk.StringVar = field(default_factory=tk.StringVar)
-    decrypt_password: tk.StringVar = field(default_factory=tk.StringVar)
-    show_passwords: tk.BooleanVar = field(default_factory=tk.BooleanVar)
-    allow_printing: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=True))
-    allow_modification: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
-    allow_copy_and_extract: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=True))
-    allow_annotations_and_forms: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=True))
+    input_path: tk.StringVar = tk_str()
+    output_path: tk.StringVar = tk_str()
+    user_password: tk.StringVar = tk_str()
+    owner_password: tk.StringVar = tk_str()
+    decrypt_password: tk.StringVar = tk_str()
+    show_passwords: tk.BooleanVar = tk_bool()
+    allow_printing: tk.BooleanVar = tk_bool(True)
+    allow_modification: tk.BooleanVar = tk_bool(False)
+    allow_copy_and_extract: tk.BooleanVar = tk_bool(True)
+    allow_annotations_and_forms: tk.BooleanVar = tk_bool(True)
 
 
 class GhostscriptGUI:
@@ -199,9 +210,19 @@ class GhostscriptGUI:
         self.toc_settings = TocSettings()
         self.password_settings = PasswordSettings()
 
+        self.settings_groups = {
+            'general': self.general_settings, 'output': self.output_settings,
+            'compress': self.compress_settings, 'merge': self.merge_settings,
+            'split': self.split_settings, 'rotate': self.rotate_settings,
+            'delete': self.delete_settings, 'stamp': self.stamp_settings,
+            'page_number': self.page_number_settings, 'metadata': self.meta_settings,
+            'convert': self.convert_settings, 'repair': self.repair_settings,
+            'toc': self.toc_settings, 'password': self.password_settings
+        }
+
         self.palette = {}
         self.toggles = []
-        self.gs_path, self.cpdf_path, self.pngquant_path, self.jpegoptim_path, self.ect_path = None, None, None, None, None
+        self.gs_path, self.cpdf_path, self.pngquant_path, self.jpegoptim_path, self.ect_path, self.oxipng_path = None, None, None, None, None, None
         self.active_process_button = None
         self.tab_frames = {}
         self.drop_zones = {}
@@ -267,33 +288,12 @@ class GhostscriptGUI:
     def _validate_page_range(self, P):
         return all(c in "0123456789,-endEND " for c in P)
 
-    def _clamp_dpi(self, event=None):
+    def _clamp_var(self, var, min_val, max_val, default):
         try:
-            value = self.compress_settings.dpi.get()
-            if value > 600:
-                self.compress_settings.dpi.set(600)
-            elif value < 0:
-                self.compress_settings.dpi.set(0)
+            val = var.get()
+            var.set(max(min_val, min(max_val, val)))
         except (ValueError, tk.TclError):
-            self.compress_settings.dpi.set(72)
-
-    def _clamp_pdfa_dpi(self, event=None):
-        try:
-            value = self.compress_settings.pdfa_dpi.get()
-            if value > 600:
-                self.compress_settings.pdfa_dpi.set(600)
-            elif value < 0:
-                self.compress_settings.pdfa_dpi.set(0)
-        except (ValueError, tk.TclError):
-            self.compress_settings.pdfa_dpi.set(300)
-
-    def _clamp_quantize_level(self, event=None):
-        try:
-            value = self.compress_settings.quantize_level.get()
-            if value > 8: self.compress_settings.quantize_level.set(8)
-            elif value < 2: self.compress_settings.quantize_level.set(2)
-        except (ValueError, tk.TclError):
-            self.compress_settings.quantize_level.set(4)
+            var.set(default)
 
     def check_progress_queue(self):
         try:
@@ -329,22 +329,7 @@ class GhostscriptGUI:
         return obj
 
     def save_settings(self):
-        settings = {
-            'general': self._get_tk_vars_as_dict(self.general_settings),
-            'output': self._get_tk_vars_as_dict(self.output_settings),
-            'compress': self._get_tk_vars_as_dict(self.compress_settings),
-            'merge': self._get_tk_vars_as_dict(self.merge_settings),
-            'split': self._get_tk_vars_as_dict(self.split_settings),
-            'rotate': self._get_tk_vars_as_dict(self.rotate_settings),
-            'delete': self._get_tk_vars_as_dict(self.delete_settings),
-            'stamp': self._get_tk_vars_as_dict(self.stamp_settings),
-            'page_number': self._get_tk_vars_as_dict(self.page_number_settings),
-            'metadata': self._get_tk_vars_as_dict(self.meta_settings),
-            'convert': self._get_tk_vars_as_dict(self.convert_settings),
-            'repair': self._get_tk_vars_as_dict(self.repair_settings),
-            'toc': self._get_tk_vars_as_dict(self.toc_settings),
-            'password': self._get_tk_vars_as_dict(self.password_settings),
-        }
+        settings = {k: self._get_tk_vars_as_dict(v) for k, v in self.settings_groups.items()}
         try:
             with open(self.settings_file, 'w') as f: json.dump(settings, f, indent=4)
         except Exception as e: logging.warning(f"Failed to save settings: {e}")
@@ -363,20 +348,8 @@ class GhostscriptGUI:
         if not self.settings_file.exists(): return
         try:
             with open(self.settings_file, 'r') as f: s = json.load(f)
-            self._set_tk_vars_from_dict(self.general_settings, s.get('general', {}))
-            self._set_tk_vars_from_dict(self.output_settings, s.get('output', {}))
-            self._set_tk_vars_from_dict(self.compress_settings, s.get('compress', {}))
-            self._set_tk_vars_from_dict(self.merge_settings, s.get('merge', {}))
-            self._set_tk_vars_from_dict(self.split_settings, s.get('split', {}))
-            self._set_tk_vars_from_dict(self.rotate_settings, s.get('rotate', {}))
-            self._set_tk_vars_from_dict(self.delete_settings, s.get('delete', {}))
-            self._set_tk_vars_from_dict(self.stamp_settings, s.get('stamp', {}))
-            self._set_tk_vars_from_dict(self.page_number_settings, s.get('page_number', {}))
-            self._set_tk_vars_from_dict(self.meta_settings, s.get('metadata', {}))
-            self._set_tk_vars_from_dict(self.convert_settings, s.get('convert', {}))
-            self._set_tk_vars_from_dict(self.repair_settings, s.get('repair', {}))
-            self._set_tk_vars_from_dict(self.toc_settings, s.get('toc', {}))
-            self._set_tk_vars_from_dict(self.password_settings, s.get('password', {}))
+            for k, v in self.settings_groups.items():
+                self._set_tk_vars_from_dict(v, s.get(k, {}))
 
             self.update_merge_view()
             self.update_compress_view()
@@ -404,21 +377,16 @@ class GhostscriptGUI:
         for var in self.tab_statuses.values():
             var.set("")
         try:
-            notebook = event.widget
-            selected_tab_text = notebook.tab(notebook.select(), "text")
-
-            if selected_tab_text == "Rotate":
-                if self.rotate_settings.input_path.get():
-                    self._trigger_rotate_preview()
-            elif selected_tab_text == "Delete Pages":
-                if self.delete_settings.input_path.get():
-                    self._update_preview(self.delete_settings.input_path.get(), self.delete_preview_canvas)
-            elif selected_tab_text == "Stamp/Watermark":
-                if self.stamp_settings.input_path.get():
-                    self._trigger_stamp_preview()
-            elif selected_tab_text == "Header/Footer":
-                if self.page_number_settings.input_path.get():
-                    self._trigger_page_number_preview()
+            selected_tab_text = event.widget.tab(event.widget.select(), "text")
+            preview_triggers = {
+                "Rotate": (self.rotate_settings.input_path, self._trigger_rotate_preview),
+                "Delete Pages": (self.delete_settings.input_path, lambda: self._update_preview(self.delete_settings.input_path.get(), self.delete_preview_canvas)),
+                "Stamp/Watermark": (self.stamp_settings.input_path, self._trigger_stamp_preview),
+                "Header/Footer": (self.page_number_settings.input_path, self._trigger_page_number_preview)
+            }
+            if selected_tab_text in preview_triggers:
+                path_var, trigger_func = preview_triggers[selected_tab_text]
+                if path_var.get(): trigger_func()
         except tk.TclError:
             pass
         except Exception as e:
@@ -442,29 +410,20 @@ class GhostscriptGUI:
         self.utilities_notebook = utilities_notebook
 
         utility_tab_configs = [
-            ("merge", "Merge"), ("split", "Split/Extract"), ("rotate", "Rotate"),
-            ("delete", "Delete Pages"), ("password", "Password"), ("stamp", "Stamp/Watermark"),
-            ("page_number", "Header/Footer"), ("toc", "Table of Contents"),
-            ("metadata", "Metadata"), ("convert", "PDF to Image"), ("repair", "PDF Repair")
+            ("merge", "Merge", self._build_merge_tab), ("split", "Split/Extract", self._build_split_tab),
+            ("rotate", "Rotate", self._build_rotate_tab), ("delete", "Delete Pages", self._build_delete_tab),
+            ("password", "Password", self._build_password_tab), ("stamp", "Stamp/Watermark", self._build_stamp_tab),
+            ("page_number", "Header/Footer", self._build_page_number_tab), ("toc", "Table of Contents", self._build_toc_tab),
+            ("metadata", "Metadata", self._build_metadata_tab), ("convert", "PDF to Image", self._build_convert_tab),
+            ("repair", "PDF Repair", self._build_repair_tab)
         ]
 
-        for name, text in utility_tab_configs:
+        for name, text, builder in utility_tab_configs:
             frame = ScrolledFrame(utilities_notebook)
             self.tab_frames[name] = frame
             utilities_notebook.add(frame, text=text)
             self.tab_statuses[name] = tk.StringVar()
-
-        self._build_merge_tab(self.tab_frames["merge"].scrollable_frame)
-        self._build_split_tab(self.tab_frames["split"].scrollable_frame)
-        self._build_rotate_tab(self.tab_frames["rotate"].scrollable_frame)
-        self._build_delete_tab(self.tab_frames["delete"].scrollable_frame)
-        self._build_password_tab(self.tab_frames["password"].scrollable_frame)
-        self._build_stamp_tab(self.tab_frames["stamp"].scrollable_frame)
-        self._build_page_number_tab(self.tab_frames["page_number"].scrollable_frame)
-        self._build_toc_tab(self.tab_frames["toc"].scrollable_frame)
-        self._build_metadata_tab(self.tab_frames["metadata"].scrollable_frame)
-        self._build_convert_tab(self.tab_frames["convert"].scrollable_frame)
-        self._build_repair_tab(self.tab_frames["repair"].scrollable_frame)
+            builder(frame.scrollable_frame)
 
         settings_tab = ScrolledFrame(main_notebook)
         main_notebook.add(settings_tab, text="Settings")
@@ -476,50 +435,10 @@ class GhostscriptGUI:
         ttk.Label(status_bar, textvariable=self.status, anchor="w", style="Card.TLabel").pack(fill="x")
 
     def setup_traces(self):
-        s_stamp = self.stamp_settings
         self.compress_settings.compress_mode.trace_add("write", self._update_compress_options)
-        self.split_settings.input_path.trace_add("write", lambda *a: self._update_output_path(self.split_settings.input_path, self.split_settings.output_dir, is_dir=True))
-
-        self.rotate_settings.input_path.trace_add("write", lambda *a: self._update_output_path(self.rotate_settings.input_path, self.rotate_settings.output_path))
-        self.rotate_settings.input_path.trace_add("write", self._trigger_rotate_preview)
-        self.rotate_settings.angle.trace_add("write", self._trigger_rotate_preview)
-
-        self.delete_settings.input_path.trace_add("write", lambda *a: self._update_output_path(self.delete_settings.input_path, self.delete_settings.output_path))
-        self.delete_settings.input_path.trace_add("write", lambda *a: self._update_preview(self.delete_settings.input_path.get(), self.delete_preview_canvas))
-
-        self.password_settings.input_path.trace_add("write", lambda *a: self._update_output_path(self.password_settings.input_path, self.password_settings.output_path))
-
-        stamp_vars_to_trace = [s_stamp.input_path, s_stamp.output_path, s_stamp.mode, s_stamp.image_path, s_stamp.image_scale, s_stamp.text, s_stamp.font, s_stamp.font_size, s_stamp.font_color, s_stamp.pos, s_stamp.opacity, s_stamp.on_top, s_stamp.bates_enabled, s_stamp.bates_start]
-        for var in stamp_vars_to_trace:
-            var.trace_add("write", self._trigger_stamp_preview)
-        s_stamp.input_path.trace_add("write", lambda *a: self._update_output_path(s_stamp.input_path, s_stamp.output_path))
-
-        s_hf = self.page_number_settings
-        hf_vars_to_trace = [s_hf.input_path, s_hf.mode, s_hf.custom_text, s_hf.page_range, s_hf.pos, s_hf.font, s_hf.font_size, s_hf.font_color]
-        for var in hf_vars_to_trace:
-            var.trace_add("write", self._trigger_page_number_preview)
-        s_hf.input_path.trace_add("write", lambda *a: self._update_output_path(s_hf.input_path, s_hf.output_path))
-
-        self.toc_settings.input_path.trace_add("write", lambda *a: self._update_output_path(self.toc_settings.input_path, self.toc_settings.output_path))
-
-        self.convert_settings.input_path.trace_add("write", lambda *a: self._update_output_path(self.convert_settings.input_path, self.convert_settings.output_dir, is_dir=True))
-        self.repair_settings.input_path.trace_add("write", lambda *a: self._update_output_path(self.repair_settings.input_path, self.repair_settings.output_path))
-
-        self.split_settings.mode.trace_add("write", self._update_split_validation)
-        self.convert_settings.dpi_slider.trace_add("write", lambda *a: self.convert_settings.dpi.set(self.convert_settings.dpi_slider.get()))
-        self.meta_settings.input_path.trace_add("write", self.load_metadata)
-
-        os = self.output_settings
-        vars_to_trace = [
-            os.use_default_folder, os.default_folder,
-            os.prefix, os.suffix, os.add_date, os.add_time
-        ]
-        for var in vars_to_trace:
-            var.trace_add("write", self._re_evaluate_all_paths)
-
-    def _re_evaluate_all_paths(self, *args):
-        self._update_compress_output_path()
-        path_vars = [
+        
+        # Consolidate all path mappings for initial binding and re-evaluations
+        self._path_vars_mapping = [
             (self.split_settings.input_path, self.split_settings.output_dir, {'is_dir': True}),
             (self.rotate_settings.input_path, self.rotate_settings.output_path, {}),
             (self.delete_settings.input_path, self.delete_settings.output_path, {}),
@@ -530,7 +449,35 @@ class GhostscriptGUI:
             (self.convert_settings.input_path, self.convert_settings.output_dir, {'is_dir': True}),
             (self.repair_settings.input_path, self.repair_settings.output_path, {}),
         ]
-        for in_var, out_var, kwargs in path_vars:
+        
+        # Apply path auto-fill traces using the unified mapping
+        for in_var, out_var, kwargs in self._path_vars_mapping:
+            in_var.trace_add("write", lambda *a, iv=in_var, ov=out_var, kw=kwargs: self._update_output_path(iv, ov, **kw))
+
+        # Setup preview triggers
+        self.rotate_settings.input_path.trace_add("write", self._trigger_rotate_preview)
+        self.rotate_settings.angle.trace_add("write", self._trigger_rotate_preview)
+        self.delete_settings.input_path.trace_add("write", lambda *a: self._update_preview(self.delete_settings.input_path.get(), self.delete_preview_canvas))
+
+        for key, var in self.stamp_settings.__dict__.items():
+            if isinstance(var, tk.Variable): var.trace_add("write", self._trigger_stamp_preview)
+            
+        for key, var in self.page_number_settings.__dict__.items():
+            if isinstance(var, tk.Variable): var.trace_add("write", self._trigger_page_number_preview)
+
+        # Misc state updates
+        self.split_settings.mode.trace_add("write", self._update_split_validation)
+        self.convert_settings.dpi_slider.trace_add("write", lambda *a: self.convert_settings.dpi.set(self.convert_settings.dpi_slider.get()))
+        self.meta_settings.input_path.trace_add("write", self.load_metadata)
+
+        # Connect Output Setting changes to re-evaluate paths globally
+        os_cfg = self.output_settings
+        for var in [os_cfg.use_default_folder, os_cfg.default_folder, os_cfg.prefix, os_cfg.suffix, os_cfg.add_date, os_cfg.add_time]:
+            var.trace_add("write", self._re_evaluate_all_paths)
+
+    def _re_evaluate_all_paths(self, *args):
+        self._update_compress_output_path()
+        for in_var, out_var, kwargs in self._path_vars_mapping:
             if in_var.get():
                 self._update_output_path(in_var, out_var, **kwargs)
 
@@ -586,9 +533,53 @@ class GhostscriptGUI:
         btn_shadow.grid(row=row, column=0, columnspan=columnspan, sticky="ew", pady=(15, 12), padx=3)
         btn = ttk.Button(btn_shadow, text=text, command=command, style="Accent.TButton")
         btn.pack(fill="x", ipady=10, pady=(0,3), padx=(0,3))
-        if tooltip_key:
-            Tooltip(btn, TOOLTIP_TEXT.get(tooltip_key))
+        if tooltip_key: Tooltip(btn, TOOLTIP_TEXT.get(tooltip_key))
         return btn
+
+    def _create_toggle(self, parent, text, variable, tooltip_key, command=None, layout='pack', **layout_kwargs):
+        toggle = ModernToggle(parent, text=text, variable=variable, command=command, palette=self.palette)
+        if layout == 'pack': toggle.pack(**layout_kwargs)
+        else: toggle.grid(**layout_kwargs)
+        if tooltip_key: Tooltip(toggle, TOOLTIP_TEXT.get(tooltip_key))
+        self.toggles.append(toggle)
+        return toggle
+
+    def _create_checkbutton(self, parent, text, variable, tooltip_key, command=None, layout='pack', **layout_kwargs):
+        cb = ttk.Checkbutton(parent, text=text, variable=variable, command=command)
+        if layout == 'pack': cb.pack(**layout_kwargs)
+        else: cb.grid(**layout_kwargs)
+        if tooltip_key: Tooltip(cb, TOOLTIP_TEXT.get(tooltip_key))
+        return cb
+
+    def _build_io_card(self, parent, tab_name, s, is_dir=False, padding=20):
+        io_frame = ttk.Frame(parent, style="Card.TFrame", padding=padding)
+        io_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10) if tab_name == 'toc' else 0)
+        io_frame.columnconfigure(0, weight=1)
+        self.drop_zones[tab_name] = self._create_drop_zone(io_frame, s.input_path)
+        out_var = s.output_dir if is_dir else s.output_path
+        browse_cmd = (lambda: self.browse_dir(out_var)) if is_dir else (lambda: self.browse_save_file(out_var))
+        FileSelector(io_frame, s.input_path, out_var, browse_cmd).grid(row=1, column=0, sticky="ew")
+        return io_frame
+
+    def _build_preview_layout(self, parent, tab_name, settings, is_dir=False, preview_rowspan=1):
+        main_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
+        main_card.grid(row=0, column=0, sticky="nsew")
+        main_card.columnconfigure(0, weight=1); main_card.columnconfigure(1, weight=1)
+
+        left_panel = self._build_io_card(main_card, tab_name, settings, is_dir=is_dir, padding=0)
+        left_panel.grid(row=0, column=0, sticky="nsew", padx=(0, 20))
+
+        preview_frame = ttk.Frame(main_card, style="Card.TFrame")
+        preview_frame.grid(row=0, column=1, sticky="nsew", rowspan=preview_rowspan)
+        preview_frame.rowconfigure(0, weight=1); preview_frame.columnconfigure(0, weight=1)
+        canvas = tk.Canvas(preview_frame, highlightthickness=1)
+        canvas.grid(row=0, column=0, sticky="nsew")
+
+        return main_card, left_panel, canvas
+
+    def _build_footer(self, parent, tab_name, btn_text, command, row):
+        ttk.Label(parent, textvariable=self.tab_statuses[tab_name], anchor="center").grid(row=row, column=0, sticky="ew", pady=(10, 0))
+        return self._create_process_button(parent, btn_text, command, row=row+1, tooltip_key=f"{tab_name}_process_btn")
 
     def _update_color_conversion_checks(self, changed_var):
         cs = self.compress_settings
@@ -706,12 +697,12 @@ class GhostscriptGUI:
 
         self.dpi_entry = ttk.Entry(dpi_frame, textvariable=cs.dpi, width=5, validate='key', validatecommand=self.vcmd_int)
         self.dpi_entry.grid(row=1, column=1, sticky="w")
-        self.dpi_entry.bind("<FocusOut>", self._clamp_dpi)
+        self.dpi_entry.bind("<FocusOut>", lambda e: self._clamp_var(cs.dpi, 0, 600, 72))
         Tooltip(dpi_frame, TOOLTIP_TEXT.get("compress_dpi_slider"))
 
         self.pdfa_dpi_slider = CustomSlider(dpi_frame, from_=72, to=600, variable=cs.pdfa_dpi, palette=self.palette)
         self.pdfa_dpi_entry = ttk.Entry(dpi_frame, textvariable=cs.pdfa_dpi, width=5, validate='key', validatecommand=self.vcmd_int)
-        self.pdfa_dpi_entry.bind("<FocusOut>", self._clamp_pdfa_dpi)
+        self.pdfa_dpi_entry.bind("<FocusOut>", lambda e: self._clamp_var(cs.pdfa_dpi, 0, 600, 300))
 
         progress_frame = ttk.Frame(options_frame, style="TFrame")
         progress_frame.grid(row=3, column=0, sticky="ew", pady=(20,0))
@@ -729,34 +720,31 @@ class GhostscriptGUI:
         f1 = ttk.Frame(adv_frame); f1.grid(row=0, column=0, sticky="nsew");
         f2 = ttk.Frame(adv_frame); f2.grid(row=0, column=1, sticky="nsew", padx=20);
 
-        cb1 = ttk.Checkbutton(f1, text="Remove Interactive (Compression)", variable=cs.remove_interactive); cb1.pack(anchor="w"); Tooltip(cb1, TOOLTIP_TEXT.get("output_remove_interactive"))
-        cb2 = ttk.Checkbutton(f1, text="Strip All Metadata", variable=cs.strip_metadata); cb2.pack(anchor="w"); Tooltip(cb2, TOOLTIP_TEXT.get("output_strip_metadata"))
-        self.bicubic_check = ttk.Checkbutton(f1, text="Use Bicubic Sampling (Higher Quality)", variable=cs.use_bicubic)
-        self.bicubic_check.pack(anchor="w"); Tooltip(self.bicubic_check, TOOLTIP_TEXT.get("output_bicubic"))
+        self._create_checkbutton(f1, "Remove Interactive (Compression)", cs.remove_interactive, "output_remove_interactive", anchor="w")
+        self._create_checkbutton(f1, "Strip All Metadata", cs.strip_metadata, "output_strip_metadata", anchor="w")
+        self.bicubic_check = self._create_checkbutton(f1, "Use Bicubic Sampling (Higher Quality)", cs.use_bicubic, "output_bicubic", anchor="w")
         
-        self.safe_mode_check = ttk.Checkbutton(f1, text="Safe Mode (prevents graphic artifacts)", variable=cs.safe_mode)
-        self.safe_mode_check.pack(anchor="w"); Tooltip(self.safe_mode_check, TOOLTIP_TEXT.get("compress_safe_mode"))
+        self.safe_mode_check = self._create_checkbutton(f1, "Safe Mode (prevents graphic artifacts)", cs.safe_mode, "compress_safe_mode", anchor="w")
+        self.lossless_enc_check = self._create_checkbutton(f1, "Lossless Image Encoding (Flate)", cs.lossless_encoding, "compress_lossless_enc", anchor="w")
+        self.preserve_ocr_check = self._create_checkbutton(f1, "Preserve OCR Layer / Fonts", cs.preserve_ocr, "compress_preserve_ocr", anchor="w")
         
-        self.downsample_threshold_check = ttk.Checkbutton(f1, text="Only Downsample Larger Images (Recommended)", variable=cs.downsample_threshold_enabled)
-        self.downsample_threshold_check.pack(anchor="w"); Tooltip(self.downsample_threshold_check, TOOLTIP_TEXT.get("compress_downsample_threshold"))
-        cb4 = ttk.Checkbutton(f1, text="Linearize for Fast Web View", variable=cs.fast_web_view); cb4.pack(anchor="w"); Tooltip(cb4, TOOLTIP_TEXT.get("output_fast_web"))
-        cb5 = ttk.Checkbutton(f1, text="Darken Text", variable=cs.darken_text); cb5.pack(anchor="w"); Tooltip(cb5, TOOLTIP_TEXT.get("output_darken_text"))
-        cb6 = ttk.Checkbutton(f1, text="Remove Open Action", variable=cs.remove_open_action); cb6.pack(anchor="w"); Tooltip(cb6, TOOLTIP_TEXT.get("output_remove_openaction"))
+        self.downsample_threshold_check = self._create_checkbutton(f1, "Only Downsample Larger Images (Recommended)", cs.downsample_threshold_enabled, "compress_downsample_threshold", anchor="w")
+        self.detect_duplicate_images_check = self._create_checkbutton(f1, "Detect Duplicate Images", cs.detect_duplicate_images, "compress_detect_duplicate_images", anchor="w")
+        self._create_checkbutton(f1, "Linearize for Fast Web View", cs.fast_web_view, "output_fast_web", anchor="w")
+        self._create_checkbutton(f1, "Darken Text", cs.darken_text, "output_darken_text", anchor="w")
+        self._create_checkbutton(f1, "Remove Open Action", cs.remove_open_action, "output_remove_openaction", anchor="w")
 
-        self.grayscale_check = ttk.Checkbutton(f2, text="Convert to Grayscale", variable=cs.convert_to_grayscale, command=lambda: self._update_color_conversion_checks('grayscale')); self.grayscale_check.pack(anchor="w"); Tooltip(self.grayscale_check, TOOLTIP_TEXT.get("compress_grayscale_check"))
-        self.cmyk_check = ttk.Checkbutton(f2, text="Convert to CMYK (for printing)", variable=cs.convert_to_cmyk, command=lambda: self._update_color_conversion_checks('cmyk')); self.cmyk_check.pack(anchor="w"); Tooltip(self.cmyk_check, TOOLTIP_TEXT.get("compress_cmyk_check"))
+        self.grayscale_check = self._create_checkbutton(f2, "Convert to Grayscale", cs.convert_to_grayscale, "compress_grayscale_check", command=lambda: self._update_color_conversion_checks('grayscale'), anchor="w")
+        self.cmyk_check = self._create_checkbutton(f2, "Convert to CMYK (for printing)", cs.convert_to_cmyk, "compress_cmyk_check", command=lambda: self._update_color_conversion_checks('cmyk'), anchor="w")
 
         quantize_frame = ttk.Frame(f2)
         quantize_frame.pack(anchor="w", fill="x", pady=(10,0))
-        self.quantize_toggle = ModernToggle(quantize_frame, text="Quantize Colors (Posterize)", variable=cs.quantize_colors, palette=self.palette)
-        self.quantize_toggle.pack(side="left")
-        self.toggles.append(self.quantize_toggle)
-        Tooltip(self.quantize_toggle, TOOLTIP_TEXT.get("compress_quantize"))
+        self.quantize_toggle = self._create_toggle(quantize_frame, "Quantize Colors (Posterize)", cs.quantize_colors, "compress_quantize", side="left")
 
         self.quantize_level_entry = ttk.Entry(quantize_frame, textvariable=cs.quantize_level, width=3, validate='key', validatecommand=self.vcmd_int)
         self.quantize_level_entry.pack(side="left", padx=5)
         ttk.Label(quantize_frame, text="Levels (2-8)").pack(side="left")
-        self.quantize_level_entry.bind("<FocusOut>", self._clamp_quantize_level)
+        self.quantize_level_entry.bind("<FocusOut>", lambda e: self._clamp_var(cs.quantize_level, 2, 8, 4))
 
         def toggle_quantize_entry_state(*args):
             state = "normal" if cs.quantize_colors.get() else "disabled"
@@ -765,15 +753,15 @@ class GhostscriptGUI:
         cs.quantize_colors.trace_add("write", toggle_quantize_entry_state)
         toggle_quantize_entry_state()
 
-        cb8 = ttk.Checkbutton(f2, text="Don't save if larger than original", variable=cs.only_if_smaller); cb8.pack(anchor="w", pady=(10,0)); Tooltip(cb8, TOOLTIP_TEXT.get("compress_only_if_smaller"))
-        cb9 = ttk.Checkbutton(f2, text="Fast Mode (lower compression)", variable=cs.fast_mode); cb9.pack(anchor="w"); Tooltip(cb9, TOOLTIP_TEXT.get("compress_fast_mode"))
-        self.true_lossless_check = ttk.Checkbutton(f2, text="True Lossless (preserves JPEGs)", variable=cs.true_lossless)
-        self.true_lossless_check.pack(anchor="w", pady=(5,0))
-        Tooltip(self.true_lossless_check, TOOLTIP_TEXT.get("compress_true_lossless"))
+        self._create_checkbutton(f2, "Don't save if larger than original", cs.only_if_smaller, "compress_only_if_smaller", anchor="w", pady=(10,0))
+        self._create_checkbutton(f2, "Fast Mode (lower compression)", cs.fast_mode, "compress_fast_mode", anchor="w")
+        self.true_lossless_check = self._create_checkbutton(f2, "True Lossless (preserves JPEGs)", cs.true_lossless, "compress_true_lossless", anchor="w", pady=(5,0))
 
-        self.pdfa_compress_check = ttk.Checkbutton(f2, text="Compress PDF/A Output", variable=cs.pdfa_compression)
-        self.pdfa_compress_check.pack(anchor="w", pady=(5,0))
+        self.pdfa_compress_check = self._create_checkbutton(f2, "Compress PDF/A Output", cs.pdfa_compression, None, anchor="w", pady=(5,0))
         Tooltip(self.pdfa_compress_check, "Applies compression to the PDF/A file, which can reduce size but may affect quality.")
+
+        self.delete_original_check = self._create_checkbutton(f2, "Delete original file if compressed", cs.delete_original, None, anchor="w", pady=(5,0))
+        Tooltip(self.delete_original_check, "Automatically deletes the original input file if compression successfully reduces its size.")
 
         self._update_compress_options()
         self.update_compress_view()
@@ -826,12 +814,7 @@ class GhostscriptGUI:
     def _build_split_tab(self, parent):
         parent.columnconfigure(0, weight=1)
         s = self.split_settings
-
-        io_frame = ttk.Frame(parent, style="Card.TFrame", padding=20)
-        io_frame.grid(row=0, column=0, sticky="ew")
-        io_frame.columnconfigure(0, weight=1)
-        self.drop_zones['split'] = self._create_drop_zone(io_frame, s.input_path)
-        FileSelector(io_frame, s.input_path, s.output_dir, lambda: self.browse_dir(s.output_dir))
+        self._build_io_card(parent, 'split', s, is_dir=True)
 
         options_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
         options_card.grid(row=1, column=0, sticky="ew", pady=10)
@@ -842,19 +825,16 @@ class GhostscriptGUI:
         rb1 = ttk.Radiobutton(mode_frame, text="Split to Single Pages", variable=s.mode, value=SPLIT_SINGLE, style="Card.TRadiobutton"); rb1.pack(fill="x"); Tooltip(rb1, TOOLTIP_TEXT.get("split_mode_single"))
 
         n_frame = ttk.Frame(options_card, style="Card.TFrame"); n_frame.pack(fill="x")
-        rb2 = ttk.Radiobutton(n_frame, text="Split Every N Pages. N =", variable=s.mode, value=SPLIT_EVERY_N, style="Card.TRadiobutton"); rb2.pack(side="left");
-        self.split_value_entry = ttk.Entry(n_frame, textvariable=s.value, width=5)
-        self.split_value_entry.pack(side="left", ipady=1)
+        rb2 = ttk.Radiobutton(n_frame, text="Split Every N Pages. N =", variable=s.mode, value=SPLIT_EVERY_N, style="Card.TRadiobutton"); rb2.pack(side="left")
+        self.split_value_entry = ttk.Entry(n_frame, textvariable=s.value, width=5); self.split_value_entry.pack(side="left", ipady=1)
         Tooltip(n_frame, TOOLTIP_TEXT.get("split_mode_every_n"))
 
         custom_frame = ttk.Frame(options_card, style="Card.TFrame"); custom_frame.pack(fill="x")
         rb3 = ttk.Radiobutton(custom_frame, text="Custom Range(s):", variable=s.mode, value=SPLIT_CUSTOM, style="Card.TRadiobutton"); rb3.pack(side="left", fill="x")
-        self.split_custom_entry = ttk.Entry(custom_frame, textvariable=s.value)
-        self.split_custom_entry.pack(side="left", expand=True, fill="x", ipady=1, padx=5)
+        self.split_custom_entry = ttk.Entry(custom_frame, textvariable=s.value); self.split_custom_entry.pack(side="left", expand=True, fill="x", ipady=1, padx=5)
         Tooltip(custom_frame, TOOLTIP_TEXT.get("split_mode_custom"))
 
-        ttk.Label(parent, textvariable=self.tab_statuses['split'], anchor="center").grid(row=2, column=0, sticky="ew", pady=(10, 0))
-        self.split_button = self._create_process_button(parent, "SPLIT PDF", self.process_split, row=3, tooltip_key="split_process_btn")
+        self.split_button = self._build_footer(parent, 'split', "SPLIT PDF", self.process_split, row=2)
         self._update_split_validation()
 
     def _update_split_validation(self, *args):
@@ -874,17 +854,8 @@ class GhostscriptGUI:
         parent.columnconfigure(0, weight=1)
         s = self.rotate_settings
 
-        main_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
-        main_card.grid(row=0, column=0, sticky="nsew")
-        main_card.columnconfigure(0, weight=1)
-        main_card.columnconfigure(1, weight=1)
-
-        left_panel = ttk.Frame(main_card, style="Card.TFrame")
-        left_panel.grid(row=0, column=0, sticky="nsew", padx=(0, 20))
-        left_panel.columnconfigure(0, weight=1)
-
-        self.drop_zones['rotate'] = self._create_drop_zone(left_panel, s.input_path)
-        FileSelector(left_panel, s.input_path, s.output_path, lambda: self.browse_save_file(s.output_path)).grid(row=1, column=0, sticky="ew")
+        main_card, left_panel, self.rotate_preview_canvas = self._build_preview_layout(parent, 'rotate', s)
+        Tooltip(self.rotate_preview_canvas, TOOLTIP_TEXT.get("rotate_preview"))
 
         options_card = ttk.Frame(left_panel, style="Card.TFrame", padding=(0, 20))
         options_card.grid(row=2, column=0, sticky="ew", pady=(20,0))
@@ -901,31 +872,15 @@ class GhostscriptGUI:
             btn = ttk.Radiobutton(btn_frame, text=angle_text, variable=s.angle, value=angle_text, style="Card.TRadiobutton")
             btn.grid(row=0, column=i, sticky="ew", padx=5)
 
-        preview_frame = ttk.Frame(main_card, style="Card.TFrame")
-        preview_frame.grid(row=0, column=1, sticky="nsew")
-        preview_frame.rowconfigure(0, weight=1); preview_frame.columnconfigure(0, weight=1)
-        self.rotate_preview_canvas = tk.Canvas(preview_frame, highlightthickness=1)
-        self.rotate_preview_canvas.grid(row=0, column=0, sticky="nsew")
-        Tooltip(self.rotate_preview_canvas, TOOLTIP_TEXT.get("rotate_preview"))
 
-        ttk.Label(parent, textvariable=self.tab_statuses['rotate'], anchor="center").grid(row=1, column=0, sticky="ew", pady=(10, 0))
-        self.rotate_button = self._create_process_button(parent, "ROTATE PDF", self.process_rotate, row=2, tooltip_key="rotate_process_btn")
+        self.rotate_button = self._build_footer(parent, 'rotate', "ROTATE PDF", self.process_rotate, row=1)
 
     def _build_delete_tab(self, parent):
         parent.columnconfigure(0, weight=1)
         s = self.delete_settings
 
-        main_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
-        main_card.grid(row=0, column=0, sticky="nsew")
-        main_card.columnconfigure(0, weight=1)
-        main_card.columnconfigure(1, weight=1)
-
-        left_panel = ttk.Frame(main_card, style="Card.TFrame")
-        left_panel.grid(row=0, column=0, sticky="nsew", padx=(0, 20))
-        left_panel.columnconfigure(0, weight=1)
-
-        self.drop_zones['delete'] = self._create_drop_zone(left_panel, s.input_path)
-        FileSelector(left_panel, s.input_path, s.output_path, lambda: self.browse_save_file(s.output_path)).grid(row=1, column=0, sticky="ew")
+        main_card, left_panel, self.delete_preview_canvas = self._build_preview_layout(parent, 'delete', s)
+        Tooltip(self.delete_preview_canvas, TOOLTIP_TEXT.get("delete_preview"))
 
         options_card = ttk.Frame(left_panel, style="Card.TFrame", padding=(0, 20))
         options_card.grid(row=2, column=0, sticky="ew", pady=(20,0))
@@ -936,15 +891,8 @@ class GhostscriptGUI:
         entry = ttk.Entry(options_card, textvariable=s.page_range, validate='key', validatecommand=self.vcmd_pagerange, font=(styles.FONT_FAMILY, 12)); entry.grid(row=2, column=0, sticky="ew")
         Tooltip(entry, TOOLTIP_TEXT.get("delete_pages_entry"))
 
-        preview_frame = ttk.Frame(main_card, style="Card.TFrame")
-        preview_frame.grid(row=0, column=1, sticky="nsew")
-        preview_frame.rowconfigure(0, weight=1); preview_frame.columnconfigure(0, weight=1)
-        self.delete_preview_canvas = tk.Canvas(preview_frame, highlightthickness=1)
-        self.delete_preview_canvas.grid(row=0, column=0, sticky="nsew")
-        Tooltip(self.delete_preview_canvas, TOOLTIP_TEXT.get("delete_preview"))
 
-        ttk.Label(parent, textvariable=self.tab_statuses['delete'], anchor="center").grid(row=1, column=0, sticky="ew", pady=(10, 0))
-        self.delete_button = self._create_process_button(parent, "DELETE PAGES", self.process_delete_pages, row=2, tooltip_key="delete_process_btn")
+        self.delete_button = self._build_footer(parent, 'delete', "DELETE PAGES", self.process_delete_pages, row=1)
 
     def _get_stamp_text_content(self):
         s = self.stamp_settings
@@ -982,10 +930,10 @@ class GhostscriptGUI:
 
         self.permissions_frame = ttk.LabelFrame(encrypt_frame, text="Permissions (when using User Password)", padding=10)
         self.permissions_frame.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(10,0))
-        cb_print = ttk.Checkbutton(self.permissions_frame, text="Allow Printing", variable=s.allow_printing); cb_print.pack(anchor="w"); Tooltip(cb_print, TOOLTIP_TEXT.get("password_allow_printing"))
-        cb_modify = ttk.Checkbutton(self.permissions_frame, text="Allow Modification", variable=s.allow_modification); cb_modify.pack(anchor="w"); Tooltip(cb_modify, TOOLTIP_TEXT.get("password_allow_modification"))
-        cb_copy = ttk.Checkbutton(self.permissions_frame, text="Allow Copy & Extract", variable=s.allow_copy_and_extract); cb_copy.pack(anchor="w"); Tooltip(cb_copy, TOOLTIP_TEXT.get("password_allow_copy"))
-        cb_annotate = ttk.Checkbutton(self.permissions_frame, text="Allow Annotations & Forms", variable=s.allow_annotations_and_forms); cb_annotate.pack(anchor="w"); Tooltip(cb_annotate, TOOLTIP_TEXT.get("password_allow_annotations"))
+        self._create_checkbutton(self.permissions_frame, "Allow Printing", s.allow_printing, "password_allow_printing", anchor="w")
+        self._create_checkbutton(self.permissions_frame, "Allow Modification", s.allow_modification, "password_allow_modification", anchor="w")
+        self._create_checkbutton(self.permissions_frame, "Allow Copy & Extract", s.allow_copy_and_extract, "password_allow_copy", anchor="w")
+        self._create_checkbutton(self.permissions_frame, "Allow Annotations & Forms", s.allow_annotations_and_forms, "password_allow_annotations", anchor="w")
 
         self.encrypt_button = self._create_process_button(encrypt_frame, "ENCRYPT PDF", self.process_encrypt, row=3, columnspan=2, tooltip_key="password_encrypt_btn")
 
@@ -1009,17 +957,7 @@ class GhostscriptGUI:
         parent.columnconfigure(0, weight=1)
         s = self.stamp_settings
 
-        main_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
-        main_card.grid(row=0, column=0, sticky="nsew")
-        main_card.columnconfigure(0, weight=1)
-        main_card.columnconfigure(1, weight=1)
-
-        left_panel = ttk.Frame(main_card, style="Card.TFrame")
-        left_panel.grid(row=0, column=0, sticky="nsew", padx=(0, 20))
-        left_panel.columnconfigure(0, weight=1)
-
-        self.drop_zones['stamp'] = self._create_drop_zone(left_panel, s.input_path)
-        FileSelector(left_panel, s.input_path, s.output_path, lambda: self.browse_save_file(s.output_path)).grid(row=1, column=0, sticky="ew")
+        main_card, left_panel, self.stamp_preview_canvas = self._build_preview_layout(parent, 'stamp', s, preview_rowspan=4)
 
         notebook = ttk.Notebook(left_panel)
         notebook.grid(row=2, column=0, sticky="ew", pady=(20,0))
@@ -1081,18 +1019,11 @@ class GhostscriptGUI:
         ttk.Label(options_card, text="Opacity:").grid(row=1, column=0, sticky="w", padx=(0,10), pady=5)
         opacity_slider = ttk.Scale(options_card, from_=0.1, to=1.0, orient="horizontal", variable=s.opacity, style="Horizontal.TScale"); opacity_slider.grid(row=1, column=1, sticky="ew", pady=5); Tooltip(opacity_slider, TOOLTIP_TEXT.get("stamp_opacity"))
 
-        stamp_on_top_toggle = ModernToggle(options_card, text="Stamp on Top", variable=s.on_top, palette=self.palette)
-        stamp_on_top_toggle.grid(row=2, column=0, columnspan=2, sticky="w", pady=10); Tooltip(stamp_on_top_toggle, TOOLTIP_TEXT.get("stamp_on_top"))
-        self.toggles.append(stamp_on_top_toggle)
+        self._create_toggle(options_card, "Stamp on Top", s.on_top, "stamp_on_top", layout='grid', row=2, column=0, columnspan=2, sticky="w", pady=10)
 
-        preview_frame = ttk.Frame(main_card, style="Card.TFrame")
-        preview_frame.grid(row=0, column=1, sticky="nsew", rowspan=4)
-        preview_frame.rowconfigure(0, weight=1); preview_frame.columnconfigure(0, weight=1)
-        self.stamp_preview_canvas = tk.Canvas(preview_frame, highlightthickness=1)
-        self.stamp_preview_canvas.grid(row=0, column=0, sticky="nsew")
+        
 
-        ttk.Label(parent, textvariable=self.tab_statuses['stamp'], anchor="center").grid(row=1, column=0, sticky="ew", pady=(10, 0))
-        self.stamp_button = self._create_process_button(parent, "APPLY STAMP", self.process_stamp, row=2, tooltip_key="stamp_process_btn")
+        self.stamp_button = self._build_footer(parent, 'stamp', "APPLY STAMP", self.process_stamp, row=1)
 
     def _on_text_modified(self, event, widget):
         widget.edit_modified(False)
@@ -1112,17 +1043,7 @@ class GhostscriptGUI:
         parent.columnconfigure(0, weight=1)
         s = self.page_number_settings
 
-        main_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
-        main_card.grid(row=0, column=0, sticky="nsew")
-        main_card.columnconfigure(0, weight=1)
-        main_card.columnconfigure(1, weight=1)
-
-        left_panel = ttk.Frame(main_card, style="Card.TFrame")
-        left_panel.grid(row=0, column=0, sticky="nsew", padx=(0, 20))
-        left_panel.columnconfigure(0, weight=1)
-
-        self.drop_zones['page_number'] = self._create_drop_zone(left_panel, s.input_path)
-        FileSelector(left_panel, s.input_path, s.output_path, lambda: self.browse_save_file(s.output_path)).grid(row=1, column=0, sticky="ew")
+        main_card, left_panel, self.page_number_preview_canvas = self._build_preview_layout(parent, 'page_number', s, preview_rowspan=3)
 
         options_card = ttk.Frame(left_panel, style="Card.TFrame")
         options_card.grid(row=2, column=0, sticky="ew", pady=(20,0))
@@ -1173,24 +1094,14 @@ class GhostscriptGUI:
 
         toggle_custom_entry_state()
         
-        preview_frame = ttk.Frame(main_card, style="Card.TFrame")
-        preview_frame.grid(row=0, column=1, sticky="nsew", rowspan=3)
-        preview_frame.rowconfigure(0, weight=1); preview_frame.columnconfigure(0, weight=1)
-        self.page_number_preview_canvas = tk.Canvas(preview_frame, highlightthickness=1)
-        self.page_number_preview_canvas.grid(row=0, column=0, sticky="nsew")
+        
 
-        ttk.Label(parent, textvariable=self.tab_statuses['page_number'], anchor="center").grid(row=2, column=0, sticky="ew", pady=(10, 0))
-        self.page_number_button = self._create_process_button(parent, "ADD HEADER/FOOTER", self.process_page_number, row=3, tooltip_key="hf_process_btn")
+        self.page_number_button = self._build_footer(parent, 'page_number', "ADD HEADER/FOOTER", self.process_page_number, row=2)
 
     def _build_toc_tab(self, parent):
         parent.columnconfigure(0, weight=1)
         s = self.toc_settings
-
-        io_frame = ttk.Frame(parent, style="Card.TFrame", padding=20)
-        io_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        io_frame.columnconfigure(0, weight=1)
-        self.drop_zones['toc'] = self._create_drop_zone(io_frame, s.input_path)
-        FileSelector(io_frame, s.input_path, s.output_path, lambda: self.browse_save_file(s.output_path))
+        self._build_io_card(parent, 'toc', s)
 
         options_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
         options_card.grid(row=1, column=0, sticky="ew", pady=10)
@@ -1199,23 +1110,24 @@ class GhostscriptGUI:
         ttk.Label(options_card, text="Table of Contents", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 15))
 
         ttk.Label(options_card, text="Title:", style="Card.TLabel").grid(row=1, column=0, sticky="w", pady=5, padx=(0,10))
-        entry_title = ttk.Entry(options_card, textvariable=s.title); entry_title.grid(row=1, column=1, sticky="ew", pady=5); Tooltip(entry_title, TOOLTIP_TEXT.get("toc_title"))
+        entry_title = ttk.Entry(options_card, textvariable=s.title); entry_title.grid(row=1, column=1, sticky="ew", pady=5)
+        Tooltip(entry_title, TOOLTIP_TEXT.get("toc_title"))
+        
         ttk.Label(options_card, text="Font:", style="Card.TLabel").grid(row=2, column=0, sticky="w", pady=5, padx=(0,10))
-        combo_font = ttk.Combobox(options_card, textvariable=s.font, values=PDF_FONTS, state="readonly"); combo_font.grid(row=2, column=1, sticky="ew", pady=5); Tooltip(combo_font, TOOLTIP_TEXT.get("toc_font"))
+        combo_font = ttk.Combobox(options_card, textvariable=s.font, values=PDF_FONTS, state="readonly")
+        combo_font.grid(row=2, column=1, sticky="ew", pady=5); Tooltip(combo_font, TOOLTIP_TEXT.get("toc_font"))
+        
         ttk.Label(options_card, text="Font Size:", style="Card.TLabel").grid(row=3, column=0, sticky="w", pady=5, padx=(0,10))
-        entry_size = ttk.Entry(options_card, textvariable=s.font_size, width=8, validate='key', validatecommand=self.vcmd_int); entry_size.grid(row=3, column=1, sticky="w", pady=5); Tooltip(entry_size, TOOLTIP_TEXT.get("toc_font_size"))
+        entry_size = ttk.Entry(options_card, textvariable=s.font_size, width=8, validate='key', validatecommand=self.vcmd_int)
+        entry_size.grid(row=3, column=1, sticky="w", pady=5); Tooltip(entry_size, TOOLTIP_TEXT.get("toc_font_size"))
 
         toggle_frame = ttk.Frame(options_card, style="Card.TFrame")
         toggle_frame.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(15,0))
-        dot_leader_toggle = ModernToggle(toggle_frame, text="Use Dot Leaders", variable=s.dot_leaders, palette=self.palette)
-        dot_leader_toggle.pack(anchor="w", pady=2); Tooltip(dot_leader_toggle, TOOLTIP_TEXT.get("toc_dot_leaders"))
-        self.toggles.append(dot_leader_toggle)
-        no_bookmark_toggle = ModernToggle(toggle_frame, text="Don't Bookmark the ToC", variable=s.no_bookmark, palette=self.palette)
-        no_bookmark_toggle.pack(anchor="w", pady=2); Tooltip(no_bookmark_toggle, TOOLTIP_TEXT.get("toc_no_bookmark"))
-        self.toggles.append(no_bookmark_toggle)
+        
+        self._create_toggle(toggle_frame, "Use Dot Leaders", s.dot_leaders, "toc_dot_leaders", anchor="w", pady=2)
+        self._create_toggle(toggle_frame, "Don't Bookmark the ToC", s.no_bookmark, "toc_no_bookmark", anchor="w", pady=2)
 
-        ttk.Label(parent, textvariable=self.tab_statuses['toc'], anchor="center").grid(row=2, column=0, sticky="ew", pady=(10, 0))
-        self.toc_button = self._create_process_button(parent, "GENERATE TOC", self.process_toc, row=3, tooltip_key="toc_process_btn")
+        self.toc_button = self._build_footer(parent, 'toc', "GENERATE TOC", self.process_toc, row=2)
 
     def _build_metadata_tab(self, parent):
         parent.columnconfigure(0, weight=1)
@@ -1239,18 +1151,12 @@ class GhostscriptGUI:
             entry = ttk.Entry(fields_card, textvariable=var); entry.grid(row=i, column=1, sticky="ew", pady=4)
             Tooltip(entry, TOOLTIP_TEXT.get(key))
 
-        ttk.Label(parent, textvariable=self.tab_statuses['metadata'], anchor="center").grid(row=2, column=0, sticky="ew", pady=(10, 0))
-        self.meta_button = self._create_process_button(parent, "SAVE METADATA (OVERWRITE)", self.save_metadata, row=3, tooltip_key="meta_process_btn")
+        self.meta_button = self._build_footer(parent, 'metadata', "SAVE METADATA (OVERWRITE)", self.save_metadata, row=2)
 
     def _build_convert_tab(self, parent):
         parent.columnconfigure(0, weight=1)
         s = self.convert_settings
-
-        io_frame = ttk.Frame(parent, style="Card.TFrame", padding=20)
-        io_frame.grid(row=0, column=0, sticky="ew")
-        io_frame.columnconfigure(0, weight=1)
-        self.drop_zones['convert'] = self._create_drop_zone(io_frame, s.input_path)
-        FileSelector(io_frame, s.input_path, s.output_dir, lambda: self.browse_dir(s.output_dir))
+        self._build_io_card(parent, 'convert', s, is_dir=True)
 
         options_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
         options_card.grid(row=1, column=0, sticky="ew", pady=10)
@@ -1260,8 +1166,7 @@ class GhostscriptGUI:
         format_frame = ttk.Frame(options_card, style="Card.TFrame")
         format_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 15))
         Tooltip(format_frame, TOOLTIP_TEXT.get("convert_format_btns"))
-        for fmt in IMAGE_FORMATS:
-            ttk.Radiobutton(format_frame, text=fmt.upper(), variable=s.format, value=fmt, style="Card.TRadiobutton").pack(side="left", expand=True, fill="x")
+        for fmt in IMAGE_FORMATS: ttk.Radiobutton(format_frame, text=fmt.upper(), variable=s.format, value=fmt, style="Card.TRadiobutton").pack(side="left", expand=True, fill="x")
 
         ttk.Label(options_card, text="Resolution (DPI)", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=2, column=0, columnspan=2, sticky="w", pady=(0, 5))
         dpi_frame = ttk.Frame(options_card, style="Card.TFrame")
@@ -1271,26 +1176,18 @@ class GhostscriptGUI:
         ttk.Scale(dpi_frame, from_=72, to=600, orient="horizontal", variable=s.dpi_slider, style="Horizontal.TScale").grid(row=0, column=0, sticky="ew", padx=(0, 15))
         ttk.Entry(dpi_frame, textvariable=s.dpi, width=5, validate='key', validatecommand=self.vcmd_int).grid(row=0, column=1, sticky="e")
 
-        ttk.Label(parent, textvariable=self.tab_statuses['convert'], anchor="center").grid(row=2, column=0, sticky="ew", pady=(10, 0))
-        self.convert_button = self._create_process_button(parent, "CONVERT TO IMAGES", self.process_convert, row=3, tooltip_key="convert_process_btn")
+        self.convert_button = self._build_footer(parent, 'convert', "CONVERT TO IMAGES", self.process_convert, row=2)
 
     def _build_repair_tab(self, parent):
         parent.columnconfigure(0, weight=1)
         s = self.repair_settings
-
-        io_frame = ttk.Frame(parent, style="Card.TFrame", padding=20)
-        io_frame.grid(row=0, column=0, sticky="ew")
-        io_frame.columnconfigure(0, weight=1)
-        self.drop_zones['repair'] = self._create_drop_zone(io_frame, s.input_path)
-        FileSelector(io_frame, s.input_path, s.output_path, lambda: self.browse_save_file(s.output_path))
+        self._build_io_card(parent, 'repair', s)
 
         info_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
         info_card.grid(row=1, column=0, sticky="ew", pady=10)
-        info_label = ttk.Label(info_card, text="This tool attempts to repair corrupted or damaged PDF files by rebuilding them. Results may vary.", style="Card.TLabel", wraplength=1500, justify="left")
-        info_label.pack(fill="x")
+        ttk.Label(info_card, text="This tool attempts to repair corrupted or damaged PDF files by rebuilding them. Results may vary.", style="Card.TLabel", wraplength=1500, justify="left").pack(fill="x")
 
-        ttk.Label(parent, textvariable=self.tab_statuses['repair'], anchor="center").grid(row=2, column=0, sticky="ew", pady=(10, 0))
-        self.repair_button = self._create_process_button(parent, "ATTEMPT REPAIR", self.process_repair, row=3, tooltip_key="repair_process_btn")
+        self.repair_button = self._build_footer(parent, 'repair', "ATTEMPT REPAIR", self.process_repair, row=2)
 
     def _build_settings_tab(self, parent):
         parent.columnconfigure(0, weight=1)
@@ -1300,25 +1197,19 @@ class GhostscriptGUI:
         appearance_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
         appearance_card.grid(row=0, column=0, sticky="ew", pady=(0, 10))
         ttk.Label(appearance_card, text="Appearance", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").pack(anchor="w", pady=(0, 15))
-        dark_mode_toggle = ModernToggle(appearance_card, text="Dark Mode", variable=s.dark_mode_enabled, command=self.toggle_theme, palette=self.palette)
-        dark_mode_toggle.pack(anchor="w"); Tooltip(dark_mode_toggle, TOOLTIP_TEXT.get("settings_dark_mode"))
-        self.toggles.append(dark_mode_toggle)
+        self._create_toggle(appearance_card, "Dark Mode", s.dark_mode_enabled, "settings_dark_mode", command=self.toggle_theme, anchor="w")
 
         logging_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
         logging_card.grid(row=1, column=0, sticky="ew", pady=10)
         ttk.Label(logging_card, text="Logging", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").pack(anchor="w", pady=(0, 15))
-        logging_toggle = ModernToggle(logging_card, text="Enable File Logging (app.log)", variable=s.logging_enabled, command=self.configure_logging, palette=self.palette)
-        logging_toggle.pack(anchor="w"); Tooltip(logging_toggle, TOOLTIP_TEXT.get("settings_logging"))
-        self.toggles.append(logging_toggle)
+        self._create_toggle(logging_card, "Enable File Logging (app.log)", s.logging_enabled, "settings_logging", command=self.configure_logging, anchor="w")
 
         output_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
         output_card.grid(row=2, column=0, sticky="ew", pady=10)
         output_card.columnconfigure(1, weight=1)
 
         ttk.Label(output_card, text="Default Output", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 15))
-        use_default_folder_toggle = ModernToggle(output_card, text="Use Default Output Folder", variable=os.use_default_folder, palette=self.palette)
-        use_default_folder_toggle.grid(row=1, column=0, columnspan=3, sticky="w", pady=5); Tooltip(use_default_folder_toggle, TOOLTIP_TEXT.get("settings_use_default_folder"))
-        self.toggles.append(use_default_folder_toggle)
+        self._create_toggle(output_card, "Use Default Output Folder", os.use_default_folder, "settings_use_default_folder", layout='grid', row=1, column=0, columnspan=3, sticky="w", pady=5)
 
         default_folder_frame = ttk.Frame(output_card, style="Card.TFrame")
         default_folder_frame.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(0, 20), padx=(20,0))
@@ -1345,12 +1236,8 @@ class GhostscriptGUI:
         ttk.Label(pattern_frame, text="Suffix:", style="Card.TLabel").grid(row=0, column=3, sticky="w", pady=2, padx=5)
         entry_suffix = ttk.Entry(pattern_frame, textvariable=os.suffix, width=15); entry_suffix.grid(row=0, column=4, sticky="ew", pady=2, padx=5); Tooltip(entry_suffix, TOOLTIP_TEXT.get("settings_suffix"))
 
-        date_toggle = ModernToggle(pattern_frame, text="Add Date (YYYY-MM-DD)", variable=os.add_date, palette=self.palette)
-        date_toggle.grid(row=1, column=0, columnspan=5, sticky="w", pady=5); Tooltip(date_toggle, TOOLTIP_TEXT.get("settings_add_date"))
-        self.toggles.append(date_toggle)
-        time_toggle = ModernToggle(pattern_frame, text="Add Time (HH-MM-SS)", variable=os.add_time, palette=self.palette)
-        time_toggle.grid(row=2, column=0, columnspan=5, sticky="w", pady=5); Tooltip(time_toggle, TOOLTIP_TEXT.get("settings_add_time"))
-        self.toggles.append(time_toggle)
+        self._create_toggle(pattern_frame, "Add Date (YYYY-MM-DD)", os.add_date, "settings_add_date", layout='grid', row=1, column=0, columnspan=5, sticky="w", pady=5)
+        self._create_toggle(pattern_frame, "Add Time (HH-MM-SS)", os.add_time, "settings_add_time", layout='grid', row=2, column=0, columnspan=5, sticky="w", pady=5)
 
         coffee_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
         coffee_card.grid(row=3, column=0, sticky="ew", pady=10)
@@ -1437,8 +1324,19 @@ class GhostscriptGUI:
             self.safe_mode_check.config(state=lossy_state)
             if not is_lossy:
                 self.compress_settings.safe_mode.set(False)
+
+        if hasattr(self, 'lossless_enc_check'):
+            self.lossless_enc_check.config(state=lossy_state)
+            if not is_lossy:
+                self.compress_settings.lossless_encoding.set(False)
                 
+        if hasattr(self, 'preserve_ocr_check'):
+            self.preserve_ocr_check.config(state=lossy_state)
+            if not is_lossy:
+                self.compress_settings.preserve_ocr.set(True)
+
         if hasattr(self, 'downsample_threshold_check'): self.downsample_threshold_check.config(state=lossy_state)
+        if hasattr(self, 'detect_duplicate_images_check'): self.detect_duplicate_images_check.config(state=lossy_state)
         if hasattr(self, 'grayscale_check'): self.grayscale_check.config(state=lossy_state)
         if hasattr(self, 'cmyk_check'): self.cmyk_check.config(state=lossy_state)
         if hasattr(self, 'quantize_toggle'):
@@ -1542,16 +1440,23 @@ class GhostscriptGUI:
             logging.warning(f"Could not auto-set output path for {in_path_str}: {e}")
 
     def check_tools(self):
-        try: self.gs_path = backend.find_ghostscript()
-        except backend.GhostscriptNotFound as e: self.status.set(f"Error: {e}"); messagebox.showerror("Tool Not Found", f"{e}\nThe application may not function correctly.")
-        try: self.cpdf_path = backend.find_cpdf()
-        except backend.CpdfNotFound as e: logging.warning(f"cpdf not found: {e}")
-        try: self.pngquant_path = backend.find_pngquant()
-        except backend.PngquantNotFound as e: logging.warning(f"pngquant not found: {e}")
-        try: self.jpegoptim_path = backend.find_jpegoptim()
-        except backend.JpegoptimNotFound as e: logging.warning(f"jpegoptim not found: {e}")
-        try: self.ect_path = backend.find_ect()
-        except backend.EctNotFound as e: logging.warning(f"ECT not found: {e}")
+        tools = [
+            ('gs_path', backend.find_ghostscript, "Ghostscript", True),
+            ('cpdf_path', backend.find_cpdf, "cpdf", False),
+            ('pngquant_path', backend.find_pngquant, "pngquant", False),
+            ('jpegoptim_path', backend.find_jpegoptim, "jpegoptim", False),
+            ('ect_path', backend.find_ect, "ECT", False),
+            ('oxipng_path', backend.find_oxipng, "oxipng", False)
+        ]
+        for attr, finder, name, critical in tools:
+            try:
+                setattr(self, attr, finder())
+            except ToolNotFound as e:
+                if critical:
+                    self.status.set(f"Error: {e}")
+                    messagebox.showerror("Tool Not Found", f"{e}\nThe application may not function correctly.", parent=self.root)
+                else:
+                    logging.warning(f"{name} not found: {e}")
 
 
     def start_task(self, button, target_func, args, status_var):
@@ -1826,6 +1731,7 @@ class GhostscriptGUI:
             'pngquant_path': self.pngquant_path,
             'jpegoptim_path': self.jpegoptim_path,
             'ect_path': self.ect_path,
+            'oxipng_path': self.oxipng_path,
             'output_path': s.output_path.get(),
             'mode': s.compress_mode.get(),
             'dpi': s.dpi.get(),
@@ -1838,6 +1744,7 @@ class GhostscriptGUI:
             'use_bicubic': s.use_bicubic.get(),
             'safe_mode': s.safe_mode.get(),
             'downsample_threshold_enabled': s.downsample_threshold_enabled.get(),
+            'detect_duplicate_images': s.detect_duplicate_images.get(),
             'quantize_colors': s.quantize_colors.get(),
             'quantize_level': s.quantize_level.get(),
             'convert_to_grayscale': s.convert_to_grayscale.get(),
@@ -1846,6 +1753,9 @@ class GhostscriptGUI:
             'fast_mode': s.fast_mode.get(),
             'true_lossless': s.true_lossless.get(),
             'pdfa_compression': s.pdfa_compression.get(),
+            'lossless_encoding': s.lossless_encoding.get(),
+            'preserve_ocr': s.preserve_ocr.get(),
+            'delete_original': s.delete_original.get(),
             'input_files': self.compress_settings.files
         }
 
@@ -1858,113 +1768,78 @@ class GhostscriptGUI:
             return
         self.start_task(self.merge_button, backend.run_merge_task, args=(s.files, s.output_path.get(), self.progress_queue), status_var=self.tab_statuses['merge'])
 
+    def _start_if_valid(self, settings_obj, out_field, button, task_func, args_tuple, status_key):
+        in_val = settings_obj.input_path.get()
+        out_val = getattr(settings_obj, out_field).get()
+        if not in_val or not out_val:
+            messagebox.showerror("Input Error", "Please select an input file and an output path/directory.", parent=self.root)
+            return
+        self.start_task(button, task_func, args=args_tuple, status_var=self.tab_statuses[status_key])
+
     def process_split(self):
         s = self.split_settings
-        if not s.input_path.get() or not s.output_dir.get():
-            messagebox.showerror("Input Error", "Please select an input file and an output directory.", parent=self.root)
-            return
-        self.start_task(self.split_button, backend.run_split_task, args=(s.input_path.get(), s.output_dir.get(), s.mode.get(), s.value.get(), self.progress_queue), status_var=self.tab_statuses['split'])
+        self._start_if_valid(s, 'output_dir', self.split_button, backend.run_split_task, (s.input_path.get(), s.output_dir.get(), s.mode.get(), s.value.get(), self.progress_queue), 'split')
 
     def process_rotate(self):
         s = self.rotate_settings
-        if not s.input_path.get() or not s.output_path.get():
-            messagebox.showerror("Input Error", "Please select an input file and an output path.", parent=self.root)
-            return
         angle = ROTATION_MAP.get(s.angle.get(), 0)
-        self.start_task(self.rotate_button, backend.run_rotate_task, args=(s.input_path.get(), s.output_path.get(), angle, self.progress_queue), status_var=self.tab_statuses['rotate'])
+        self._start_if_valid(s, 'output_path', self.rotate_button, backend.run_rotate_task, (s.input_path.get(), s.output_path.get(), angle, self.progress_queue), 'rotate')
 
     def process_delete_pages(self):
         s = self.delete_settings
-        if not s.input_path.get() or not s.output_path.get():
-            messagebox.showerror("Input Error", "Please select an input file and an output path.", parent=self.root)
-            return
-        self.start_task(self.delete_button, backend.run_delete_pages_task, args=(s.input_path.get(), s.output_path.get(), s.page_range.get(), self.progress_queue), status_var=self.tab_statuses['delete'])
+        self._start_if_valid(s, 'output_path', self.delete_button, backend.run_delete_pages_task, (s.input_path.get(), s.output_path.get(), s.page_range.get(), self.progress_queue), 'delete')
 
     def _process_password(self, mode, button):
         s = self.password_settings
-        if not s.input_path.get() or not s.output_path.get():
-            messagebox.showerror("Input Error", "Please select an input file and an output path.", parent=self.root)
-            return
-
         params = { 'input_path': s.input_path.get(), 'output_path': s.output_path.get(), 'mode': mode }
         if mode == 'add':
             params.update({
-                'user_password': s.user_password.get(),
-                'owner_password': s.owner_password.get(),
-                'allow_printing': s.allow_printing.get(),
-                'allow_modification': s.allow_modification.get(),
-                'allow_copy_and_extract': s.allow_copy_and_extract.get(),
-                'allow_annotations_and_forms': s.allow_annotations_and_forms.get()
+                'user_password': s.user_password.get(), 'owner_password': s.owner_password.get(),
+                'allow_printing': s.allow_printing.get(), 'allow_modification': s.allow_modification.get(),
+                'allow_copy_and_extract': s.allow_copy_and_extract.get(), 'allow_annotations_and_forms': s.allow_annotations_and_forms.get()
             })
         elif mode == 'remove':
             params['user_password'] = s.decrypt_password.get()
+        self._start_if_valid(s, 'output_path', button, backend.run_password_task, (params, self.progress_queue), 'password')
 
-        self.start_task(button, backend.run_password_task, args=(params, self.progress_queue), status_var=self.tab_statuses['password'])
-
-    def process_encrypt(self):
-        self._process_password('add', self.encrypt_button)
-
-    def process_decrypt(self):
-        self._process_password('remove', self.decrypt_button)
+    def process_encrypt(self): self._process_password('add', self.encrypt_button)
+    def process_decrypt(self): self._process_password('remove', self.decrypt_button)
 
     def process_stamp(self):
         s = self.stamp_settings
-        if not s.input_path.get() or not s.output_path.get():
-            messagebox.showerror("Input Error", "Please select an input file and an output path.", parent=self.root)
-            return
-
         stamp_opts = { 'pos': s.pos.get(), 'opacity': s.opacity.get(), 'on_top': s.on_top.get() }
         mode = s.mode.get()
-        text_content = self._get_stamp_text_content()
         mode_opts = {
-            'image_path': s.image_path.get(),
-            'image_scale': s.image_scale.get() / 100.0,
-            'text': text_content,
-            'font': s.font.get(),
-            'size': s.font_size.get(),
-            'color': self._hex_to_cpdf_color(s.font_color.get()),
+            'image_path': s.image_path.get(), 'image_scale': s.image_scale.get() / 100.0,
+            'text': self._get_stamp_text_content(), 'font': s.font.get(),
+            'size': s.font_size.get(), 'color': self._hex_to_cpdf_color(s.font_color.get()),
             'bates_start': s.bates_start.get() if s.bates_enabled.get() else None
         }
-        self.start_task(self.stamp_button, backend.run_stamp_task, args=(s.input_path.get(), s.output_path.get(), stamp_opts, self.cpdf_path, self.progress_queue, mode, mode_opts), status_var=self.tab_statuses['stamp'])
+        self._start_if_valid(s, 'output_path', self.stamp_button, backend.run_stamp_task, (s.input_path.get(), s.output_path.get(), stamp_opts, self.cpdf_path, self.progress_queue, mode, mode_opts), 'stamp')
 
     def process_page_number(self):
         s = self.page_number_settings
-        if not s.input_path.get() or not s.output_path.get():
-            messagebox.showerror("Input Error", "Please select an input file and an output path.", parent=self.root)
-            return
         text_map = { "Page Number": "%Page", "Page X of Y": "%Page of %EndPage", "Custom": s.custom_text.get() }
         options = {
-            'text': text_map.get(s.mode.get(), ''),
-            'pos': s.pos.get(),
-            'font': s.font.get(),
-            'font_size': s.font_size.get(),
-            'color': self._hex_to_cpdf_color(s.font_color.get()),
-            'page_range': s.page_range.get()
+            'text': text_map.get(s.mode.get(), ''), 'pos': s.pos.get(),
+            'font': s.font.get(), 'font_size': s.font_size.get(),
+            'color': self._hex_to_cpdf_color(s.font_color.get()), 'page_range': s.page_range.get()
         }
-        self.start_task(self.page_number_button, backend.run_page_number_task, args=(s.input_path.get(), s.output_path.get(), self.cpdf_path, self.progress_queue, options), status_var=self.tab_statuses['page_number'])
+        self._start_if_valid(s, 'output_path', self.page_number_button, backend.run_page_number_task, (s.input_path.get(), s.output_path.get(), self.cpdf_path, self.progress_queue, options), 'page_number')
 
     def process_toc(self):
         s = self.toc_settings
-        if not s.input_path.get() or not s.output_path.get():
-            messagebox.showerror("Input Error", "Please select an input file and an output path.", parent=self.root)
-            return
         options = { 'title': s.title.get(), 'font': s.font.get(), 'font_size': s.font_size.get(), 'dot_leaders': s.dot_leaders.get(), 'no_bookmark': s.no_bookmark.get() }
-        self.start_task(self.toc_button, backend.run_toc_task, args=(self.cpdf_path, s.input_path.get(), s.output_path.get(), options, self.progress_queue), status_var=self.tab_statuses['toc'])
+        self._start_if_valid(s, 'output_path', self.toc_button, backend.run_toc_task, (self.cpdf_path, s.input_path.get(), s.output_path.get(), options, self.progress_queue), 'toc')
 
     def process_convert(self):
         s = self.convert_settings
-        if not s.input_path.get() or not s.output_dir.get():
-            messagebox.showerror("Input Error", "Please select an input file and an output directory.", parent=self.root)
-            return
         options = { 'format': s.format.get(), 'dpi': s.dpi.get() }
-        self.start_task(self.convert_button, backend.run_pdf_to_image_task, args=(self.gs_path, s.input_path.get(), s.output_dir.get(), options, self.progress_queue), status_var=self.tab_statuses['convert'])
+        self._start_if_valid(s, 'output_dir', self.convert_button, backend.run_pdf_to_image_task, (self.gs_path, s.input_path.get(), s.output_dir.get(), options, self.progress_queue), 'convert')
 
     def process_repair(self):
         s = self.repair_settings
-        if not s.input_path.get() or not s.output_path.get():
-            messagebox.showerror("Input Error", "Please select an input file and an output path.", parent=self.root)
-            return
-        self.start_task(self.repair_button, backend.run_repair_task, args=(s.input_path.get(), s.output_path.get(), self.progress_queue), status_var=self.tab_statuses['repair'])
+        self._start_if_valid(s, 'output_path', self.repair_button, backend.run_repair_task, (s.input_path.get(), s.output_path.get(), self.progress_queue), 'repair')
 
     def setup_drag_and_drop(self):
         if IS_WINDOWS:
