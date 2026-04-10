@@ -25,16 +25,16 @@ The application is organized into logical tabs for a clear and efficient workflo
 
 The main tab offers a streamlined approach with four distinct optimization modes:
 
-- **Compression**: Recreates the PDF using Ghostscript to intelligently downsample images. An interactive **custom slider** makes it easy to set the desired image resolution (DPI).
-    
+- **Compression**: Recreates the PDF using Ghostscript to intelligently downsample images. An interactive **custom slider** makes it easy to set the desired image resolution (DPI). Includes a new advanced **Lossless Image Encoding (Flate)** option to resize images without introducing JPEG artifacts.
+    
 - **Lossless**: A powerful pipeline that reduces file size without any quality degradation. It works by re-compressing data streams and intelligently optimizing embedded images (PNG, JPG, etc.) using `oxipng`, `ECT`, and `jbig2`.
-     - **Note**: actively being worked on, it's not truely lossless yet. 
-    
+     - **Note**: actively being worked on, it's not truely lossless yet. 
+    
 - **PDF/A**: Converts the document to the PDF/A-2b archival format. This ensures long-term viewability but may increase file size.
-    
+    
 - **Remove Images**: Strips all image data from the document, replacing them with blank placeholders. This is useful for text-only archival.
-    
-- **Common Options**: All modes support a rich set of options, including password protection, metadata stripping, darkening scanned text, converting to grayscale, and linearizing for fast web view.
+    
+- **Common Options**: All modes support a rich set of options, including password protection, metadata stripping, darkening scanned text, converting to grayscale, linearizing for fast web view, and toggling lossless image encoding.
 
 
 ### Utilities
