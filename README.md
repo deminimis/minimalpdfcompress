@@ -168,6 +168,8 @@ This code relies on:
 - [Efficient Compression Tool (ECT)](https://github.com/fhanau/Efficient-Compression-Tool)
     
 - [jbig2enc](https://github.com/agl/jbig2enc)
+  
+- [pikepdf](https://github.com/pikepdf/pikepdf)
 
 PDF Testing with:
 
