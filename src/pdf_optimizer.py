@@ -58,7 +58,10 @@ class PdfOptimizer:
 
     def _apply_flate_image(self, pdf, obj, rgb_data, width, height, alpha_data=None):
         """Helper to update a pikepdf stream with Flate compressed image data."""
-        for key in list(obj.keys()): del obj[key]
+        # /Length is managed by pikepdf and raises if deleted.
+        for key in list(obj.keys()):
+            if key == "/Length": continue
+            del obj[key]
         obj.write(rgb_data)
         obj.update({
             pikepdf.Name.Type: pikepdf.Name.XObject,
@@ -70,7 +73,8 @@ class PdfOptimizer:
             pikepdf.Name.BitsPerComponent: 8
         })
         if alpha_data:
-            smask = pdf.new_stream(alpha_data)
+            # Pdf.new_stream was removed in pikepdf 9; Stream(pdf, data) replaces it.
+            smask = pikepdf.Stream(pdf, alpha_data)
             smask.update({
                 pikepdf.Name.Type: pikepdf.Name.XObject,
                 pikepdf.Name.Subtype: pikepdf.Name.Image,
@@ -225,7 +229,11 @@ class PdfOptimizer:
 
             final_pil_image = Image.open(final_optimized_path)
             if final_pil_image.mode == 'P':
-                final_pil_image = final_pil_image.convert('RGBA' if 'A' in final_pil_image.info.get('transparency', '') else 'RGB')
+                # Pillow reports palette transparency as bytes, so the old
+                # `'A' in info.get('transparency', '')` raised TypeError and
+                # every palette image was skipped.
+                final_pil_image = final_pil_image.convert(
+                    'RGBA' if 'transparency' in final_pil_image.info else 'RGB')
 
             has_transparency = 'A' in final_pil_image.mode
             total_new_size = float('inf')
@@ -337,8 +345,10 @@ class PdfOptimizer:
                     self._log_status( ("Recompressing streams..."))
                     pdf.save(internal_temp_pdf, object_stream_mode=pikepdf.ObjectStreamMode.generate, recompress_flate=True)
 
-            self._log_status( ("Finalizing with cpdf..."))
-            self._post_process_pdf(internal_temp_pdf, temp_output_path, strip_metadata)
+                # Must stay inside the TemporaryDirectory block: internal_temp_pdf
+                # lives in it, so cpdf cannot read it once the block exits.
+                self._log_status( ("Finalizing with cpdf..."))
+                self._post_process_pdf(internal_temp_pdf, temp_output_path, strip_metadata)
 
         except Exception as e:
             logging.error(f"Optimization failed: {e}", exc_info=True)
@@ -362,9 +372,6 @@ class PdfOptimizer:
                     self._lossless_optimize_jpeg_stream(obj, temp_dir)
                 elif filt not in ("/DCTDecode", "/JPXDecode"):
                     self._optimize_image_stream(pdf, obj, temp_dir, mode='lossless')
-        
-        msg = "Opening PDF for true lossless..." if true_lossless else "Opening PDF for lossless..."
-        self._process_with_pikepdf(input_file, temp_output_path, strip_metadata, processor, msg)
         
         msg = "Opening PDF for true lossless..." if true_lossless else "Opening PDF for lossless..."
         self._process_with_pikepdf(input_file, temp_output_path, strip_metadata, processor, msg)
@@ -456,7 +463,7 @@ class PdfOptimizer:
                 gs_output_temp_pdf = Path(temp_out_gs.name)
 
             cmd = [
-                self.gs_path, '-dNOSAFER', f'-sOutputFile={gs_output_temp_pdf}',
+                self.gs_path, '-dSAFER', f'-sOutputFile={gs_output_temp_pdf}',
                 '-sDEVICE=pdfwrite', '-dCompatibilityLevel=1.7', '-dNOPAUSE', '-dQUIET', '-dBATCH',
                 f'-dPreserveMarkedContent={"true" if self.preserve_ocr else "false"}',
                 '-dPreserveEPSInfo=false',
@@ -558,21 +565,27 @@ class PdfOptimizer:
         gs_output_temp_pdf = None
 
         try:
-            gs_path_obj = Path(self.gs_path)
-            if sys.platform == "win32":
-                srgb_profile = gs_path_obj.parent.parent / "lib" / "srgb.icc"
-            else:
-                srgb_profile = gs_path_obj.parent.parent / "share" / "ghostscript" / "iccprofiles" / "srgb.icc"
-
-            
-            if not srgb_profile.exists(): srgb_profile = resource_path('lib/srgb.icc')
-            if not srgb_profile.exists(): raise FileNotFoundError("Required 'srgb.icc' profile not found.")
+            # Ghostscript moved srgb.icc from lib/ to iccprofiles/ in 10.x, and
+            # distributions disagree about the layout, so try the known places.
+            gs_root = Path(self.gs_path).resolve().parent.parent
+            candidates = [
+                gs_root / "iccprofiles" / "srgb.icc",
+                gs_root / "lib" / "srgb.icc",
+                gs_root / "share" / "ghostscript" / "iccprofiles" / "srgb.icc",
+                resource_path('iccprofiles/srgb.icc'),
+                resource_path('lib/srgb.icc'),
+            ]
+            srgb_profile = next((c for c in candidates if c.exists()), None)
+            if srgb_profile is None:
+                raise FileNotFoundError("Required 'srgb.icc' profile not found.")
 
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_out_gs:
                  gs_output_temp_pdf = Path(temp_out_gs.name)
 
             cmd = [
-                self.gs_path, '-dPDFA=1', '-dBATCH', '-dNOPAUSE', '-dQUIET', '-dNOSAFER',
+                self.gs_path,
+                f'--permit-file-read={str(srgb_profile)}',
+                '-dPDFA=1', '-dBATCH', '-dNOPAUSE', '-dQUIET', '-dSAFER',
                 '-sDEVICE=pdfwrite', '-dPDFACompatibilityPolicy=1', '-sColorConversionStrategy=RGB',
                 f'-sOutputICCProfile={str(srgb_profile)}',
             ]

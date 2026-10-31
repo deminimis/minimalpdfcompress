@@ -533,7 +533,7 @@ def run_pdf_to_image_task(gs_path, pdf_in, out_dir, options, q):
         output_dir_path.mkdir(parents=True, exist_ok=True)
         out_path = output_dir_path / f"{Path(pdf_in).stem}_%d.{fmt}"
         device_map = {'png': 'png16m', 'jpeg': 'jpeg', 'tiff': 'tiffg4'}
-        cmd = [gs_path, f"-sDEVICE={device_map.get(fmt, 'png16m')}", f"-r{dpi}", "-dNOPAUSE", "-dBATCH", f"-sOutputFile={str(out_path)}", pdf_in]
+        cmd = [gs_path, f"-sDEVICE={device_map.get(fmt, 'png16m')}", f"-r{dpi}", "-dNOPAUSE", "-dBATCH", "-dSAFER", f"-sOutputFile={str(out_path)}", pdf_in]
         run_command(cmd)
 
 def run_repair_task(pdf_in, pdf_out, q):

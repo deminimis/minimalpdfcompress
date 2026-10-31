@@ -50,10 +50,12 @@ def get_pdf_metadata(file_path):
         return {'name': Path(file_path).name, 'pages': 'N/A', 'size': 'N/A'}
 
 def run_command(command, check=True):
-    use_shell = isinstance(command, str)
+    if isinstance(command, (str, bytes)):
+        raise ProcessingError("Internal error: commands must be an argument list, never a string.")
+    command = [str(part) for part in command]
     logging.info(f"Executing command: {command}")
     try:
-        kwargs = { 'stdin': subprocess.DEVNULL, 'check': check, 'capture_output': True, 'text': True, 'encoding': 'utf-8', 'errors': 'ignore', 'shell': use_shell }
+        kwargs = { 'stdin': subprocess.DEVNULL, 'check': check, 'capture_output': True, 'text': True, 'encoding': 'utf-8', 'errors': 'ignore', 'shell': False }
         if sys.platform == "win32": kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
         result = subprocess.run(command, **kwargs)
         if result.stderr:
@@ -71,7 +73,7 @@ def run_command(command, check=True):
         logging.error(f"Command failed.\nSTDOUT: {e.stdout}\nSTDERR: {e.stderr}")
         raise ProcessingError(f"Tool failed: {e.stderr.strip() if e.stderr else 'Unknown Error'}")
     except FileNotFoundError as e:
-        logging.error(f"Command not found: {command if use_shell else command[0]}")
+        logging.error(f"Command not found: {command[0]}")
         raise ProcessingError(f"Command not found: {e}.")
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
